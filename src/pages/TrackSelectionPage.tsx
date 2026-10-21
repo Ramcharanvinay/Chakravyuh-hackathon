@@ -24,7 +24,7 @@ export const TrackSelectionPage: React.FC = () => {
   // Guard: Redirect to /login if not authenticated
   useEffect(() => {
     if (!isLoading && !team) {
-      navigate('/login');
+      navigate('/login', { replace: true });
     }
   }, [team, isLoading, navigate]);
 
@@ -32,13 +32,13 @@ export const TrackSelectionPage: React.FC = () => {
   useEffect(() => {
     if (!isLoading && selection) {
       if (submission) {
-        navigate('/submit');
+        navigate('/submit', { replace: true });
       } else {
         const lockedTrack = tracks.find(t => t.id === selection.trackId);
         if (lockedTrack) {
-          navigate(`/theme/${lockedTrack.slug}`);
+          navigate(`/theme/${lockedTrack.slug}`, { replace: true });
         } else {
-          navigate('/problems');
+          navigate('/problems', { replace: true });
         }
       }
     }

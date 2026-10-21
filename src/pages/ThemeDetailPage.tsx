@@ -41,7 +41,7 @@ export const ThemeDetailPage: React.FC = () => {
   // Guard: Redirect to /login if not authenticated
   useEffect(() => {
     if (!isLoading && !team) {
-      navigate('/login');
+      navigate('/login', { replace: true });
     }
   }, [team, isLoading, navigate]);
 

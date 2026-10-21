@@ -21,11 +21,11 @@ export const LoginPage: React.FC = () => {
   useEffect(() => {
     if (!isLoading && user && team) {
       if (submission) {
-        navigate('/submit');
+        navigate('/submit', { replace: true });
       } else if (selection) {
-        navigate('/problems');
+        navigate('/problems', { replace: true });
       } else {
-        navigate('/tracks');
+        navigate('/tracks', { replace: true });
       }
     }
   }, [user, team, selection, submission, isLoading, navigate]);

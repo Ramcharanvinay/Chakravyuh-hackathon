@@ -35,14 +35,14 @@ export const SubmissionPage: React.FC = () => {
   // Guards: If not authenticated, redirect to /login
   useEffect(() => {
     if (!isLoading && !team) {
-      navigate('/login');
+      navigate('/login', { replace: true });
     }
   }, [team, isLoading, navigate]);
 
   // Guard: If team has NOT locked a selection yet, redirect to /tracks or /problems
   useEffect(() => {
     if (!isLoading && team && !selection && !submission) {
-      navigate('/tracks');
+      navigate('/tracks', { replace: true });
     }
   }, [team, selection, submission, isLoading, navigate]);
 
