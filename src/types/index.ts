@@ -1,7 +1,9 @@
 export interface Track {
   id: string;
   name: string;
-  themeKey: 'agni' | 'vajra' | 'vayu' | 'vanam' | 'surya';
+  officialTitle: string;
+  slug: string;
+  themeKey: 'agni' | 'vajra' | 'vayu' | 'vanam' | 'surya' | string;
   accentColor: string;
   secondaryColor: string;
   glowColor: string;
@@ -11,24 +13,42 @@ export interface Track {
   displayOrder: number;
 }
 
+export interface ProblemDataset {
+  name: string;
+  url?: string;
+  notes?: string;
+}
+
 export interface ProblemStatement {
   id: string;
   trackId: string;
-  problemCode: string; // e.g. AGNI-01
+  problemCode: string; // e.g. CB-01, ST-01, QC-01, FT-01, ES-01
   title: string;
   summary: string;
   fullDescription: string;
+  objective?: string;
+  expectedOutcomes: string[];
   keyRequirements: string[];
   suggestedTech: string[];
-  difficulty: 'Novice' | 'Challenger' | 'Grandmaster';
+  datasets?: ProblemDataset[];
+  difficulty: 'Easy' | 'Hard' | 'Flagship' | 'Novice' | 'Challenger' | 'Grandmaster';
   displayOrder: number;
+}
+
+export interface TeamMember {
+  name: string;
+  email?: string;
+  role?: string;
 }
 
 export interface Team {
   id: string;
   ownerUserId: string;
   teamName: string;
+  leaderName?: string;
   leaderEmail: string;
+  leaderPhone?: string;
+  members?: TeamMember[];
   createdAt: string;
 }
 

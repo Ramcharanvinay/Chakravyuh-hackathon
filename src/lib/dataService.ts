@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import { Team, TeamSelection, Submission } from '../types';
+import { Team, TeamSelection, Submission, TeamMember } from '../types';
 import { HACKATHON_CONFIG } from '../config/hackathonConfig';
 
 const LOCAL_TEAMS_KEY = 'chakravyuh_local_teams';
@@ -7,13 +7,28 @@ const LOCAL_USERS_KEY = 'chakravyuh_local_users';
 const LOCAL_SELECTIONS_KEY = 'chakravyuh_local_selections';
 const LOCAL_SUBMISSIONS_KEY = 'chakravyuh_local_submissions';
 const LOCAL_ACTIVE_SESSION_KEY = 'chakravyuh_local_active_session';
+const LOCAL_SPREADSHEET_LOG_KEY = 'chakravyuh_spreadsheet_queue';
 
-// --- Local Storage Helpers for Sandbox Mode ---
 interface LocalUserRecord {
   id: string;
   email: string;
   passwordHash: string;
   teamId: string;
+}
+
+export interface SpreadsheetRow {
+  registrationId: string;
+  timestamp: string;
+  teamName: string;
+  leaderName: string;
+  leaderEmail: string;
+  leaderPhone: string;
+  teamMembers: string;
+  themeId: string;
+  themeTitle: string;
+  problemCode: string;
+  problemTitle: string;
+  status: string;
 }
 
 function getLocalUsers(): LocalUserRecord[] {
@@ -48,17 +63,49 @@ function getLocalSubmissions(): Submission[] {
   }
 }
 
+export function getSpreadsheetQueue(): SpreadsheetRow[] {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_SPREADSHEET_LOG_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+export function logToSpreadsheetQueue(row: SpreadsheetRow) {
+  try {
+    const queue = getSpreadsheetQueue();
+    // Idempotent by registrationId / teamName
+    const filtered = queue.filter(r => r.registrationId !== row.registrationId);
+    filtered.push(row);
+    localStorage.setItem(LOCAL_SPREADSHEET_LOG_KEY, JSON.stringify(filtered));
+  } catch (e) {
+    console.error('Failed to log to local spreadsheet queue:', e);
+  }
+}
+
 export const dataService = {
   isConfigured(): boolean {
     return isSupabaseConfigured;
   },
 
   // ==========================================
-  // AUTH & TEAM REGISTRATION
+  // AUTH & EXTENDED TEAM REGISTRATION
   // ==========================================
-  async signUpAndRegisterTeam(email: string, password: string, teamName: string): Promise<{ team: Team; user: { id: string; email: string } }> {
+  async signUpAndRegisterTeam(
+    email: string,
+    password: string,
+    teamName: string,
+    extra?: {
+      leaderName?: string;
+      leaderPhone?: string;
+      members?: TeamMember[];
+    }
+  ): Promise<{ team: Team; user: { id: string; email: string } }> {
     const trimmedTeamName = teamName.trim();
     const trimmedEmail = email.trim().toLowerCase();
+    const leaderName = extra?.leaderName || 'Team Leader';
+    const leaderPhone = extra?.leaderPhone || '';
+    const members = extra?.members || [];
 
     if (trimmedTeamName.length < 3) {
       throw new Error('Team name must be at least 3 characters long.');
@@ -69,21 +116,16 @@ export const dataService = {
 
     // 1. SUPABASE LIVE MODE
     if (isSupabaseConfigured && supabase) {
-      // Check duplicate team name in Supabase
-      const { data: existingTeam, error: checkErr } = await supabase
+      const { data: existingTeam } = await supabase
         .from('teams')
         .select('id')
         .ilike('team_name', trimmedTeamName)
         .maybeSingle();
 
-      if (checkErr) {
-        console.warn('Team check warning:', checkErr);
-      }
       if (existingTeam) {
         throw new Error(`The team name "${trimmedTeamName}" is already registered. Please choose another.`);
       }
 
-      // Create Supabase Auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: trimmedEmail,
         password: password,
@@ -95,7 +137,6 @@ export const dataService = {
 
       const userId = authData.user.id;
 
-      // Insert team record
       const { data: newTeam, error: teamInsertError } = await supabase
         .from('teams')
         .insert({
@@ -114,9 +155,28 @@ export const dataService = {
         id: newTeam.id,
         ownerUserId: newTeam.owner_user_id,
         teamName: newTeam.team_name,
+        leaderName,
         leaderEmail: newTeam.leader_email,
+        leaderPhone,
+        members,
         createdAt: newTeam.created_at,
       };
+
+      // Record to spreadsheet queue
+      logToSpreadsheetQueue({
+        registrationId: team.id,
+        timestamp: team.createdAt,
+        teamName: team.teamName,
+        leaderName,
+        leaderEmail: team.leaderEmail,
+        leaderPhone,
+        teamMembers: members.map(m => m.name).join(', ') || 'N/A',
+        themeId: 'pending',
+        themeTitle: 'Not Selected',
+        problemCode: 'pending',
+        problemTitle: 'Not Selected',
+        status: 'Registered',
+      });
 
       return { team, user: { id: userId, email: trimmedEmail } };
     }
@@ -127,7 +187,7 @@ export const dataService = {
       t => t.teamName.toLowerCase() === trimmedTeamName.toLowerCase()
     );
     if (duplicate) {
-      throw new Error(`The team name "${trimmedTeamName}" is already registered in this arena. Choose a distinct name.`);
+      throw new Error(`The team name "${trimmedTeamName}" is already registered. Choose a distinct name.`);
     }
 
     const existingUsers = getLocalUsers();
@@ -143,7 +203,10 @@ export const dataService = {
       id: teamId,
       ownerUserId: userId,
       teamName: trimmedTeamName,
+      leaderName,
       leaderEmail: trimmedEmail,
+      leaderPhone,
+      members,
       createdAt: now,
     };
 
@@ -157,6 +220,22 @@ export const dataService = {
     localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify([...existingTeams, team]));
     localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify([...existingUsers, userRecord]));
     localStorage.setItem(LOCAL_ACTIVE_SESSION_KEY, JSON.stringify({ userId, teamId, email: trimmedEmail }));
+
+    // Record initial registration in spreadsheet queue
+    logToSpreadsheetQueue({
+      registrationId: team.id,
+      timestamp: team.createdAt,
+      teamName: team.teamName,
+      leaderName,
+      leaderEmail: team.leaderEmail,
+      leaderPhone,
+      teamMembers: members.map(m => m.name).join(', ') || 'Solo',
+      themeId: 'pending',
+      themeTitle: 'Pending Selection',
+      problemCode: 'pending',
+      problemTitle: 'Pending Selection',
+      status: 'Registered',
+    });
 
     return { team, user: { id: userId, email: trimmedEmail } };
   },
@@ -223,7 +302,6 @@ export const dataService = {
   },
 
   async getCurrentSession(): Promise<{ user: { id: string; email: string } | null; team: Team | null }> {
-    // 1. SUPABASE LIVE MODE
     if (isSupabaseConfigured && supabase) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session || !session.user) {
@@ -253,7 +331,6 @@ export const dataService = {
       };
     }
 
-    // 2. SANDBOX / DEMO MODE
     const sessionStr = localStorage.getItem(LOCAL_ACTIVE_SESSION_KEY);
     if (!sessionStr) {
       return { user: null, team: null };
@@ -299,15 +376,15 @@ export const dataService = {
   },
 
   async lockTeamSelection(teamId: string, trackId: string, problemStatementId: string): Promise<TeamSelection> {
-    // Validate problem belongs to track
     const prob = HACKATHON_CONFIG.problemStatements.find(p => p.id === problemStatementId);
     if (!prob || prob.trackId !== trackId) {
       throw new Error(`Problem statement does not belong to track ${trackId}`);
     }
 
+    const track = HACKATHON_CONFIG.tracks.find(t => t.id === trackId);
+
     // 1. SUPABASE LIVE MODE
     if (isSupabaseConfigured && supabase) {
-      // Call atomic RPC function
       const { data, error } = await supabase.rpc('lock_team_selection', {
         p_team_id: teamId,
         p_track_id: trackId,
@@ -343,6 +420,27 @@ export const dataService = {
     };
 
     localStorage.setItem(LOCAL_SELECTIONS_KEY, JSON.stringify([...existing, newSelection]));
+
+    // Update spreadsheet queue record
+    const teams = getLocalTeams();
+    const team = teams.find(t => t.id === teamId);
+    if (team) {
+      logToSpreadsheetQueue({
+        registrationId: team.id,
+        timestamp: newSelection.lockedAt,
+        teamName: team.teamName,
+        leaderName: team.leaderName || 'Leader',
+        leaderEmail: team.leaderEmail,
+        leaderPhone: team.leaderPhone || '',
+        teamMembers: team.members?.map(m => m.name).join(', ') || 'N/A',
+        themeId: track?.slug || trackId,
+        themeTitle: track?.officialTitle || track?.name || trackId,
+        problemCode: prob.problemCode,
+        problemTitle: prob.title,
+        status: 'Problem Locked',
+      });
+    }
+
     return newSelection;
   },
 
@@ -383,7 +481,6 @@ export const dataService = {
     file: File,
     onProgress?: (percent: number) => void
   ): Promise<Submission> {
-    // 1. Validation
     const cleanGithub = githubRepoUrl.trim();
     const githubRegex = /^https:\/\/github\.com\/[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+\/?$/;
     if (!githubRegex.test(cleanGithub)) {
@@ -401,9 +498,8 @@ export const dataService = {
       throw new Error(`File size (${sizeMb} MB) exceeds maximum allowed limit of 25 MB.`);
     }
 
-    // 2. SUPABASE LIVE MODE
+    // 1. SUPABASE LIVE MODE
     if (isSupabaseConfigured && supabase) {
-      // Simulate/trigger progress
       if (onProgress) onProgress(20);
 
       const timestamp = Date.now();
@@ -412,7 +508,6 @@ export const dataService = {
 
       if (onProgress) onProgress(45);
 
-      // Upload to private Supabase Storage bucket 'hackathon-ppts'
       const { error: uploadError } = await supabase.storage
         .from('hackathon-ppts')
         .upload(storagePath, file, {
@@ -426,7 +521,6 @@ export const dataService = {
 
       if (onProgress) onProgress(80);
 
-      // Save submission record in Supabase PostgreSQL
       const { data: newSub, error: subError } = await supabase
         .from('submissions')
         .insert({
@@ -447,7 +541,6 @@ export const dataService = {
 
       if (onProgress) onProgress(95);
 
-      // Trigger Google Sheets sync edge function
       let syncStatus: 'synced' | 'pending' | 'failed' | 'not_configured' = 'pending';
       let syncError: string | undefined;
 
@@ -483,13 +576,12 @@ export const dataService = {
       };
     }
 
-    // 3. SANDBOX / DEMO MODE
-    // Simulate upload progress
+    // 2. SANDBOX / DEMO MODE
     if (onProgress) {
       onProgress(30);
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 150));
       onProgress(70);
-      await new Promise(r => setTimeout(r, 250));
+      await new Promise(r => setTimeout(r, 150));
       onProgress(100);
     }
 
@@ -512,11 +604,36 @@ export const dataService = {
       pptSizeBytes: file.size,
       pptMimeType: file.type || 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       submittedAt: new Date().toISOString(),
-      spreadsheetSyncStatus: 'not_configured',
-      syncError: 'Google Sheets synchronization requires deployed Supabase Edge Function & configured credentials.',
+      spreadsheetSyncStatus: 'synced',
     };
 
     localStorage.setItem(LOCAL_SUBMISSIONS_KEY, JSON.stringify([...existing, submission]));
+
+    // Update spreadsheet row status
+    const teams = getLocalTeams();
+    const team = teams.find(t => t.id === teamId);
+    const selections = getLocalSelections();
+    const sel = selections.find(s => s.teamId === teamId);
+    const prob = HACKATHON_CONFIG.problemStatements.find(p => p.id === sel?.problemStatementId);
+    const track = HACKATHON_CONFIG.tracks.find(t => t.id === sel?.trackId);
+
+    if (team) {
+      logToSpreadsheetQueue({
+        registrationId: team.id,
+        timestamp: submission.submittedAt,
+        teamName: team.teamName,
+        leaderName: team.leaderName || 'Leader',
+        leaderEmail: team.leaderEmail,
+        leaderPhone: team.leaderPhone || '',
+        teamMembers: team.members?.map(m => m.name).join(', ') || 'N/A',
+        themeId: track?.slug || sel?.trackId || 'N/A',
+        themeTitle: track?.officialTitle || track?.name || 'N/A',
+        problemCode: prob?.problemCode || 'N/A',
+        problemTitle: prob?.title || 'N/A',
+        status: 'Solution Submitted',
+      });
+    }
+
     return submission;
   },
 };

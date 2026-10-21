@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { Team, TeamSelection, Submission } from '../types';
+import { Team, TeamSelection, Submission, TeamMember } from '../types';
 import { dataService } from '../lib/dataService';
 
 interface AuthContextType {
@@ -10,7 +10,16 @@ interface AuthContextType {
   isLoading: boolean;
   isConfigured: boolean;
   signIn: (email: string, pass: string) => Promise<void>;
-  signUp: (email: string, pass: string, teamName: string) => Promise<void>;
+  signUp: (
+    email: string,
+    pass: string,
+    teamName: string,
+    extra?: {
+      leaderName?: string;
+      leaderPhone?: string;
+      members?: TeamMember[];
+    }
+  ) => Promise<void>;
   signOut: () => Promise<void>;
   refreshState: () => Promise<void>;
   lockSelection: (trackId: string, problemStatementId: string) => Promise<TeamSelection>;
@@ -82,10 +91,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, pass: string, teamName: string) => {
+  const signUp = async (
+    email: string,
+    pass: string,
+    teamName: string,
+    extra?: {
+      leaderName?: string;
+      leaderPhone?: string;
+      members?: TeamMember[];
+    }
+  ) => {
     setIsLoading(true);
     try {
-      const result = await dataService.signUpAndRegisterTeam(email, pass, teamName);
+      const result = await dataService.signUpAndRegisterTeam(email, pass, teamName, extra);
       setUser(result.user);
       setTeam(result.team);
       setSelection(null);

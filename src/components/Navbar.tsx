@@ -36,14 +36,11 @@ export const Navbar: React.FC = () => {
 
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="font-cinzel text-xl sm:text-2xl font-black tracking-[0.2em] text-ivory group-hover:text-gold transition-colors">
+              <span className="font-cinzel text-xl sm:text-2xl font-black tracking-[0.15em] text-ivory group-hover:text-gold transition-colors">
                 {HACKATHON_CONFIG.hackathonName}
               </span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gold/10 text-gold border border-gold/30">
-                {HACKATHON_CONFIG.edition}
-              </span>
             </div>
-            <span className="text-[11px] text-ivory-muted/70 tracking-wide truncate max-w-[220px] sm:max-w-none">
+            <span className="text-[11px] font-medium text-gold/80 tracking-widest uppercase truncate max-w-[220px] sm:max-w-none">
               {HACKATHON_CONFIG.collegeName}
             </span>
           </div>
@@ -63,12 +60,12 @@ export const Navbar: React.FC = () => {
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-charcoal border border-gold/40 text-xs">
                   <Lock className="w-3 h-3 text-gold" />
                   <span className="text-ivory-muted">Locked Track:</span>
-                  <span className="font-cinzel text-gold font-bold">{selectedTrack?.name || 'Selected'}</span>
+                  <span className="font-cinzel text-gold font-bold">{selectedTrack?.officialTitle || selectedTrack?.name}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-charcoal border border-charcoal-border text-xs text-ivory-muted">
                   <Compass className="w-3.5 h-3.5 text-gold animate-spin-slow" />
-                  <span>Choosing Formation Gate</span>
+                  <span>Explore Themes</span>
                 </div>
               )}
             </div>
@@ -92,7 +89,7 @@ export const Navbar: React.FC = () => {
             <button
               onClick={handleSignOut}
               title="Exit Arena / Sign Out"
-              className="p-2.5 rounded-xl bg-charcoal-card border border-charcoal-border text-ivory-muted hover:text-ember hover:border-ember/40 hover:bg-ember/10 transition-all duration-300"
+              className="p-2.5 rounded-xl bg-charcoal-card border border-charcoal-border text-ivory-muted hover:text-ember hover:border-ember/40 hover:bg-ember/10 transition-all duration-300 cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
             </button>

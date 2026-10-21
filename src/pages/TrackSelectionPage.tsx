@@ -10,14 +10,9 @@ import { ProgressSteps } from '../components/ProgressSteps';
 import { ChakravyuhWheel } from '../components/ChakravyuhWheel';
 import {
   TrackCulturalBackground,
-  AgniBackground,
-  VajraBackground,
-  VayuBackground,
-  VanamBackground,
-  SuryaBackground,
   PageCulturalAtmosphere,
 } from '../components/cultural-backgrounds';
-import { Flame, Zap, Wind, Trees, Sun, ArrowRight, ShieldCheck, Lock } from 'lucide-react';
+import { Shield, Rocket, Cpu, Coins, Leaf, ArrowRight, Lock } from 'lucide-react';
 
 export const TrackSelectionPage: React.FC = () => {
   const { team, selection, submission, isLoading } = useAuth();
@@ -33,33 +28,38 @@ export const TrackSelectionPage: React.FC = () => {
     }
   }, [team, isLoading, navigate]);
 
-  // Guard: If team has already locked their choice, navigate them directly to locked problems or submission
+  // Guard: If team has already locked their choice, navigate them directly
   useEffect(() => {
     if (!isLoading && selection) {
       if (submission) {
         navigate('/submit');
       } else {
-        navigate('/problems');
+        const lockedTrack = tracks.find(t => t.id === selection.trackId);
+        if (lockedTrack) {
+          navigate(`/theme/${lockedTrack.slug}`);
+        } else {
+          navigate('/problems');
+        }
       }
     }
-  }, [selection, submission, isLoading, navigate]);
+  }, [selection, submission, isLoading, navigate, tracks]);
 
   const selectedTrack = tracks.find(t => t.id === selectedTrackId) || tracks[0];
 
   const getTrackIcon = (iconName: string, accentColor: string) => {
     const props = { className: "w-5 h-5", style: { color: accentColor } };
     switch (iconName) {
-      case 'Flame': return <Flame {...props} />;
-      case 'Zap': return <Zap {...props} />;
-      case 'Wind': return <Wind {...props} />;
-      case 'Trees': return <Trees {...props} />;
-      case 'Sun': return <Sun {...props} />;
-      default: return <Flame {...props} />;
+      case 'Shield': return <Shield {...props} />;
+      case 'Rocket': return <Rocket {...props} />;
+      case 'Cpu': return <Cpu {...props} />;
+      case 'Coins': return <Coins {...props} />;
+      case 'Leaf': return <Leaf {...props} />;
+      default: return <Shield {...props} />;
     }
   };
 
   const handleContinue = () => {
-    navigate(`/problems?track=${selectedTrackId}`);
+    navigate(`/theme/${selectedTrack.slug}`);
   };
 
   if (isLoading) {
@@ -67,7 +67,7 @@ export const TrackSelectionPage: React.FC = () => {
       <div className="min-h-screen bg-[#08090D] flex items-center justify-center text-gold">
         <div className="flex flex-col items-center gap-3">
           <div className="w-12 h-12 rounded-full border-2 border-gold border-t-transparent animate-spin" />
-          <span className="font-cinzel text-xs tracking-widest uppercase">Consulting Ancient Formation...</span>
+          <span className="font-cinzel text-xs tracking-widest uppercase">Consulting Formation Gates...</span>
         </div>
       </div>
     );
@@ -75,7 +75,7 @@ export const TrackSelectionPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#08090D] text-[#F3E8CF] flex flex-col justify-between relative">
-      {/* Full-Page Animated Cultural Background — changes when a track/gate is selected */}
+      {/* Full-Page Animated Cultural Background */}
       <PageCulturalAtmosphere selectedTrackId={selectedTrackId} />
 
       <div className="relative z-10">
@@ -90,16 +90,16 @@ export const TrackSelectionPage: React.FC = () => {
               STAGE 01 • CHAKRAVYUHA BATTLE FORMATION
             </span>
             <h1 className="font-cinzel text-3xl sm:text-5xl font-black text-ivory tracking-wide mt-2">
-              ALIGN YOUR TRACK GATE
+              ALIGN YOUR THEME GATE
             </h1>
             <p className="text-xs sm:text-sm text-ivory-muted/80 mt-2 max-w-xl mx-auto leading-relaxed">
-              Select one of the five ancient operational gates. The sacred formation will reorient, channeling your squad into the corresponding trial chamber.
+              Select one of the five strategic hackathon themes below. The circular formation will reorient, unlocking your squad's dedicated 10-problem challenge chamber.
             </p>
           </div>
 
           {/* Interactive Wheel & Track Selector Matrix */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Left/Center: Interactive Chakravyuh Wheel (Figma Vector Artwork with 5 Operational Gates) */}
+            {/* Left/Center: Interactive Chakravyuh Wheel */}
             <div className="lg:col-span-7 flex flex-col items-center justify-center py-2">
               <ChakravyuhWheel
                 tracks={tracks}
@@ -108,17 +108,17 @@ export const TrackSelectionPage: React.FC = () => {
                 size={580}
               />
               <span className="text-[11px] text-ivory-muted/60 mt-3 font-mono text-center">
-                Click any numbered gate marker on the wheel or a track card to rotate the formation
+                Click any numbered gate marker on the wheel or a theme card to rotate the formation
               </span>
             </div>
 
-            {/* Right: Five Selectable Track Cards & Information Panel */}
+            {/* Right: Five Selectable Theme Cards */}
             <div className="lg:col-span-5 flex flex-col space-y-3.5">
               <span className="text-xs font-mono text-gold tracking-widest uppercase font-semibold">
-                AVAILABLE GATES (5 TRACKS)
+                OFFICIAL HACKATHON THEMES (5 DOMAINS)
               </span>
 
-              {/* Five Track Cards */}
+              {/* Five Theme Cards */}
               <div className="space-y-2.5">
                 {tracks.map((track, idx) => {
                   const isSelected = track.id === selectedTrackId;
@@ -137,7 +137,6 @@ export const TrackSelectionPage: React.FC = () => {
                         borderColor: isSelected ? track.accentColor : undefined,
                       }}
                     >
-                      {/* Real-Time Animated Cultural Background (Agni, Vajra, Vayu, Vanam, Surya) */}
                       <TrackCulturalBackground trackId={track.id} isSelected={isSelected} />
 
                       {/* Active indicator line */}
@@ -165,7 +164,7 @@ export const TrackSelectionPage: React.FC = () => {
                                 {`GATE 0${idx + 1}`}
                               </span>
                               <h3 className="font-cinzel text-base font-bold text-ivory tracking-wide">
-                                {track.name}
+                                {track.officialTitle}
                               </h3>
                             </div>
                             <span className="text-[11px] text-ivory-muted/80 italic font-cinzel line-clamp-1 mt-0.5">
@@ -194,12 +193,12 @@ export const TrackSelectionPage: React.FC = () => {
               <div className="p-4 rounded-2xl bg-gradient-to-br from-charcoal to-[#0A0D14] border border-gold/40 mt-3 shadow-gold-subtle">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-ivory-muted">Ready to Challenge:</span>
+                    <span className="text-xs font-mono text-ivory-muted">Ready to Inspect:</span>
                     <span
                       className="font-cinzel font-bold text-sm"
                       style={{ color: selectedTrack.accentColor }}
                     >
-                      {selectedTrack.name} (10 Problem Statements)
+                      {selectedTrack.officialTitle} (10 Problem Statements)
                     </span>
                   </div>
                 </div>
@@ -209,7 +208,7 @@ export const TrackSelectionPage: React.FC = () => {
                   onClick={handleContinue}
                   className="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-widest flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow cursor-pointer"
                 >
-                  <span>CONTINUE TO PROBLEM STATEMENTS</span>
+                  <span>ENTER {selectedTrack.name} CHAMBER ({selectedTrack.slug.toUpperCase()})</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
