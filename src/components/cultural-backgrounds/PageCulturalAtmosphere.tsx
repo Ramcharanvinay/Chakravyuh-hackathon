@@ -43,14 +43,19 @@ export const PageCulturalAtmosphere: React.FC<PageAtmosphereProps> = ({ selected
     const getTrackParticleColor = (trackId: string) => {
       switch (trackId) {
         case 'track-agni':
+        case 'track-cybersecurity-blockchain':
           return Math.random() > 0.4 ? '#FF7A59' : '#FBBF24'; // Flame copper & golden saffron
         case 'track-vajra':
+        case 'track-quantum-computing':
           return Math.random() > 0.4 ? '#60A5FA' : '#93C5FD'; // Electric blue & lightning white
         case 'track-vayu':
+        case 'track-space-technology':
           return Math.random() > 0.4 ? '#22D3EE' : '#E2E8F0'; // Cyan wind & silver
         case 'track-vanam':
+        case 'track-energy-sustainability':
           return Math.random() > 0.4 ? '#34D399' : '#FDE68A'; // Jade leaf & golden firefly
         case 'track-surya':
+        case 'track-fintech':
           return Math.random() > 0.4 ? '#FBBF24' : '#F59E0B'; // Solar gold & temple amber
         default:
           return '#D8B46A';

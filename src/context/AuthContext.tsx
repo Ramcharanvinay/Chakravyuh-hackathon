@@ -23,7 +23,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refreshState: () => Promise<void>;
   lockSelection: (trackId: string, problemStatementId: string) => Promise<TeamSelection>;
-  submitSolution: (githubUrl: string, file: File, onProgress?: (p: number) => void) => Promise<Submission>;
+  submitSolution: (githubUrl: string, deployedUrl: string, onProgress?: (p: number) => void) => Promise<Submission>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -133,10 +133,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return locked;
   };
 
-  const submitSolution = async (githubUrl: string, file: File, onProgress?: (p: number) => void): Promise<Submission> => {
+  const submitSolution = async (githubUrl: string, deployedUrl: string, onProgress?: (p: number) => void): Promise<Submission> => {
     if (!team) throw new Error('No authenticated team found.');
     if (!selection) throw new Error('Cannot submit before locking a problem statement.');
-    const sub = await dataService.uploadPptAndSubmit(team.id, githubUrl, file, onProgress);
+    const sub = await dataService.submitSolution(team.id, githubUrl, deployedUrl, onProgress);
     setSubmission(sub);
     return sub;
   };

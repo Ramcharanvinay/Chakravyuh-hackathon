@@ -64,10 +64,11 @@ export interface Submission {
   id: string;
   teamId: string;
   githubRepoUrl: string;
-  pptFileName: string;
-  pptStoragePath: string;
-  pptSizeBytes: number;
-  pptMimeType: string;
+  deployedUrl: string;
+  pptFileName?: string;
+  pptStoragePath?: string;
+  pptSizeBytes?: number;
+  pptMimeType?: string;
   submittedAt: string;
   spreadsheetSyncStatus: 'synced' | 'pending' | 'failed' | 'not_configured';
   syncError?: string;

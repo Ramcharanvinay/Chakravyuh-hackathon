@@ -1,29 +1,108 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { HACKATHON_CONFIG } from '../config/hackathonConfig';
-import { Track } from '../types';
 import { Navbar } from '../components/Navbar';
 import { BannerDemo } from '../components/BannerDemo';
 import { ProgressSteps } from '../components/ProgressSteps';
-import { ChakravyuhWheel } from '../components/ChakravyuhWheel';
 import { ChakravyuhWheel3D } from '../components/ChakravyuhWheel3D';
 import {
   TrackCulturalBackground,
   PageCulturalAtmosphere,
 } from '../components/cultural-backgrounds';
 import {
-  Shield,
-  Rocket,
-  Cpu,
-  Coins,
-  Leaf,
+  ShieldCheck,
+  Satellite,
+  Atom,
+  Wallet,
+  Zap,
   ArrowRight,
-  Lock,
-  Box,
-  Layers,
 } from 'lucide-react';
+
+// Domain-Specific SVG Artwork Watermarks that directly reflect each theme
+const ThemeDomainArtwork: React.FC<{ themeKey: string; accentColor: string }> = ({ themeKey, accentColor }) => {
+  switch (themeKey) {
+    case 'agni':
+    case 'cybersecurity-blockchain':
+      return (
+        <svg viewBox="0 0 160 120" fill="none" className="absolute right-0 bottom-0 w-36 h-28 pointer-events-none opacity-20 transition-opacity duration-300">
+          {/* Cryptographic Shield & Blockchain Block Nodes */}
+          <path d="M80 15L120 32V68C120 95 80 112 80 112C80 112 40 95 40 68V32L80 15Z" stroke={accentColor} strokeWidth="1.8" fill={`${accentColor}12`} />
+          <path d="M80 35V92M55 58H105" stroke={accentColor} strokeWidth="1.2" strokeDasharray="3 3" opacity="0.6" />
+          <circle cx="80" cy="58" r="8" fill="#12141C" stroke={accentColor} strokeWidth="1.8" />
+          <path d="M76 58L80 62L86 54" stroke={accentColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="18" y="22" width="16" height="16" rx="3" stroke={accentColor} strokeWidth="1.2" fill="#12141C" />
+          <line x1="34" y1="30" x2="48" y2="38" stroke={accentColor} strokeWidth="1.2" />
+          <rect x="126" y="22" width="16" height="16" rx="3" stroke={accentColor} strokeWidth="1.2" fill="#12141C" />
+          <line x1="112" y1="38" x2="126" y2="30" stroke={accentColor} strokeWidth="1.2" />
+          <rect x="124" y="80" width="16" height="16" rx="3" stroke={accentColor} strokeWidth="1.2" fill="#12141C" />
+          <line x1="105" y1="82" x2="124" y2="88" stroke={accentColor} strokeWidth="1.2" />
+        </svg>
+      );
+    case 'vayu':
+    case 'space-technology':
+      return (
+        <svg viewBox="0 0 160 120" fill="none" className="absolute right-0 bottom-0 w-36 h-28 pointer-events-none opacity-20 transition-opacity duration-300">
+          {/* Satellite with Orbital Trajectory */}
+          <ellipse cx="80" cy="65" rx="58" ry="24" stroke={accentColor} strokeWidth="1.2" strokeDasharray="4 3" transform="rotate(-18 80 65)" />
+          <circle cx="80" cy="65" r="16" fill={`${accentColor}20`} stroke={accentColor} strokeWidth="1.5" />
+          <g transform="translate(108, 42) rotate(24)">
+            <rect x="-8" y="-6" width="16" height="12" rx="2" fill="#12141C" stroke={accentColor} strokeWidth="1.5" />
+            <rect x="-24" y="-5" width="14" height="10" rx="1" fill={`${accentColor}30`} stroke={accentColor} strokeWidth="1" />
+            <rect x="10" y="-5" width="14" height="10" rx="1" fill={`${accentColor}30`} stroke={accentColor} strokeWidth="1" />
+            <line x1="0" y1="-6" x2="0" y2="-12" stroke={accentColor} strokeWidth="1.5" />
+            <circle cx="0" cy="-13" r="2.5" fill={accentColor} />
+          </g>
+          <circle cx="32" cy="28" r="1.5" fill="#FFF" opacity="0.7" />
+          <circle cx="50" cy="18" r="1" fill="#FFF" opacity="0.6" />
+          <circle cx="138" cy="85" r="1.5" fill="#FFF" opacity="0.7" />
+        </svg>
+      );
+    case 'vajra':
+    case 'quantum-computing':
+      return (
+        <svg viewBox="0 0 160 120" fill="none" className="absolute right-0 bottom-0 w-36 h-28 pointer-events-none opacity-20 transition-opacity duration-300">
+          {/* Quantum Atom Superposition Orbitals */}
+          <ellipse cx="80" cy="60" rx="46" ry="16" stroke={accentColor} strokeWidth="1.4" />
+          <ellipse cx="80" cy="60" rx="46" ry="16" stroke={accentColor} strokeWidth="1.4" transform="rotate(60 80 60)" />
+          <ellipse cx="80" cy="60" rx="46" ry="16" stroke={accentColor} strokeWidth="1.4" transform="rotate(-60 80 60)" />
+          <circle cx="80" cy="60" r="9" fill={accentColor} opacity="0.8" />
+          <circle cx="80" cy="60" r="16" fill={`${accentColor}18`} stroke={accentColor} strokeWidth="1" strokeDasharray="2 2" />
+          <circle cx="118" cy="48" r="3" fill="#FFF" />
+          <circle cx="52" cy="82" r="3" fill="#FFF" />
+          <circle cx="65" cy="28" r="2.5" fill={accentColor} />
+        </svg>
+      );
+    case 'surya':
+    case 'fintech':
+      return (
+        <svg viewBox="0 0 160 120" fill="none" className="absolute right-0 bottom-0 w-36 h-28 pointer-events-none opacity-20 transition-opacity duration-300">
+          {/* FinTech Growth Chart & Digital Currency Matrix */}
+          <path d="M25 95L55 75L80 85L110 50L135 32" stroke={accentColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M25 95L55 75L80 85L110 50L135 32V105H25Z" fill={`${accentColor}12`} />
+          <circle cx="135" cy="32" r="4.5" fill="#FFF" stroke={accentColor} strokeWidth="2" />
+          <circle cx="48" cy="40" r="18" fill="#12141C" stroke={accentColor} strokeWidth="1.6" />
+          <path d="M48 28V52M42 34H52C54.2 34 56 35.8 56 38C56 40.2 54.2 42 52 42H44C41.8 42 40 43.8 40 46C40 48.2 41.8 50 44 50H54" stroke={accentColor} strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M98 28C103 33 103 42 98 47" stroke={accentColor} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+          <path d="M104 24C111 31 111 44 104 51" stroke={accentColor} strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+        </svg>
+      );
+    case 'vanam':
+    case 'energy-sustainability':
+      return (
+        <svg viewBox="0 0 160 120" fill="none" className="absolute right-0 bottom-0 w-36 h-28 pointer-events-none opacity-20 transition-opacity duration-300">
+          {/* Clean Energy Lightning Bolt & Sustainability Leaf Eco Grid */}
+          <path d="M68 20L48 62H68L60 102L92 52H74L86 20Z" stroke={accentColor} strokeWidth="1.8" fill={`${accentColor}18`} strokeLinejoin="round" />
+          <path d="M125 35C100 35 90 60 90 85C115 85 140 75 140 50C140 38 135 35 125 35Z" stroke={accentColor} strokeWidth="1.6" fill={`${accentColor}12`} />
+          <path d="M90 85C102 70 118 55 135 48" stroke={accentColor} strokeWidth="1.4" strokeLinecap="round" />
+          <circle cx="118" cy="88" r="8" fill="none" stroke={accentColor} strokeWidth="1.2" strokeDasharray="3 2" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+};
 
 export const TrackSelectionPage: React.FC = () => {
   const { team, selection, submission, isLoading } = useAuth();
@@ -31,7 +110,6 @@ export const TrackSelectionPage: React.FC = () => {
 
   const tracks = HACKATHON_CONFIG.tracks;
   const [selectedTrackId, setSelectedTrackId] = useState<string>(tracks[0].id);
-  const [wheelMode, setWheelMode] = useState<'3d' | '2d'>('3d');
 
   // Guard: Redirect to /login if not authenticated
   useEffect(() => {
@@ -56,17 +134,46 @@ export const TrackSelectionPage: React.FC = () => {
     }
   }, [selection, submission, isLoading, navigate, tracks]);
 
-  const selectedTrack = tracks.find(t => t.id === selectedTrackId) || tracks[0];
+  const selectedTrack =
+    tracks.find(
+      t =>
+        t.id === selectedTrackId ||
+        t.slug === selectedTrackId ||
+        t.themeKey === selectedTrackId ||
+        t.id.toLowerCase() === selectedTrackId.toLowerCase()
+    ) || tracks[0];
+
+  const handleSelectTrack = (trackId: string) => {
+    const matched = tracks.find(
+      t =>
+        t.id === trackId ||
+        t.slug === trackId ||
+        t.themeKey === trackId ||
+        t.id.toLowerCase() === trackId.toLowerCase()
+    );
+    setSelectedTrackId(matched ? matched.id : trackId);
+  };
 
   const getTrackIcon = (iconName: string, accentColor: string) => {
     const props = { className: "w-5 h-5", style: { color: accentColor } };
     switch (iconName) {
-      case 'Shield': return <Shield {...props} />;
-      case 'Rocket': return <Rocket {...props} />;
-      case 'Cpu': return <Cpu {...props} />;
-      case 'Coins': return <Coins {...props} />;
-      case 'Leaf': return <Leaf {...props} />;
-      default: return <Shield {...props} />;
+      case 'ShieldCheck':
+      case 'Shield':
+        return <ShieldCheck {...props} />;
+      case 'Satellite':
+      case 'Rocket':
+        return <Satellite {...props} />;
+      case 'Atom':
+      case 'Cpu':
+        return <Atom {...props} />;
+      case 'Wallet':
+      case 'Coins':
+        return <Wallet {...props} />;
+      case 'Zap':
+      case 'Leaf':
+        return <Zap {...props} />;
+      default:
+        return <ShieldCheck {...props} />;
     }
   };
 
@@ -87,8 +194,8 @@ export const TrackSelectionPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#08090D] text-[#F3E8CF] flex flex-col justify-between relative">
-      {/* Full-Page Animated Cultural Background */}
-      <PageCulturalAtmosphere selectedTrackId={selectedTrackId} />
+      {/* Full-Page Animated Atmosphere */}
+      <PageCulturalAtmosphere selectedTrackId={selectedTrack.id} />
 
       <div className="relative z-10">
         <BannerDemo />
@@ -111,59 +218,14 @@ export const TrackSelectionPage: React.FC = () => {
 
           {/* Interactive Wheel & Track Selector Matrix */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Left/Center: Interactive Chakravyuh Wheel (3D Ancient / 2D Sacred Vector) */}
-            <div className="lg:col-span-7 flex flex-col items-center justify-center py-2">
-
-              {/* Tactical Mode Switcher Pill */}
-              <div className="flex items-center p-1 rounded-full bg-[#12141B]/90 border border-charcoal-border backdrop-blur-md mb-4 shadow-lg">
-                <button
-                  type="button"
-                  onClick={() => setWheelMode('3d')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-cinzel font-bold transition-all duration-300 ${
-                    wheelMode === '3d'
-                      ? 'bg-gold/25 text-gold border border-gold/45 shadow-gold-subtle'
-                      : 'text-ivory-muted hover:text-ivory'
-                  }`}
-                >
-                  <Box className="w-3.5 h-3.5" />
-                  <span>3D Ancient Wheel</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setWheelMode('2d')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-cinzel font-bold transition-all duration-300 ${
-                    wheelMode === '2d'
-                      ? 'bg-gold/25 text-gold border border-gold/45 shadow-gold-subtle'
-                      : 'text-ivory-muted hover:text-ivory'
-                  }`}
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>2D Sacred Vector</span>
-                </button>
-              </div>
-
-              {/* Dynamic Wheel Rendering */}
-              {wheelMode === '3d' ? (
-                <ChakravyuhWheel3D
-                  tracks={tracks}
-                  selectedTrackId={selectedTrackId}
-                  onSelectTrack={setSelectedTrackId}
-                  height={580}
-                />
-              ) : (
-                <ChakravyuhWheel
-                  tracks={tracks}
-                  selectedTrackId={selectedTrackId}
-                  onSelectTrack={setSelectedTrackId}
-                  size={580}
-                />
-              )}
-
-              <span className="text-[11px] text-ivory-muted/60 mt-3 font-mono text-center">
-                {wheelMode === '3d'
-                  ? 'Drag to orbit in 3D • Scroll to zoom • Click any gate or theme card to reorient the formation'
-                  : 'Click any numbered gate marker on the wheel or a theme card to rotate the formation'}
-              </span>
+            {/* Left/Center: Interactive Chakravyuh 3D Wheel (Full View & Enhanced 3D Quality) */}
+            <div className="lg:col-span-7 flex flex-col items-center justify-center py-2 w-full">
+              <ChakravyuhWheel3D
+                tracks={tracks}
+                selectedTrackId={selectedTrack.id}
+                onSelectTrack={handleSelectTrack}
+                height={540}
+              />
             </div>
 
             {/* Right: Five Selectable Theme Cards */}
@@ -175,11 +237,11 @@ export const TrackSelectionPage: React.FC = () => {
               {/* Five Theme Cards */}
               <div className="space-y-2.5">
                 {tracks.map((track, idx) => {
-                  const isSelected = track.id === selectedTrackId;
+                  const isSelected = track.id === selectedTrack.id;
                   return (
                     <motion.div
                       key={track.id}
-                      onClick={() => setSelectedTrackId(track.id)}
+                      onClick={() => handleSelectTrack(track.id)}
                       whileHover={{ x: 4 }}
                       transition={{ duration: 0.2 }}
                       className={`relative overflow-hidden p-3.5 sm:p-4 rounded-2xl cursor-pointer transition-all duration-300 border ${
@@ -193,6 +255,9 @@ export const TrackSelectionPage: React.FC = () => {
                     >
                       <TrackCulturalBackground trackId={track.id} isSelected={isSelected} />
 
+                      {/* Domain-Reflecting Vector Artwork Background */}
+                      <ThemeDomainArtwork themeKey={track.themeKey || track.slug} accentColor={track.accentColor} />
+
                       {/* Active indicator line */}
                       {isSelected && (
                         <div
@@ -204,7 +269,7 @@ export const TrackSelectionPage: React.FC = () => {
                       <div className="relative z-10 flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border backdrop-blur-sm"
+                            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border backdrop-blur-sm shadow-inner"
                             style={{
                               backgroundColor: `${track.accentColor}25`,
                               borderColor: `${track.accentColor}60`,
@@ -215,13 +280,13 @@ export const TrackSelectionPage: React.FC = () => {
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-obsidian/90 text-ivory-muted border border-charcoal-border backdrop-blur-sm">
-                                {`GATE 0${idx + 1}`}
+                                {`0${idx + 1}`}
                               </span>
                               <h3 className="font-cinzel text-base font-bold text-ivory tracking-wide">
                                 {track.officialTitle}
                               </h3>
                             </div>
-                            <span className="text-[11px] text-ivory-muted/80 italic font-cinzel line-clamp-1 mt-0.5">
+                            <span className="text-[11px] text-ivory-muted/85 font-sans italic line-clamp-1 mt-0.5">
                               "{track.motto}"
                             </span>
                           </div>
@@ -262,7 +327,7 @@ export const TrackSelectionPage: React.FC = () => {
                   onClick={handleContinue}
                   className="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-widest flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow cursor-pointer"
                 >
-                  <span>ENTER {selectedTrack.name} CHAMBER ({selectedTrack.slug.toUpperCase()})</span>
+                  <span>Explore Problem Statements</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -277,3 +342,5 @@ export const TrackSelectionPage: React.FC = () => {
     </div>
   );
 };
+
+export default TrackSelectionPage;

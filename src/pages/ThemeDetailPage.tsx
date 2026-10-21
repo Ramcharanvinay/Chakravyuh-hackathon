@@ -48,7 +48,7 @@ export const ThemeDetailPage: React.FC = () => {
   // Find track matching slug or id
   const currentTrack = useMemo(() => {
     return (
-      HACKATHON_CONFIG.tracks.find(t => t.slug === themeSlug || t.id === themeSlug) ||
+      HACKATHON_CONFIG.tracks.find(t => t.slug === themeSlug || t.id === themeSlug || t.themeKey === themeSlug || t.name.toLowerCase() === (themeSlug || '').toLowerCase()) ||
       HACKATHON_CONFIG.tracks[0]
     );
   }, [themeSlug]);
@@ -117,6 +117,7 @@ export const ThemeDetailPage: React.FC = () => {
     try {
       await lockSelection(currentTrack.id, selectedProblemId);
       setIsModalOpen(false);
+      navigate('/submit');
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to lock choice in arena database.');
     } finally {
@@ -144,7 +145,7 @@ export const ThemeDetailPage: React.FC = () => {
       <div className="min-h-screen bg-[#08090D] flex items-center justify-center text-gold">
         <div className="flex flex-col items-center gap-3">
           <div className="w-12 h-12 rounded-full border-2 border-gold border-t-transparent animate-spin" />
-          <span className="font-cinzel text-xs tracking-widest uppercase">Opening Sacred Theme Gate...</span>
+          <span className="font-cinzel text-xs tracking-widest uppercase">Loading Hackathon Theme...</span>
         </div>
       </div>
     );
@@ -169,7 +170,7 @@ export const ThemeDetailPage: React.FC = () => {
                 className="inline-flex items-center gap-2 text-xs font-cinzel text-gold/80 hover:text-gold transition-colors group cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                <span>RETURN TO FORMATION GATES</span>
+                <span>RETURN TO THEME SELECTION</span>
               </Link>
 
               {/* Theme Badge */}
@@ -181,7 +182,7 @@ export const ThemeDetailPage: React.FC = () => {
                   color: currentTrack.accentColor,
                 }}
               >
-                GATE: {currentTrack.name} • {currentTrack.slug.toUpperCase()}
+                THEME • {currentTrack.name.toUpperCase()}
               </div>
             </div>
 
@@ -264,7 +265,7 @@ export const ThemeDetailPage: React.FC = () => {
                 onClick={() => navigate('/submit')}
                 className="px-4 py-2 rounded-xl bg-gold text-obsidian font-cinzel text-xs font-bold tracking-wider hover:brightness-110 flex items-center gap-2 shrink-0 cursor-pointer"
               >
-                <span>ENTER SUBMISSION CHAMBER</span>
+                <span>PROCEED TO SUBMISSION</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </motion.div>
@@ -454,28 +455,42 @@ export const ThemeDetailPage: React.FC = () => {
           </div>
 
           {/* Bottom Floating Lock Control Bar if not locked */}
-          {!selection && (
+          {selectedProblem && (
             <div className="sticky bottom-4 z-30 mt-10 p-4 rounded-2xl bg-[#12141B]/95 border border-gold/40 backdrop-blur-xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/30 flex items-center justify-center text-gold">
-                  <Shield className="w-4 h-4" />
+                  {selection ? <Lock className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
                 </div>
                 <div className="text-xs">
-                  <span className="text-ivory-muted">Ready to bind to squad:</span>{' '}
+                  <span className="text-ivory-muted">
+                    {selection ? 'Locked Assignment:' : 'Ready to bind to squad:'}
+                  </span>{' '}
                   <strong className="text-gold font-cinzel">
                     [{selectedProblem?.problemCode}] {selectedProblem?.title}
                   </strong>
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleOpenLockModal}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-widest hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Lock className="w-4 h-4" />
-                <span>CONFIRM AND LOCK CHOICE</span>
-              </button>
+              {selection ? (
+                <button
+                  type="button"
+                  onClick={() => navigate('/submit')}
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-widest hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>PROCEED TO SUBMISSION</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleOpenLockModal}
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-widest hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Lock className="w-4 h-4" />
+                  <span>CONFIRM & PROCEED TO SUBMISSION</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
             </div>
           )}
         </main>

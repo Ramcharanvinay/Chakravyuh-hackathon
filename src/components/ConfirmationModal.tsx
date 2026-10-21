@@ -153,7 +153,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               ) : (
                 <>
                   <Lock className="w-4 h-4" />
-                  <span>CONFIRM & LOCK FOREVER</span>
+                  <span>CONFIRM & PROCEED TO SUBMISSION</span>
                 </>
               )}
             </button>

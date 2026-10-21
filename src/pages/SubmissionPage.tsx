@@ -6,7 +6,6 @@ import { HACKATHON_CONFIG } from '../config/hackathonConfig';
 import { Navbar } from '../components/Navbar';
 import { BannerDemo } from '../components/BannerDemo';
 import { ProgressSteps } from '../components/ProgressSteps';
-import { FileUploader } from '../components/FileUploader';
 import { SubmissionReceipt } from '../components/SubmissionReceipt';
 import { 
   Github, 
@@ -15,10 +14,9 @@ import {
   AlertCircle, 
   ShieldCheck, 
   Check, 
-  FileCheck, 
-  Sparkles,
-  ArrowRight,
-  ExternalLink
+  Globe, 
+  ExternalLink,
+  Sparkles
 } from 'lucide-react';
 
 export const SubmissionPage: React.FC = () => {
@@ -26,8 +24,7 @@ export const SubmissionPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [githubUrl, setGithubUrl] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [deployedUrl, setDeployedUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmPledge, setConfirmPledge] = useState<boolean>(false);
@@ -39,7 +36,7 @@ export const SubmissionPage: React.FC = () => {
     }
   }, [team, isLoading, navigate]);
 
-  // Guard: If team has NOT locked a selection yet, redirect to /tracks or /problems
+  // Guard: If team has NOT locked a selection yet, redirect to /tracks
   useEffect(() => {
     if (!isLoading && team && !selection && !submission) {
       navigate('/tracks', { replace: true });
@@ -64,6 +61,18 @@ export const SubmissionPage: React.FC = () => {
     return regex.test(clean);
   }, [githubUrl]);
 
+  // Deployed URL validation
+  const isDeployedUrlValid = useMemo(() => {
+    const clean = deployedUrl.trim();
+    if (!clean) return false;
+    try {
+      const parsed = new URL(clean);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  }, [deployedUrl]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -76,8 +85,12 @@ export const SubmissionPage: React.FC = () => {
       setError('Please provide a valid HTTPS GitHub repository URL (e.g. https://github.com/organization/repo).');
       return;
     }
-    if (!selectedFile) {
-      setError('Please select or drag-and-drop your team\'s PowerPoint presentation (.ppt or .pptx).');
+    if (!deployedUrl.trim()) {
+      setError('Live deployed website URL is required.');
+      return;
+    }
+    if (!isDeployedUrlValid) {
+      setError('Please enter a valid live deployed URL starting with http:// or https:// (e.g. https://my-app.vercel.app).');
       return;
     }
     if (!confirmPledge) {
@@ -86,15 +99,11 @@ export const SubmissionPage: React.FC = () => {
     }
 
     setIsSubmitting(true);
-    setUploadProgress(10);
 
     try {
-      await submitSolution(githubUrl.trim(), selectedFile, (p) => {
-        setUploadProgress(p);
-      });
+      await submitSolution(githubUrl.trim(), deployedUrl.trim());
     } catch (err: any) {
       setError(err?.message || 'Failed to complete submission. Please try again.');
-      setUploadProgress(0);
     } finally {
       setIsSubmitting(false);
     }
@@ -262,33 +271,78 @@ export const SubmissionPage: React.FC = () => {
                     Must be a valid HTTPS GitHub repository URL (e.g. https://github.com/user/repo).
                   </span>
                 )}
+                {githubUrl && isGithubValid && (
+                  <span className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+                    <Check className="w-3 h-3" /> Valid GitHub Repository URL format
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* Section 2: PowerPoint Presentation Upload */}
+            {/* Section 2: Deployed Website Link Column */}
             <div className="rounded-2xl bg-charcoal-card border border-charcoal-border p-5 sm:p-6 space-y-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/30 flex items-center justify-center text-gold">
-                  <FileCheck className="w-4 h-4" />
+              <div className="flex items-center justify-between gap-2.5 flex-wrap">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <Globe className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-cinzel text-sm font-bold text-ivory uppercase tracking-wider">
+                      2. Deployed Website Link <span className="text-gold">*</span>
+                    </h3>
+                    <p className="text-[11px] text-ivory-muted">
+                      Provide the live public URL where your web application, dashboard, or deployed project is hosted.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-cinzel text-sm font-bold text-ivory uppercase tracking-wider">
-                    2. PowerPoint Presentation Deck <span className="text-gold">*</span>
-                  </h3>
-                  <p className="text-[11px] text-ivory-muted">
-                    Upload your pitch deck (.ppt or .pptx, maximum 25 MB). Files are encrypted in Supabase Storage.
-                  </p>
-                </div>
+
+                {isDeployedUrlValid && (
+                  <a
+                    href={deployedUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono hover:bg-emerald-500/25 transition-colors cursor-pointer"
+                  >
+                    <span>Test Live Link</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
               </div>
 
               <div className="pt-2">
-                <FileUploader
-                  selectedFile={selectedFile}
-                  onFileSelect={setSelectedFile}
-                  uploadProgress={uploadProgress}
-                  isSubmitting={isSubmitting}
-                  disabled={isSubmitting}
-                />
+                <div className="relative">
+                  <input
+                    type="url"
+                    required
+                    disabled={isSubmitting}
+                    value={deployedUrl}
+                    onChange={(e) => setDeployedUrl(e.target.value)}
+                    placeholder="https://your-project.vercel.app or https://your-domain.com"
+                    className={`w-full px-4 py-3 rounded-xl bg-obsidian border font-mono text-xs text-ivory placeholder-ivory-muted/40 transition-colors ${
+                      deployedUrl && !isDeployedUrlValid
+                        ? 'border-ember focus:border-ember focus:ring-1 focus:ring-ember'
+                        : deployedUrl && isDeployedUrlValid
+                        ? 'border-emerald-500/70 focus:border-emerald-500'
+                        : 'border-charcoal-border focus:border-gold'
+                    }`}
+                  />
+                </div>
+
+                {deployedUrl && !isDeployedUrlValid && (
+                  <span className="text-[11px] text-ember mt-1 block">
+                    Must be a valid web URL starting with https:// or http:// (e.g. https://my-app.vercel.app).
+                  </span>
+                )}
+                {deployedUrl && isDeployedUrlValid && (
+                  <div className="mt-1 flex items-center justify-between text-[11px] text-emerald-400">
+                    <span className="flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Live deployment URL validated
+                    </span>
+                    <span className="text-ivory-muted/70 font-mono">
+                      (Vercel, Netlify, Render, Cloudflare, GitHub Pages, etc.)
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -309,15 +363,15 @@ export const SubmissionPage: React.FC = () => {
                   onClick={() => !isSubmitting && setConfirmPledge(!confirmPledge)}
                   className="text-xs text-ivory-muted leading-relaxed group-hover:text-ivory transition-colors"
                 >
-                  I solemnly certify that this solution was developed solely by team <strong className="text-gold">{team?.teamName}</strong> during the hackathon. We understand that this final submission is immutable once submitted.
+                  I solemnly certify that this solution, source code repository, and live deployed web application were developed solely by team <strong className="text-gold">{team?.teamName}</strong> during the hackathon. We understand that this final submission is immutable once recorded.
                 </span>
               </label>
 
               <button
                 type="submit"
-                disabled={!isGithubValid || !selectedFile || !confirmPledge || isSubmitting}
+                disabled={!isGithubValid || !isDeployedUrlValid || !confirmPledge || isSubmitting}
                 className={`w-full py-3.5 rounded-xl font-cinzel font-bold text-xs tracking-widest flex items-center justify-center gap-2 transition-all duration-300 shadow-gold-subtle ${
-                  isGithubValid && selectedFile && confirmPledge && !isSubmitting
+                  isGithubValid && isDeployedUrlValid && confirmPledge && !isSubmitting
                     ? 'bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian hover:brightness-110 active:scale-[0.99] shadow-gold-glow cursor-pointer'
                     : 'bg-charcoal-border text-ivory-muted/40 cursor-not-allowed'
                 }`}
@@ -325,7 +379,7 @@ export const SubmissionPage: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <Lock className="w-4 h-4 animate-spin" />
-                    <span>UPLOADING PRESENTATION & IMMUTABLY SEALING...</span>
+                    <span>RECORDING & IMMUTABLY SEALING SUBMISSION...</span>
                   </>
                 ) : (
                   <>

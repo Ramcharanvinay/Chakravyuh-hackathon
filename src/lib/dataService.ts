@@ -445,7 +445,7 @@ export const dataService = {
   },
 
   // ==========================================
-  // SUBMISSIONS & POWERPOINT UPLOAD
+  // SUBMISSIONS & DEPLOYED LINK
   // ==========================================
   async getTeamSubmission(teamId: string): Promise<Submission | null> {
     if (isSupabaseConfigured && supabase) {
@@ -461,6 +461,7 @@ export const dataService = {
         id: data.id,
         teamId: data.team_id,
         githubRepoUrl: data.github_repo_url,
+        deployedUrl: data.deployed_url || data.ppt_storage_path || '',
         pptFileName: data.ppt_file_name,
         pptStoragePath: data.ppt_storage_path,
         pptSizeBytes: data.ppt_size_bytes,
@@ -472,64 +473,50 @@ export const dataService = {
     }
 
     const submissions = getLocalSubmissions();
-    return submissions.find(s => s.teamId === teamId) || null;
+    const sub = submissions.find(s => s.teamId === teamId);
+    if (!sub) return null;
+    return {
+      ...sub,
+      deployedUrl: sub.deployedUrl || sub.pptStoragePath || '',
+    };
   },
 
-  async uploadPptAndSubmit(
+  async submitSolution(
     teamId: string,
     githubRepoUrl: string,
-    file: File,
+    deployedUrl: string,
     onProgress?: (percent: number) => void
   ): Promise<Submission> {
     const cleanGithub = githubRepoUrl.trim();
+    const cleanDeployed = deployedUrl.trim();
+
     const githubRegex = /^https:\/\/github\.com\/[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+\/?$/;
     if (!githubRegex.test(cleanGithub)) {
       throw new Error('Please enter a valid HTTPS GitHub repository URL (e.g. https://github.com/team/chakravyuh-solution).');
     }
 
-    const validExtensions = ['.ppt', '.pptx'];
-    const hasValidExt = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-    if (!hasValidExt) {
-      throw new Error('Invalid file type. Only PowerPoint presentations (.ppt, .pptx) are accepted.');
-    }
-
-    if (file.size > HACKATHON_CONFIG.maxPptSizeBytes) {
-      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-      throw new Error(`File size (${sizeMb} MB) exceeds maximum allowed limit of 25 MB.`);
+    try {
+      const parsed = new URL(cleanDeployed);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        throw new Error('Deployed website link must use HTTP or HTTPS protocol.');
+      }
+    } catch {
+      throw new Error('Please enter a valid deployed website URL (e.g. https://your-project.vercel.app).');
     }
 
     // 1. SUPABASE LIVE MODE
     if (isSupabaseConfigured && supabase) {
-      if (onProgress) onProgress(20);
-
-      const timestamp = Date.now();
-      const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const storagePath = `team_${teamId}/${timestamp}_${sanitizedName}`;
-
-      if (onProgress) onProgress(45);
-
-      const { error: uploadError } = await supabase.storage
-        .from('hackathon-ppts')
-        .upload(storagePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (uploadError) {
-        throw new Error(`Failed to upload PowerPoint to storage: ${uploadError.message}`);
-      }
-
-      if (onProgress) onProgress(80);
+      if (onProgress) onProgress(25);
 
       const { data: newSub, error: subError } = await supabase
         .from('submissions')
         .insert({
           team_id: teamId,
           github_repo_url: cleanGithub,
-          ppt_file_name: file.name,
-          ppt_storage_path: storagePath,
-          ppt_size_bytes: file.size,
-          ppt_mime_type: file.type || 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          ppt_file_name: cleanDeployed,
+          ppt_storage_path: cleanDeployed,
+          ppt_size_bytes: 0,
+          ppt_mime_type: 'text/uri-list',
           spreadsheet_sync_status: 'pending',
         })
         .select()
@@ -539,14 +526,14 @@ export const dataService = {
         throw new Error(`Failed to record submission: ${subError?.message || 'Database error'}`);
       }
 
-      if (onProgress) onProgress(95);
+      if (onProgress) onProgress(75);
 
       let syncStatus: 'synced' | 'pending' | 'failed' | 'not_configured' = 'pending';
       let syncError: string | undefined;
 
       try {
         const { data: edgeData, error: edgeError } = await supabase.functions.invoke('sync-sheets', {
-          body: { submissionId: newSub.id, teamId },
+          body: { submissionId: newSub.id, teamId, deployedUrl: cleanDeployed },
         });
 
         if (edgeError) {
@@ -557,7 +544,7 @@ export const dataService = {
         }
       } catch (e: any) {
         syncStatus = 'not_configured';
-        syncError = e.message;
+        syncError = e?.message;
       }
 
       if (onProgress) onProgress(100);
@@ -566,10 +553,11 @@ export const dataService = {
         id: newSub.id,
         teamId: newSub.team_id,
         githubRepoUrl: newSub.github_repo_url,
-        pptFileName: newSub.ppt_file_name,
-        pptStoragePath: newSub.ppt_storage_path,
-        pptSizeBytes: newSub.ppt_size_bytes,
-        pptMimeType: newSub.ppt_mime_type,
+        deployedUrl: cleanDeployed,
+        pptFileName: cleanDeployed,
+        pptStoragePath: cleanDeployed,
+        pptSizeBytes: 0,
+        pptMimeType: 'text/uri-list',
         submittedAt: newSub.submitted_at,
         spreadsheetSyncStatus: syncStatus,
         syncError,
@@ -578,10 +566,10 @@ export const dataService = {
 
     // 2. SANDBOX / DEMO MODE
     if (onProgress) {
-      onProgress(30);
-      await new Promise(r => setTimeout(r, 150));
-      onProgress(70);
-      await new Promise(r => setTimeout(r, 150));
+      onProgress(35);
+      await new Promise(r => setTimeout(r, 120));
+      onProgress(75);
+      await new Promise(r => setTimeout(r, 120));
       onProgress(100);
     }
 
@@ -591,20 +579,17 @@ export const dataService = {
       throw new Error('Your team has already finalized its submission.');
     }
 
-    const timestamp = Date.now();
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const storagePath = `hackathon-ppts/team_${teamId}/${timestamp}_${sanitizedName}`;
-
     const submission: Submission = {
       id: 'sub_' + Math.random().toString(36).substring(2, 9),
       teamId,
       githubRepoUrl: cleanGithub,
-      pptFileName: file.name,
-      pptStoragePath: storagePath,
-      pptSizeBytes: file.size,
-      pptMimeType: file.type || 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      deployedUrl: cleanDeployed,
+      pptFileName: cleanDeployed,
+      pptStoragePath: cleanDeployed,
+      pptSizeBytes: 0,
+      pptMimeType: 'text/uri-list',
       submittedAt: new Date().toISOString(),
-      spreadsheetSyncStatus: 'synced',
+      spreadsheetSyncStatus: 'synced' as const,
     };
 
     localStorage.setItem(LOCAL_SUBMISSIONS_KEY, JSON.stringify([...existing, submission]));
@@ -630,10 +615,23 @@ export const dataService = {
         themeTitle: track?.officialTitle || track?.name || 'N/A',
         problemCode: prob?.problemCode || 'N/A',
         problemTitle: prob?.title || 'N/A',
-        status: 'Solution Submitted',
+        status: `Solution Submitted (Live: ${cleanDeployed})`,
       });
     }
 
     return submission;
+  },
+
+  // Retain for backward compatibility
+  async uploadPptAndSubmit(
+    teamId: string,
+    githubRepoUrl: string,
+    fileOrUrl: any,
+    onProgress?: (percent: number) => void
+  ): Promise<Submission> {
+    if (typeof fileOrUrl === 'string') {
+      return this.submitSolution(teamId, githubRepoUrl, fileOrUrl, onProgress);
+    }
+    return this.submitSolution(teamId, githubRepoUrl, 'https://deployed-project-demo.com', onProgress);
   },
 };

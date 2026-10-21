@@ -1,49 +1,33 @@
 /**
  * ============================================================================
- * CHAKRAVYUHA 3D ANCIENT FORMATION WHEEL (100% SELF-CONTAINED SINGLE FILE)
+ * CHAKRAVYUHA 3D ANCIENT GATE FORMATION (FULL VIEW & HIGH FIDELITY)
  * ============================================================================
  * 
- * Inspired by the sacred Chakravyuh (Padmavyuha) battle labyrinth from the
- * Mahabharata, engineered with Three.js WebGL procedural geometry.
- * 
- * FEATURES INCLUDED IN THIS SINGLE FILE:
- *  - 7 Concentric Battle Rampart Tiers (Saptavyuha) with authentic breach openings
- *  - Stepped ancient ziggurat wall heights ascending to the central sanctum
- *  - Drona's Brahmavidya Citadel with rotating 12-blade Sudarshana golden disc
- *  - Floating levitating Brahmashira crystal core with vertical divine light beam
- *  - 5 Sacred Elemental Gates (AGNI, VAYU, DHRUVA, VAJRA, VANAM) with:
- *      * Carved Torana stone pillars & architraves
- *      * Ceremonial braziers with flame light
- *      * Floating 3D Elemental Totems (Fire Trident, Wind Vortex, Pole Star, Vajra, Lotus)
- *      * Real-time Raycasting (hover highlight & click selection)
- *      * Pulsing ground beacon halos
- *  - Celestial Outer Rim with 78 bronze tick teeth & 20 floating diamond markers
- *  - Kurukshetra twilight atmospheric dust & golden firefly particle system
- *  - Full 3D OrbitControls (drag to orbit, right-click pan, scroll zoom)
- *  - Smooth Inertial Auto-Alignment: rotates chosen gate to 12 o'clock entrance
- *  - Camera Angle Presets: 3D Hero Perspective, Top-Down Tactical Map, Gate View
- *  - Zero external type dependencies (inlined Track type & standalone SVG icons)
- * 
- * USAGE:
- *   import ChakravyuhWheel3D from './ChakravyuhWheel3D';
- *   // or: import { ChakravyuhWheel3D } from './ChakravyuhWheel3D';
- * 
- *   <ChakravyuhWheel3D
- *     selectedTrackId={selectedTrackId}
- *     onSelectTrack={(trackId) => setSelectedTrackId(trackId)}
- *     height={580}
- *   />
+ * Features:
+ *  - Elevated cinematic full view showing the entire circular Chakravyuh wheel
+ *  - High-fidelity ACES Filmic tone mapping, soft shadows & metallic materials
+ *  - 7 Concentric Battle Rampart Tiers (Saptavyuha) with stepped ziggurat walls
+ *  - Active gate entrance breach opening into Abhimanyu's labyrinth
+ *  - Carved Vedic Torana stone pillars, ornamental architraves & temple finials
+ *  - Ceremonial bronze braziers with active elemental flame lighting & embers
+ *  - 5 Distinct Floating Elemental 3D Totems (Agni, Vayu, Vajra, Surya, Vanam)
+ *  - Central Sanctum with rotating 12-blade Sudarshana disc & levitating crystal core
+ *  - Kurukshetra twilight ambient particle system (golden fireflies & dust)
+ *  - Smooth shortest-path inertial rotation aligning selected theme to front gate
+ *  - Full mobile touch & desktop pointer raycasting with OrbitControls
+ *  - Comprehensive GPU memory cleanup (geometry & material disposal)
  * ============================================================================
  */
 
-import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-// --- INLINED TYPES (Makes this file 100% portable across projects) ---
 export interface ChakravyuhTrack {
   id: string;
   name: string;
+  officialTitle?: string;
+  slug?: string;
   themeKey?: string;
   accentColor?: string;
   secondaryColor?: string;
@@ -63,95 +47,83 @@ export interface ChakravyuhWheel3DProps {
   height?: number | string;
 }
 
-// 5 Sacred Gate Angle Offsets (radians around the circular formation)
-// Gate 1 (Agni): 0° (Facing 12 o'clock Entrance at top)
-// Gate 2 (Vayu): 72°
-// Gate 3 (Dhruva): 144°
-// Gate 4 (Vajra): 216°
-// Gate 5 (Vanam): 288°
-export const FIVE_GATES_CONFIG = [
+// 5 Sacred Gate Configurations mapped 1-to-1 to the 5 official hackathon themes
+const FIVE_GATES_CONFIG = [
   {
-    id: 'track-agni',
+    id: 'track-cybersecurity-blockchain',
+    aliasId: 'track-agni',
+    themeKey: 'agni',
     name: 'AGNI',
     title: 'GATE 01 • AGNI',
-    subtitle: 'Fire & Cybernetic Defense',
+    subtitle: 'Cybersecurity and Blockchain',
     accent: '#E05A47',
     glow: '#FF7A59',
     pointLightColor: 0xff4500,
     angle: 0, // Top / 12 o'clock entrance
-    motto: 'Through Fire We Conquer Darkness',
+    motto: 'Defending Digital Frontiers with Cryptographic Security and Decentralized Trust',
   },
   {
-    id: 'track-vayu',
+    id: 'track-space-technology',
+    aliasId: 'track-vayu',
+    themeKey: 'vayu',
     name: 'VAYU',
     title: 'GATE 02 • VAYU',
-    subtitle: 'Cosmic Wind & Distributed Networks',
-    accent: '#06B6D4',
-    glow: '#38BDF8',
+    subtitle: 'Space Technology',
+    accent: '#38BDF8',
+    glow: '#0284C7',
     pointLightColor: 0x00e5ff,
     angle: (2 * Math.PI) / 5, // 72°
-    motto: 'Boundless Speed & Zero Friction',
+    motto: 'Advancing Satellite Intelligence, Orbital Telemetry and Aerospace Systems',
   },
   {
-    id: 'track-dhruva',
+    id: 'track-quantum-computing',
+    aliasId: 'track-vajra',
+    themeKey: 'vajra',
+    name: 'VAJRA',
+    title: 'GATE 03 • VAJRA',
+    subtitle: 'Quantum Computing',
+    accent: '#8B5CF6',
+    glow: '#A855F7',
+    pointLightColor: 0x8b5cf6,
+    angle: (4 * Math.PI) / 5, // 144°
+    motto: 'Unlocking Quantum Coherence, Superposition and Next-Gen Algorithms',
+  },
+  {
+    id: 'track-fintech',
     aliasId: 'track-surya',
-    name: 'DHRUVA',
-    title: 'GATE 03 • DHRUVA',
-    subtitle: 'The Steadfast Pole Star & Governance',
+    themeKey: 'surya',
+    name: 'SURYA',
+    title: 'GATE 04 • SURYA',
+    subtitle: 'FinTech',
     accent: '#D8B46A',
     glow: '#F59E0B',
     pointLightColor: 0xffd54f,
-    angle: (4 * Math.PI) / 5, // 144°
-    motto: 'Steadfast as the Cosmic Anchor',
-  },
-  {
-    id: 'track-vajra',
-    name: 'VAJRA',
-    title: 'GATE 04 • VAJRA',
-    subtitle: 'Indestructible Thunderbolt & AI/ML',
-    accent: '#3B82F6',
-    glow: '#60A5FA',
-    pointLightColor: 0x3b82f6,
     angle: (6 * Math.PI) / 5, // 216°
-    motto: 'Unyielding Lightning in Real-Time',
+    motto: 'Revolutionizing Digital Payments, Smart Ledgers and Intelligent Finance',
   },
   {
-    id: 'track-vanam',
+    id: 'track-energy-sustainability',
+    aliasId: 'track-vanam',
+    themeKey: 'vanam',
     name: 'VANAM',
     title: 'GATE 05 • VANAM',
-    subtitle: 'Sacred Earth & Bio-Computing',
+    subtitle: 'Energy and Sustainability',
     accent: '#10B981',
     glow: '#34D399',
     pointLightColor: 0x10b981,
     angle: (8 * Math.PI) / 5, // 288°
-    motto: 'Nature Protects Those Who Protect Her',
+    motto: 'Powering Clean Energy Grids and Climate-Resilient Technologies',
   },
 ];
-
-// --- STANDALONE INLINE ICONS (Zero external icon library dependency) ---
-const PlayIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <polygon points="6 3 20 12 6 21 6 3" />
-  </svg>
-);
-
-const PauseIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <rect x="6" y="4" width="4" height="16" rx="1" />
-    <rect x="14" y="4" width="4" height="16" rx="1" />
-  </svg>
-);
 
 export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
   tracks,
   selectedTrackId,
   onSelectTrack,
   className = '',
-  height = 580,
+  height = 540,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
-  const [isAutoRotate, setIsAutoRotate] = useState(true);
-  const [viewAngle, setViewAngle] = useState<'perspective' | 'top' | 'cinematic'>('perspective');
   const [hoveredGateId, setHoveredGateId] = useState<string | null>(null);
 
   // References to mutable 3D objects for real-time interaction
@@ -168,17 +140,26 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
   const diamondsGroupRef = useRef<THREE.Group | null>(null);
   const elementalTotemsRef = useRef<Record<string, THREE.Group>>({});
 
-  // Active track helper
+  // Active gate helper: flawlessly resolves track ID, alias, or themeKey
   const activeGate = useMemo(() => {
+    if (!selectedTrackId) return FIVE_GATES_CONFIG[0];
+    const lower = selectedTrackId.toLowerCase();
     return (
       FIVE_GATES_CONFIG.find(
-        g => g.id === selectedTrackId || ('aliasId' in g && g.aliasId === selectedTrackId)
+        g =>
+          g.id === selectedTrackId ||
+          g.aliasId === selectedTrackId ||
+          g.themeKey === lower ||
+          g.id.toLowerCase() === lower ||
+          g.name.toLowerCase() === lower ||
+          lower.includes(g.themeKey) ||
+          (g.aliasId && lower.includes(g.aliasId.replace('track-', '')))
       ) || FIVE_GATES_CONFIG[0]
     );
   }, [selectedTrackId]);
 
   // Handle target rotation when selected track changes:
-  // We rotate wheelGroup so the selected gate smoothly faces the top entrance (12 o'clock)
+  // Smoothly rotates the wheelGroup so the selected gate faces the front entrance (12 o'clock)
   useEffect(() => {
     if (!activeGate) return;
     const target = -activeGate.angle;
@@ -191,60 +172,22 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     targetRotationY.current = current + diff;
   }, [activeGate]);
 
-  // Camera view preset transitions
-  const applyViewAngle = useCallback((mode: 'perspective' | 'top' | 'cinematic') => {
-    setViewAngle(mode);
-    const camera = cameraRef.current;
-    const controls = controlsRef.current;
-    if (!camera || !controls) return;
-
-    controls.enabled = false;
-    const startPos = camera.position.clone();
-    let targetPos = new THREE.Vector3(0, 15, 19);
-
-    if (mode === 'top') {
-      targetPos = new THREE.Vector3(0, 24, 0.001); // 90° top-down tactical map
-    } else if (mode === 'cinematic') {
-      targetPos = new THREE.Vector3(0, 8.5, 14.5); // dramatic low angle hero
-    }
-
-    const startTime = performance.now();
-    const duration = 900;
-
-    const animateCam = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // Ease-out cubic
-      const ease = 1 - Math.pow(1 - progress, 3);
-
-      camera.position.lerpVectors(startPos, targetPos, ease);
-      controls.target.set(0, 0, 0);
-      camera.lookAt(0, 0, 0);
-
-      if (progress < 1) {
-        requestAnimationFrame(animateCam);
-      } else {
-        controls.enabled = true;
-      }
-    };
-    requestAnimationFrame(animateCam);
-  }, []);
-
   // Main Three.js Scene Setup & Lifecycle
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
 
-    const width = container.clientWidth || 580;
-    const heightPx = typeof height === 'number' ? height : container.clientHeight || 580;
+    const width = container.clientWidth || 540;
+    const heightPx = typeof height === 'number' ? height : container.clientHeight || 540;
 
     // 1. SCENE & ATMOSPHERIC FOG
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x08090d, 0.024);
+    scene.fog = new THREE.FogExp2(0x08090d, 0.02);
 
-    // 2. CAMERA
-    const camera = new THREE.PerspectiveCamera(40, width / heightPx, 0.1, 150);
-    camera.position.set(0, 15, 19);
+    // 2. CAMERA (Elevated Full View showing the entire wheel formation without clipping)
+    const camera = new THREE.PerspectiveCamera(42, width / heightPx, 0.1, 160);
+    camera.position.set(0, 18, 25);
+    camera.lookAt(0, 0, 0);
     cameraRef.current = camera;
 
     // 3. RENDERER
@@ -261,322 +204,203 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     renderer.toneMappingExposure = 1.35;
     container.appendChild(renderer.domElement);
 
-    // 4. ORBIT CONTROLS
+    // 4. ORBIT CONTROLS (Full touch and mouse support)
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
-    controls.maxPolarAngle = Math.PI / 2 - 0.04;
-    controls.minPolarAngle = 0.05;
-    controls.minDistance = 7;
-    controls.maxDistance = 38;
+    controls.maxPolarAngle = Math.PI / 2 - 0.05;
+    controls.minPolarAngle = 0.08;
+    controls.minDistance = 9;
+    controls.maxDistance = 42;
     controls.target.set(0, 0, 0);
     controlsRef.current = controls;
 
-    // 5. LIGHTING SYSTEM (Kurukshetra Sunset + Sacred Vedic Fire)
+    // 5. LIGHTING SYSTEM (Kurukshetra Sunset + Sacred Vedic Gold)
     const ambientLight = new THREE.AmbientLight(0xd8b46a, 0.7);
     scene.add(ambientLight);
 
-    // Directional Key Light (Low golden setting sun)
+    // Key Directional Sun Light
     const sunLight = new THREE.DirectionalLight(0xfff2d4, 2.8);
     sunLight.position.set(12, 22, 10);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
     sunLight.shadow.mapSize.height = 2048;
-    sunLight.shadow.camera.near = 0.5;
-    sunLight.shadow.camera.far = 60;
-    sunLight.shadow.camera.left = -16;
-    sunLight.shadow.camera.right = 16;
-    sunLight.shadow.camera.top = 16;
-    sunLight.shadow.camera.bottom = -16;
     sunLight.shadow.bias = -0.0003;
     scene.add(sunLight);
 
-    // Cool rim light from opposite angle to highlight stone crenellations
+    // Cool rim light to highlight stone crenellations
     const rimLight = new THREE.DirectionalLight(0x406085, 1.2);
     rimLight.position.set(-14, 10, -14);
     scene.add(rimLight);
 
     // Central Sanctum Divine Beam Light
     const sanctumPointLight = new THREE.PointLight(0xfff5d0, 3.2, 18);
-    sanctumPointLight.position.set(0, 2.5, 0);
+    sanctumPointLight.position.set(0, 3.5, 0);
     scene.add(sanctumPointLight);
 
-    // 6. ANCIENT MATERIALS PALETTE (Weathered Vedic Bronze, Basalt & Gold)
-    const bronzeMaterial = new THREE.MeshStandardMaterial({
-      color: 0x241d14,
-      metalness: 0.88,
-      roughness: 0.32,
+    // 6. SHARED HIGH-END MATERIALS
+    const darkBasaltMaterial = new THREE.MeshStandardMaterial({
+      color: 0x12141c,
+      roughness: 0.72,
+      metalness: 0.28,
     });
 
-    const darkBasaltMaterial = new THREE.MeshStandardMaterial({
-      color: 0x0e1017,
-      metalness: 0.25,
-      roughness: 0.85,
+    const innerStoneMaterial = new THREE.MeshStandardMaterial({
+      color: 0x1a1e2a,
+      roughness: 0.65,
+      metalness: 0.35,
     });
 
     const goldTrimMaterial = new THREE.MeshStandardMaterial({
       color: 0xd8b46a,
-      metalness: 0.95,
-      roughness: 0.22,
-      emissive: 0x473715,
-      emissiveIntensity: 0.4,
+      roughness: 0.26,
+      metalness: 0.88,
+      emissive: 0x4a3b1c,
+      emissiveIntensity: 0.15,
     });
 
-    const ivoryStoneMaterial = new THREE.MeshStandardMaterial({
+    const ceremonialGoldMaterial = new THREE.MeshStandardMaterial({
       color: 0xf3e8cf,
-      metalness: 0.15,
-      roughness: 0.55,
-    });
-
-    const sanctumGoldMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf5d485,
-      metalness: 0.96,
-      roughness: 0.15,
+      roughness: 0.2,
+      metalness: 0.92,
       emissive: 0xd8b46a,
-      emissiveIntensity: 0.5,
+      emissiveIntensity: 0.3,
     });
 
-    // 7. ROOT ROTATABLE FORMATION GROUP
+    const bronzeMaterial = new THREE.MeshStandardMaterial({
+      color: 0x8a6328,
+      roughness: 0.42,
+      metalness: 0.8,
+    });
+
+    // 7. BUILD THE ROTATABLE CHAKRAVYUHA BATTLE FORMATION
     const wheelGroup = new THREE.Group();
-    scene.add(wheelGroup);
     wheelGroupRef.current = wheelGroup;
+    scene.add(wheelGroup);
 
-    // --- A. BASE STONE PLINTH ---
-    const baseGeo = new THREE.CylinderGeometry(11.2, 11.6, 0.45, 64);
-    const baseMesh = new THREE.Mesh(baseGeo, darkBasaltMaterial);
-    baseMesh.position.y = -0.25;
-    baseMesh.receiveShadow = true;
-    wheelGroup.add(baseMesh);
+    // --- A. Base Circular Foundation Plinth ---
+    const plinthGeo = new THREE.CylinderGeometry(13.4, 13.8, 0.4, 64);
+    const plinthMesh = new THREE.Mesh(plinthGeo, darkBasaltMaterial);
+    plinthMesh.position.y = -0.2;
+    plinthMesh.receiveShadow = true;
+    wheelGroup.add(plinthMesh);
 
-    // Outer golden bevel ring edge
-    const outerGoldRingGeo = new THREE.TorusGeometry(11.2, 0.08, 16, 100);
-    const outerGoldRingMesh = new THREE.Mesh(outerGoldRingGeo, goldTrimMaterial);
-    outerGoldRingMesh.rotation.x = Math.PI / 2;
-    outerGoldRingMesh.position.y = -0.02;
-    wheelGroup.add(outerGoldRingMesh);
+    // Outer Plinth Gold Chamfer Ring
+    const plinthRingGeo = new THREE.TorusGeometry(13.6, 0.08, 12, 64);
+    const plinthRing = new THREE.Mesh(plinthRingGeo, goldTrimMaterial);
+    plinthRing.rotation.x = Math.PI / 2;
+    wheelGroup.add(plinthRing);
 
-    // --- B. 7 CONCENTRIC BATTLE RAMPARTS (The Saptavyuha Fortresses) ---
-    // The rings rise in stepped ancient ziggurat terraces towards the core!
-    // Each ring has strategic breach openings simulating Abhimanyu's labyrinth maze.
-    const RINGS_DATA = [
-      { radius: 9.2, width: 0.42, height: 0.55, gapAngle: 0, gapSpan: 0.48 },
-      { radius: 7.9, width: 0.40, height: 0.72, gapAngle: Math.PI * 0.85, gapSpan: 0.52 },
-      { radius: 6.6, width: 0.38, height: 0.90, gapAngle: Math.PI * 0.35, gapSpan: 0.50 },
-      { radius: 5.3, width: 0.36, height: 1.08, gapAngle: Math.PI * 1.45, gapSpan: 0.54 },
-      { radius: 4.1, width: 0.34, height: 1.25, gapAngle: Math.PI * 0.12, gapSpan: 0.50 },
-      { radius: 2.9, width: 0.32, height: 1.45, gapAngle: Math.PI * 0.92, gapSpan: 0.52 },
-      { radius: 1.8, width: 0.30, height: 1.65, gapAngle: Math.PI * 1.65, gapSpan: 0.50 },
-    ];
+    // --- B. 7 Concentric Battle Rampart Tiers (Saptavyuha) ---
+    const tierRadii = [11.8, 10.2, 8.6, 7.0, 5.4, 3.8, 2.3];
+    const tierHeights = [0.45, 0.6, 0.8, 1.05, 1.35, 1.7, 2.1];
 
-    RINGS_DATA.forEach((ring) => {
-      const ringGroup = new THREE.Group();
+    tierRadii.forEach((radius, i) => {
+      const wallHeight = tierHeights[i];
+      const wallThick = 0.32;
 
-      // Main circular curved wall arc (leaving the breach opening)
-      const arcLength = Math.PI * 2 - ring.gapSpan;
-      const wallGeo = new THREE.CylinderGeometry(
-        ring.radius + ring.width / 2,
-        ring.radius + ring.width / 2,
-        ring.height,
-        64,
-        1,
-        true,
-        ring.gapAngle + ring.gapSpan / 2,
-        arcLength
-      );
-      const innerWallGeo = new THREE.CylinderGeometry(
-        ring.radius - ring.width / 2,
-        ring.radius - ring.width / 2,
-        ring.height,
-        64,
-        1,
-        true,
-        ring.gapAngle + ring.gapSpan / 2,
-        arcLength
-      );
-
-      const wallMesh = new THREE.Mesh(wallGeo, bronzeMaterial);
-      wallMesh.position.y = ring.height / 2;
+      // Outer crenellated battle wall
+      const wallGeo = new THREE.CylinderGeometry(radius, radius, wallHeight, 64, 1, true);
+      const wallMesh = new THREE.Mesh(wallGeo, i > 3 ? innerStoneMaterial : darkBasaltMaterial);
+      wallMesh.position.y = wallHeight / 2;
       wallMesh.castShadow = true;
       wallMesh.receiveShadow = true;
-      ringGroup.add(wallMesh);
+      wheelGroup.add(wallMesh);
 
-      const innerWallMesh = new THREE.Mesh(innerWallGeo, bronzeMaterial);
-      innerWallMesh.position.y = ring.height / 2;
-      innerWallMesh.castShadow = true;
-      innerWallMesh.receiveShadow = true;
-      ringGroup.add(innerWallMesh);
+      // Gold cap on rampart top edge
+      const capGeo = new THREE.TorusGeometry(radius, wallThick / 3, 8, 64);
+      const capMesh = new THREE.Mesh(capGeo, goldTrimMaterial);
+      capMesh.rotation.x = Math.PI / 2;
+      capMesh.position.y = wallHeight;
+      wheelGroup.add(capMesh);
 
-      // Top rampart walkway ledge (flat ring cap)
-      const capGeo = new THREE.RingGeometry(
-        ring.radius - ring.width / 2,
-        ring.radius + ring.width / 2,
-        64,
-        1,
-        ring.gapAngle + ring.gapSpan / 2,
-        arcLength
-      );
-      const capMesh = new THREE.Mesh(capGeo, ivoryStoneMaterial);
-      capMesh.rotation.x = -Math.PI / 2;
-      capMesh.position.y = ring.height;
-      capMesh.receiveShadow = true;
-      ringGroup.add(capMesh);
+      // Crenellation Battlements (Merlons along the wall)
+      const numMerlons = 24 + i * 4;
+      const merlonGeo = new THREE.BoxGeometry(0.22, 0.18, 0.28);
+      for (let m = 0; m < numMerlons; m++) {
+        const mAngle = (m / numMerlons) * Math.PI * 2;
+        // Leave gaps for the entrance channel at 12 o'clock
+        if (Math.abs(mAngle) < 0.18 || Math.abs(mAngle - Math.PI * 2) < 0.18) continue;
 
-      // Golden parapet trim line along the top ridge
-      const parapetTrimGeo = new THREE.TorusGeometry(
-        ring.radius + ring.width / 2,
-        0.03,
-        8,
-        64,
-        arcLength
-      );
-      const parapetTrimMesh = new THREE.Mesh(parapetTrimGeo, goldTrimMaterial);
-      parapetTrimMesh.rotation.x = Math.PI / 2;
-      parapetTrimMesh.rotation.z = ring.gapAngle + ring.gapSpan / 2;
-      parapetTrimMesh.position.y = ring.height + 0.02;
-      ringGroup.add(parapetTrimMesh);
-
-      // Ancient stone crenellations / battlements along the wall
-      const crenelCount = Math.floor(ring.radius * 6);
-      const crenelStep = arcLength / crenelCount;
-      const crenelGeo = new THREE.BoxGeometry(0.12, 0.18, 0.16);
-
-      for (let c = 0; c < crenelCount; c += 2) {
-        const theta = ring.gapAngle + ring.gapSpan / 2 + c * crenelStep;
-        const cx = Math.cos(theta) * (ring.radius + ring.width / 2 - 0.06);
-        const cz = Math.sin(theta) * (ring.radius + ring.width / 2 - 0.06);
-
-        const crenel = new THREE.Mesh(crenelGeo, darkBasaltMaterial);
-        crenel.position.set(cx, ring.height + 0.09, cz);
-        crenel.rotation.y = -theta;
-        crenel.castShadow = true;
-        ringGroup.add(crenel);
+        const merlon = new THREE.Mesh(merlonGeo, bronzeMaterial);
+        merlon.position.set(
+          Math.cos(mAngle) * radius,
+          wallHeight + 0.09,
+          Math.sin(mAngle) * radius
+        );
+        merlon.rotation.y = -mAngle;
+        wheelGroup.add(merlon);
       }
-
-      // End-bastion terminal posts at the opening gaps
-      const postGeo = new THREE.CylinderGeometry(0.24, 0.28, ring.height + 0.2, 16);
-      const thetaStart = ring.gapAngle + ring.gapSpan / 2;
-      const thetaEnd = thetaStart + arcLength;
-
-      const post1 = new THREE.Mesh(postGeo, goldTrimMaterial);
-      post1.position.set(Math.cos(thetaStart) * ring.radius, (ring.height + 0.2) / 2, Math.sin(thetaStart) * ring.radius);
-      ringGroup.add(post1);
-
-      const post2 = new THREE.Mesh(postGeo, goldTrimMaterial);
-      post2.position.set(Math.cos(thetaEnd) * ring.radius, (ring.height + 0.2) / 2, Math.sin(thetaEnd) * ring.radius);
-      ringGroup.add(post2);
-
-      wheelGroup.add(ringGroup);
     });
 
-    // --- C. ABHIMANYU'S SPIRAL INWARD PATH ---
-    const spiralPoints: THREE.Vector3[] = [];
-    const numSpiralSteps = 120;
-    for (let s = 0; s < numSpiralSteps; s++) {
-      const t = s / numSpiralSteps;
-      const rad = 1.8 + t * 7.2;
-      const angle = t * Math.PI * 4.5;
-      const px = Math.cos(angle) * rad;
-      const pz = Math.sin(angle) * rad;
-      spiralPoints.push(new THREE.Vector3(px, 0.08, pz));
-    }
-    const spiralCurve = new THREE.CatmullRomCurve3(spiralPoints);
-    const spiralGeo = new THREE.TubeGeometry(spiralCurve, 100, 0.045, 8, false);
-    const spiralMat = new THREE.MeshStandardMaterial({
-      color: 0xd8b46a,
-      emissive: 0xd8b46a,
-      emissiveIntensity: 0.6,
-      roughness: 0.3,
-    });
-    const spiralMesh = new THREE.Mesh(spiralGeo, spiralMat);
-    wheelGroup.add(spiralMesh);
-
-    // --- D. CELESTIAL OUTER RIM & 78 PERIMETER TICKS ---
-    const celestialGroup = new THREE.Group();
-    wheelGroup.add(celestialGroup);
-
-    const tickGeo = new THREE.BoxGeometry(0.06, 0.08, 0.45);
-    const majorTickGeo = new THREE.BoxGeometry(0.1, 0.14, 0.75);
-
-    for (let t = 0; t < 78; t++) {
-      const angle = (t / 78) * Math.PI * 2;
-      const isMajor = t % 6 === 0;
-      const r = 10.35;
-      const tx = Math.cos(angle) * r;
-      const tz = Math.sin(angle) * r;
-
-      const tick = new THREE.Mesh(isMajor ? majorTickGeo : tickGeo, isMajor ? goldTrimMaterial : bronzeMaterial);
-      tick.position.set(tx, 0.04, tz);
-      tick.rotation.y = -angle + Math.PI / 2;
-      celestialGroup.add(tick);
+    // --- C. Celestial Outer Rim (Tick Teeth & Diamond Markers) ---
+    const numTicks = 78;
+    const tickGeo = new THREE.BoxGeometry(0.12, 0.08, 0.42);
+    for (let t = 0; t < numTicks; t++) {
+      const tAngle = (t / numTicks) * Math.PI * 2;
+      const tick = new THREE.Mesh(tickGeo, goldTrimMaterial);
+      tick.position.set(Math.cos(tAngle) * 12.8, 0.05, Math.sin(tAngle) * 12.8);
+      tick.rotation.y = -tAngle;
+      wheelGroup.add(tick);
     }
 
-    // 20 Floating Celestial Diamond Runes
+    // 20 Floating Celestial Diamond Inlays
     const diamondsGroup = new THREE.Group();
     diamondsGroupRef.current = diamondsGroup;
     wheelGroup.add(diamondsGroup);
 
     const diamondGeo = new THREE.OctahedronGeometry(0.18, 0);
     for (let d = 0; d < 20; d++) {
-      const angle = (d / 20) * Math.PI * 2;
-      const r = 10.75;
-      const dx = Math.cos(angle) * r;
-      const dz = Math.sin(angle) * r;
-
-      const diamond = new THREE.Mesh(diamondGeo, sanctumGoldMaterial);
-      diamond.position.set(dx, 0.45, dz);
-      diamond.rotation.y = angle;
+      const dAngle = (d / 20) * Math.PI * 2;
+      const diamond = new THREE.Mesh(diamondGeo, ceremonialGoldMaterial);
+      diamond.position.set(Math.cos(dAngle) * 12.8, 0.45, Math.sin(dAngle) * 12.8);
+      diamond.rotation.y = dAngle;
       diamondsGroup.add(diamond);
     }
 
-    // --- E. CENTRAL SANCTUM CITADEL (Drona's Brahmavidya Core) ---
+    // --- D. Drona's Central Sanctum (Padmavyuha Citadel) ---
     const sanctumGroup = new THREE.Group();
     wheelGroup.add(sanctumGroup);
 
-    // Multi-tiered sacred dais
-    const sanctumBase1 = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.4, 1.5, 0.4, 32),
-      darkBasaltMaterial
-    );
-    sanctumBase1.position.y = 1.6;
-    sanctumGroup.add(sanctumBase1);
-
-    const sanctumBase2 = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.1, 1.25, 0.35, 32),
+    // Stepped Circular Altar
+    const altarBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.6, 1.8, 0.6, 32),
       goldTrimMaterial
     );
-    sanctumBase2.position.y = 1.95;
-    sanctumGroup.add(sanctumBase2);
+    altarBase.position.y = 2.4;
+    altarBase.receiveShadow = true;
+    sanctumGroup.add(altarBase);
 
-    // 12 Sudarshana Golden Blade Spokes
+    // Rotating 12-Blade Golden Sudarshana Disc
     const spokesGroup = new THREE.Group();
-    spokesGroup.position.y = 2.15;
-    sanctumGroup.add(spokesGroup);
     sanctumSpokesRef.current = spokesGroup;
+    spokesGroup.position.y = 2.75;
+    sanctumGroup.add(spokesGroup);
 
-    const bladeGeo = new THREE.ConeGeometry(0.12, 0.85, 4);
-    bladeGeo.rotateX(Math.PI / 2);
-
-    for (let b = 0; b < 12; b++) {
-      const angle = (b / 12) * Math.PI * 2;
-      const blade = new THREE.Mesh(bladeGeo, sanctumGoldMaterial);
-      blade.position.set(Math.cos(angle) * 0.7, 0, Math.sin(angle) * 0.7);
-      blade.rotation.y = -angle;
-      spokesGroup.add(blade);
+    const spokeGeo = new THREE.BoxGeometry(0.12, 0.06, 1.4);
+    for (let s = 0; s < 12; s++) {
+      const sAngle = (s / 12) * Math.PI * 2;
+      const spoke = new THREE.Mesh(spokeGeo, ceremonialGoldMaterial);
+      spoke.rotation.y = sAngle;
+      spokesGroup.add(spoke);
     }
 
-    // Floating Sacred Brahmashira Crystal Core
-    const crystalGeo = new THREE.DodecahedronGeometry(0.38, 0);
-    const crystalMat = new THREE.MeshStandardMaterial({
-      color: 0xfff3d1,
+    // Floating Levitating Brahmashira Crystal Core
+    const crystalGeo = new THREE.OctahedronGeometry(0.48, 1);
+    const crystalMat = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
       emissive: 0xd8b46a,
-      emissiveIntensity: 0.9,
+      emissiveIntensity: 0.95,
       roughness: 0.1,
-      metalness: 0.8,
+      metalness: 0.1,
+      transmission: 0.85,
+      ior: 2.2,
+      thickness: 1.2,
     });
-    const crystalMesh = new THREE.Mesh(crystalGeo, crystalMat);
-    crystalMesh.position.y = 2.65;
-    sanctumGroup.add(crystalMesh);
-    sanctumCoreRef.current = crystalMesh;
+    const crystalCore = new THREE.Mesh(crystalGeo, crystalMat);
+    crystalCore.position.y = 3.65;
+    sanctumCoreRef.current = crystalCore;
+    sanctumGroup.add(crystalCore);
 
     // Divine Vertical Light Beam
     const beamGeo = new THREE.CylinderGeometry(0.08, 0.45, 12, 16, 1, true);
@@ -591,7 +415,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     beamMesh.position.y = 7.5;
     sanctumGroup.add(beamMesh);
 
-    // --- F. 5 MONUMENTAL ANCIENT GATE BASTIONS (Agni, Vayu, Dhruva, Vajra, Vanam) ---
+    // --- E. 5 SACRED ELEMENTAL GATES (Agni, Vayu, Vajra, Surya, Vanam) ---
     interactiveGatesRef.current = [];
     gateLightsRef.current = {};
     elementalTotemsRef.current = {};
@@ -632,37 +456,24 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       rightPillar.castShadow = true;
       gateGroup.add(rightPillar);
 
-      // Pillar Ornate Caps
-      const capGeo = new THREE.BoxGeometry(0.44, 0.18, 0.44);
-      const leftCap = new THREE.Mesh(capGeo, goldTrimMaterial);
-      leftCap.position.set(-0.85, 2.65, 0);
-      gateGroup.add(leftCap);
+      // 3. Ornate Torana Architrave / Lintel Beam
+      const lintelMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(2.1, 0.35, 0.45),
+        goldTrimMaterial
+      );
+      lintelMesh.position.set(0, 2.65, 0);
+      lintelMesh.castShadow = true;
+      gateGroup.add(lintelMesh);
 
-      const rightCap = new THREE.Mesh(capGeo, goldTrimMaterial);
-      rightCap.position.set(0.85, 2.65, 0);
-      gateGroup.add(rightCap);
+      // Temple Crown Finial (Kalasha spire atop gate)
+      const finialGeo = new THREE.ConeGeometry(0.24, 0.55, 8);
+      const finial = new THREE.Mesh(finialGeo, ceremonialGoldMaterial);
+      finial.position.set(0, 3.05, 0);
+      gateGroup.add(finial);
 
-      // 3. Architrave / Lintel Beam with Ancient Finials
-      const architraveGeo = new THREE.BoxGeometry(2.2, 0.28, 0.42);
-      const architrave = new THREE.Mesh(architraveGeo, bronzeMaterial);
-      architrave.position.set(0, 2.85, 0);
-      architrave.castShadow = true;
-      gateGroup.add(architrave);
-
-      // Top Temple Crest
-      const crestGeo = new THREE.ConeGeometry(0.35, 0.65, 4);
-      const crest = new THREE.Mesh(crestGeo, sanctumGoldMaterial);
-      crest.position.set(0, 3.25, 0);
-      crest.rotation.y = Math.PI / 4;
-      gateGroup.add(crest);
-
-      // 4. Dual Ceremonial Braziers on Flanking Pillars
-      const brazierGeo = new THREE.CylinderGeometry(0.2, 0.08, 0.25, 8);
-      const brazierMat = new THREE.MeshStandardMaterial({
-        color: 0x221a12,
-        metalness: 0.9,
-        roughness: 0.3,
-      });
+      // 4. Ceremonial Braziers with Active Flame Lights
+      const brazierGeo = new THREE.CylinderGeometry(0.22, 0.12, 0.4, 8);
+      const brazierMat = new THREE.MeshStandardMaterial({ color: 0x422a10, metalness: 0.8 });
 
       const leftBrazier = new THREE.Mesh(brazierGeo, brazierMat);
       leftBrazier.position.set(-1.15, 0.65, 0.5);
@@ -681,51 +492,61 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       const elementMat = new THREE.MeshStandardMaterial({
         color: gate.pointLightColor,
         emissive: gate.pointLightColor,
-        emissiveIntensity: 0.8,
+        emissiveIntensity: 0.85,
         roughness: 0.2,
         metalness: 0.7,
       });
 
-      if (gate.name === 'AGNI') {
-        // Flame Trident / Agnibana
-        const centerSpear = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.75, 6), elementMat);
-        const leftFlame = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.5, 6), elementMat);
-        leftFlame.position.set(-0.25, -0.1, 0);
-        leftFlame.rotation.z = 0.35;
-        const rightFlame = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.5, 6), elementMat);
-        rightFlame.position.set(0.25, -0.1, 0);
-        rightFlame.rotation.z = -0.35;
-        totemGroup.add(centerSpear, leftFlame, rightFlame);
-      } else if (gate.name === 'VAYU') {
-        // Dual Whirling Aerofoil Rings
-        const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.06, 8, 24), elementMat);
-        const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.05, 8, 24), elementMat);
+      if (gate.themeKey === 'agni' || gate.name === 'AGNI') {
+        // Cybersecurity & Blockchain: Cryptographic Shield & Ledger Node
+        const shieldPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.45, 0.1, 6), elementMat);
+        shieldPlate.rotation.x = Math.PI / 2;
+        const lockBody = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.14), goldTrimMaterial);
+        lockBody.position.set(0, -0.06, 0.06);
+        const lockShackle = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.03, 8, 16, Math.PI), goldTrimMaterial);
+        lockShackle.position.set(0, 0.08, 0.06);
+        totemGroup.add(shieldPlate, lockBody, lockShackle);
+      } else if (gate.themeKey === 'vayu' || gate.name === 'VAYU') {
+        // Space Technology: Satellite Space Station with Solar Array Wings
+        const satBody = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.32, 0.42), elementMat);
+        const solarWings = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.03, 0.32), goldTrimMaterial);
+        const commDish = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.12, 16, 1, true), goldTrimMaterial);
+        commDish.position.set(0, 0.25, 0);
+        commDish.rotation.x = Math.PI;
+        totemGroup.add(satBody, solarWings, commDish);
+      } else if (gate.themeKey === 'vajra' || gate.name === 'VAJRA') {
+        // Quantum Computing: Superposition Atom Core with 3 Qubit Orbital Rings
+        const nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), ceremonialGoldMaterial);
+        const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.03, 8, 32), elementMat);
+        const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.03, 8, 32), elementMat);
         ring2.rotation.x = Math.PI / 3;
-        totemGroup.add(ring1, ring2);
-      } else if (gate.name === 'DHRUVA') {
-        // Radiant 8-Point Pole Star with Astrolabe Armillary Ring
-        const starCore = new THREE.Mesh(new THREE.OctahedronGeometry(0.28, 0), elementMat);
-        const astrolabe = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.04, 8, 32), elementMat);
-        astrolabe.rotation.x = Math.PI / 4;
-        totemGroup.add(starCore, astrolabe);
-      } else if (gate.name === 'VAJRA') {
-        // Double-headed Indra Thunderbolt (Vajra)
-        const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.85, 8), elementMat);
-        const topProng = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.45, 4), elementMat);
-        topProng.position.y = 0.45;
-        const bottomProng = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.45, 4), elementMat);
-        bottomProng.position.y = -0.45;
-        bottomProng.rotation.z = Math.PI;
-        totemGroup.add(shaft, topProng, bottomProng);
-      } else if (gate.name === 'VANAM') {
-        // Sacred Banyan Lotus with Nature Spores
-        const lotusCore = new THREE.Mesh(new THREE.DodecahedronGeometry(0.26, 0), elementMat);
-        const petalRing = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.08, 6, 8), elementMat);
-        petalRing.rotation.x = Math.PI / 2;
-        totemGroup.add(lotusCore, petalRing);
+        const ring3 = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.03, 8, 32), elementMat);
+        ring3.rotation.x = -Math.PI / 3;
+        totemGroup.add(nucleus, ring1, ring2, ring3);
+      } else if (gate.themeKey === 'surya' || gate.name === 'SURYA') {
+        // FinTech: Digital Currency Medallion & Intelligent Ledger Ring
+        const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.08, 32), elementMat);
+        coin.rotation.x = Math.PI / 2;
+        const ledgerRing = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.03, 8, 32), goldTrimMaterial);
+        const centerGem = new THREE.Mesh(new THREE.OctahedronGeometry(0.14, 0), ceremonialGoldMaterial);
+        centerGem.position.z = 0.06;
+        totemGroup.add(coin, ledgerRing, centerGem);
+      } else if (gate.themeKey === 'vanam' || gate.name === 'VANAM') {
+        // Energy & Sustainability: Clean Energy Core & Eco-Turbine Blades
+        const sunCore = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), ceremonialGoldMaterial);
+        const bladeGeo = new THREE.ConeGeometry(0.12, 0.46, 6);
+        const blade1 = new THREE.Mesh(bladeGeo, elementMat);
+        blade1.position.set(0, 0.24, 0);
+        const blade2 = new THREE.Mesh(bladeGeo, elementMat);
+        blade2.position.set(0.22, -0.16, 0);
+        blade2.rotation.z = (2 * Math.PI) / 3;
+        const blade3 = new THREE.Mesh(bladeGeo, elementMat);
+        blade3.position.set(-0.22, -0.16, 0);
+        blade3.rotation.z = -(2 * Math.PI) / 3;
+        totemGroup.add(sunCore, blade1, blade2, blade3);
       }
 
-      // 6. Point Light at Gate Arch (illuminating ramparts with elemental color)
+      // 6. Point Light at Gate Arch
       const gatePointLight = new THREE.PointLight(gate.pointLightColor, 1.8, 6.5);
       gatePointLight.position.set(0, 1.8, 0.4);
       gateGroup.add(gatePointLight);
@@ -744,7 +565,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       beaconRing.rotation.x = -Math.PI / 2;
       beaconRing.position.y = 0.41;
       beaconRing.name = `beacon-${gate.id}`;
-      beaconRing.visible = selectedTrackId === gate.id;
+      beaconRing.visible = activeGate.id === gate.id;
       gateGroup.add(beaconRing);
 
       // 8. High-Precision Invisible Hit Target for Clicking
@@ -759,39 +580,32 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       wheelGroup.add(gateGroup);
     });
 
-    // --- G. BATTLEFIELD AMBIENT PARTICLES (Kurukshetra Dust & Golden Fireflies) ---
-    const particleCount = 220;
+    // --- F. Atmospheric Kurukshetra Twilight Particle Fireflies ---
+    const particleCount = 180;
+    const particleGeo = new THREE.BufferGeometry();
     const particlePositions = new Float32Array(particleCount * 3);
-    const particleScales = new Float32Array(particleCount);
 
     for (let p = 0; p < particleCount; p++) {
-      const rad = 2 + Math.random() * 12;
-      const theta = Math.random() * Math.PI * 2;
-      const py = 0.3 + Math.random() * 6.5;
-
-      particlePositions[p * 3] = Math.cos(theta) * rad;
-      particlePositions[p * 3 + 1] = py;
-      particlePositions[p * 3 + 2] = Math.sin(theta) * rad;
-      particleScales[p] = Math.random() * 0.8 + 0.3;
+      const pRad = 2 + Math.random() * 14;
+      const pAng = Math.random() * Math.PI * 2;
+      particlePositions[p * 3] = Math.cos(pAng) * pRad;
+      particlePositions[p * 3 + 1] = 0.5 + Math.random() * 5.5;
+      particlePositions[p * 3 + 2] = Math.sin(pAng) * pRad;
     }
 
-    const particleGeo = new THREE.BufferGeometry();
     particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-    particleGeo.setAttribute('scale', new THREE.BufferAttribute(particleScales, 1));
-
     const particleMat = new THREE.PointsMaterial({
-      color: 0xd8b46a,
+      color: 0xf5d794,
       size: 0.12,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.65,
       blending: THREE.AdditiveBlending,
     });
-
     const particles = new THREE.Points(particleGeo, particleMat);
     scene.add(particles);
-    particlesRef.current.push(particles);
+    particlesRef.current = [particles];
 
-    // 8. RAYCASTING INTERACTION (Hover & Click on 3D Gates)
+    // 8. RAYCASTING INTERACTION (Hover & Click Selection on Desktop & Mobile)
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
@@ -833,8 +647,29 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       }
     };
 
+    // Mobile touch interaction
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.changedTouches.length === 0) return;
+      const touch = e.changedTouches[0];
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const meshes = interactiveGatesRef.current.map(item => item.mesh);
+      const intersects = raycaster.intersectObjects(meshes, false);
+
+      if (intersects.length > 0) {
+        const hit = interactiveGatesRef.current.find(item => item.mesh === intersects[0].object);
+        if (hit) {
+          onSelectTrack(hit.gateId);
+        }
+      }
+    };
+
     renderer.domElement.addEventListener('mousemove', handlePointerMove);
     renderer.domElement.addEventListener('click', handlePointerDown);
+    renderer.domElement.addEventListener('touchend', handleTouchEnd);
 
     // 9. WINDOW RESIZE HANDLER
     const handleResize = () => {
@@ -856,53 +691,51 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       const delta = clock.getDelta();
       const elapsedTime = clock.getElapsedTime();
 
-      // Smooth Inertial Wheel Rotation toward target gate
+      // Smooth Inertial Wheel Rotation toward target gate + continuous cosmic rotation movement
       if (wheelGroup) {
         const diff = targetRotationY.current - currentRotationY.current;
-        currentRotationY.current += diff * 0.055;
-
-        // Auto slow cosmic drift if enabled and user isn't dragging
-        if (isAutoRotate && Math.abs(diff) < 0.005) {
-          targetRotationY.current += 0.0018;
-          currentRotationY.current += 0.0018;
+        if (Math.abs(diff) > 0.003) {
+          currentRotationY.current += diff * 0.058;
+        } else {
+          // Dynamic continuous cosmic movement of the wheel
+          targetRotationY.current += 0.0022;
+          currentRotationY.current += 0.0022;
         }
-
         wheelGroup.rotation.y = currentRotationY.current;
       }
 
-      // Gentle counter-rotation of Sanctum spokes
+      // Gentle counter-rotation of Sanctum Sudarshana spokes
       if (sanctumSpokesRef.current) {
-        sanctumSpokesRef.current.rotation.y = -elapsedTime * 0.25;
+        sanctumSpokesRef.current.rotation.y = -elapsedTime * 0.35;
       }
 
       // Floating crystal core bobbing and rotation
       if (sanctumCoreRef.current) {
-        sanctumCoreRef.current.rotation.y = elapsedTime * 0.45;
-        sanctumCoreRef.current.position.y = 2.65 + Math.sin(elapsedTime * 2) * 0.06;
+        sanctumCoreRef.current.rotation.y = elapsedTime * 0.55;
+        sanctumCoreRef.current.position.y = 3.65 + Math.sin(elapsedTime * 2.4) * 0.12;
       }
 
-      // Celestial diamonds gentle float
+      // Celestial diamonds gentle float and cosmic orbit
       if (diamondsGroupRef.current) {
+        diamondsGroupRef.current.rotation.y = -elapsedTime * 0.04;
         diamondsGroupRef.current.children.forEach((dia, idx) => {
           dia.position.y = 0.45 + Math.sin(elapsedTime * 2.5 + idx * 0.5) * 0.08;
           dia.rotation.x = Math.sin(elapsedTime + idx) * 0.3;
         });
       }
 
-      // Elemental totems rotation & gate beacon pulses
+      // Elemental totems dynamic rotation & bobbing & gate beacon pulses
       FIVE_GATES_CONFIG.forEach(gate => {
         const totem = elementalTotemsRef.current[gate.id];
         if (totem) {
-          totem.rotation.y = elapsedTime * 1.2;
-          totem.position.y = 1.65 + Math.sin(elapsedTime * 2.5 + gate.angle) * 0.08;
+          totem.rotation.y = elapsedTime * 1.5;
+          totem.position.y = 1.65 + Math.sin(elapsedTime * 2.8 + gate.angle) * 0.1;
         }
 
         // Pulse selected gate beacon
         const beacon = wheelGroup.getObjectByName(`beacon-${gate.id}`) as THREE.Mesh | undefined;
         if (beacon) {
-          const isSelected =
-            selectedTrackId === gate.id ||
-            ('aliasId' in gate && gate.aliasId === selectedTrackId);
+          const isSelected = activeGate.id === gate.id;
           beacon.visible = isSelected;
           if (isSelected && beacon.material) {
             (beacon.material as THREE.MeshBasicMaterial).opacity =
@@ -911,17 +744,18 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
         }
 
         // Flicker fire light on Agni
-        if (gate.name === 'AGNI' && gateLightsRef.current[gate.id]) {
-          gateLightsRef.current[gate.id].intensity = 1.8 + (Math.random() - 0.5) * 0.5;
+        if (gate.themeKey === 'agni' && gateLightsRef.current[gate.id]) {
+          gateLightsRef.current[gate.id].intensity = 1.8 + Math.sin(elapsedTime * 8) * 0.4 + (Math.random() - 0.5) * 0.3;
         }
       });
 
       // Drifting dust particles
       if (particlesRef.current.length > 0) {
         particlesRef.current.forEach(pts => {
+          pts.rotation.y = elapsedTime * 0.03;
           const positions = pts.geometry.attributes.position.array as Float32Array;
           for (let p = 0; p < positions.length; p += 3) {
-            positions[p + 1] += Math.sin(elapsedTime + p) * 0.003;
+            positions[p + 1] += Math.sin(elapsedTime * 1.8 + p) * 0.003;
           }
           pts.geometry.attributes.position.needsUpdate = true;
         });
@@ -939,6 +773,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       window.removeEventListener('resize', handleResize);
       renderer.domElement.removeEventListener('mousemove', handlePointerMove);
       renderer.domElement.removeEventListener('click', handlePointerDown);
+      renderer.domElement.removeEventListener('touchend', handleTouchEnd);
 
       controls.dispose();
       renderer.dispose();
@@ -946,11 +781,11 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
         container.removeChild(renderer.domElement);
       }
     };
-  }, [height, onSelectTrack]);
+  }, [height, onSelectTrack, activeGate.id]);
 
   return (
     <div className={`relative flex flex-col items-center justify-center select-none w-full ${className}`}>
-      {/* Dynamic Ambient Background Glow Keyed to Active Track */}
+      {/* Dynamic Ambient Background Glow Keyed to Active Gate */}
       <div
         className="absolute rounded-full pointer-events-none transition-all duration-1000 ease-out z-0"
         style={{
@@ -998,7 +833,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
 
         {/* Hover Gate Tooltip Overlay */}
         {hoveredGateId && (
-          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-4 py-2 rounded-xl bg-[#0e1017]/95 border border-[#D8B46A]/40 shadow-2xl backdrop-blur-md text-center transition-all">
+          <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-4 py-2 rounded-xl bg-[#0e1017]/95 border border-[#D8B46A]/40 shadow-2xl backdrop-blur-md text-center transition-all">
             <div className="text-[10px] font-mono tracking-widest text-[#D8B46A] uppercase">
               Click to Reorient Battle Formation
             </div>
@@ -1011,86 +846,25 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
           </div>
         )}
 
-        {/* Tactical 3D HUD Floating Controls (Top Left & Top Right) */}
-        <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setIsAutoRotate(!isAutoRotate)}
-            className={`p-2 rounded-xl border backdrop-blur-md transition-all text-xs flex items-center gap-1.5 ${
-              isAutoRotate
-                ? 'bg-[#D8B46A]/20 border-[#D8B46A]/50 text-[#D8B46A]'
-                : 'bg-[#12141B]/80 border-[#222738] text-[#F3E8CF]/60 hover:text-[#F3E8CF]'
-            }`}
-            title={isAutoRotate ? 'Pause Cosmic Rotation' : 'Resume Cosmic Rotation'}
-          >
-            {isAutoRotate ? <PauseIcon /> : <PlayIcon />}
-            <span className="font-mono text-[10px] hidden sm:inline">
-              {isAutoRotate ? 'Auto: ON' : 'Auto: PAUSE'}
-            </span>
-          </button>
-        </div>
-
-        {/* Camera Preset Angles (Isometric 3D vs Top-Down Commander Map) */}
-        <div className="absolute top-3 right-3 z-20 flex items-center gap-1 p-1 rounded-xl bg-[#12141B]/85 border border-[#222738] backdrop-blur-md text-[11px]">
-          <button
-            type="button"
-            onClick={() => applyViewAngle('perspective')}
-            className={`px-2.5 py-1 rounded-lg font-cinzel font-semibold transition-all ${
-              viewAngle === 'perspective'
-                ? 'bg-[#D8B46A]/25 text-[#D8B46A] border border-[#D8B46A]/40'
-                : 'text-[#F3E8CF]/60 hover:text-[#F3E8CF]'
-            }`}
-            title="3D Cinematic Isometric Hero View"
-          >
-            3D Hero
-          </button>
-          <button
-            type="button"
-            onClick={() => applyViewAngle('top')}
-            className={`px-2.5 py-1 rounded-lg font-cinzel font-semibold transition-all ${
-              viewAngle === 'top'
-                ? 'bg-[#D8B46A]/25 text-[#D8B46A] border border-[#D8B46A]/40'
-                : 'text-[#F3E8CF]/60 hover:text-[#F3E8CF]'
-            }`}
-            title="Top-Down Sacred Labyrinth Map"
-          >
-            Top-Down
-          </button>
-          <button
-            type="button"
-            onClick={() => applyViewAngle('cinematic')}
-            className={`px-2.5 py-1 rounded-lg font-cinzel font-semibold transition-all ${
-              viewAngle === 'cinematic'
-                ? 'bg-[#D8B46A]/25 text-[#D8B46A] border border-[#D8B46A]/40'
-                : 'text-[#F3E8CF]/60 hover:text-[#F3E8CF]'
-            }`}
-            title="Close-Up Bastion Front View"
-          >
-            Gate View
-          </button>
-        </div>
-
-        {/* Quick Instructions Bottom Overlay */}
+        {/* Subtle Interactive Instruction Pill */}
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none flex items-center gap-2 px-3 py-1 rounded-full bg-[#12141B]/80 border border-[#222738] text-[10px] font-mono text-[#F3E8CF]/70 backdrop-blur-sm">
-          <span>Drag to orbit in 3D • Scroll to zoom • Click gate bastions to select</span>
+          <span>Drag to orbit in 3D • Scroll to zoom • Click or tap any gate to align</span>
         </div>
       </div>
 
       {/* Five Gate Tactical Badges (Direct Selection underneath 3D Wheel) */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-2 z-10 w-full px-2">
+      <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2 z-10 w-full px-2">
         {FIVE_GATES_CONFIG.map((gate, idx) => {
-          const isSelected =
-            selectedTrackId === gate.id ||
-            ('aliasId' in gate && gate.aliasId === selectedTrackId);
+          const isSelected = activeGate.id === gate.id;
 
           return (
             <button
               key={gate.id}
               type="button"
               onClick={() => onSelectTrack(gate.id)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-cinzel font-bold transition-all duration-300 cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-cinzel font-bold transition-all duration-300 cursor-pointer ${
                 isSelected
-                  ? 'border-2 scale-105'
+                  ? 'border-2 scale-105 shadow-[0_0_15px_rgba(201,164,92,0.3)]'
                   : 'bg-[#12141B]/80 border-[#222738] text-[#F3E8CF]/70 hover:border-[#D8B46A]/30 hover:text-[#F3E8CF]'
               }`}
               style={{

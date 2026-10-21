@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Github, FileText, Calendar, ShieldCheck, Database, FileSpreadsheet, ExternalLink, Users } from 'lucide-react';
+import { CheckCircle2, Github, Globe, Calendar, ShieldCheck, Database, FileSpreadsheet, ExternalLink, Users } from 'lucide-react';
 import { Submission, Team, Track, ProblemStatement } from '../types';
 
 interface SubmissionReceiptProps {
@@ -215,20 +215,35 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
               </a>
             </div>
 
-            {/* PowerPoint File */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-charcoal-card border border-charcoal-border">
+            {/* Deployed Website Application Link */}
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-charcoal-card border border-charcoal-border hover:border-gold/40 transition-colors">
               <div className="flex items-center gap-3 min-w-0">
-                <FileText className="w-4 h-4 text-gold shrink-0" />
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                  <Globe className="w-4 h-4 text-emerald-400" />
+                </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-ivory font-medium truncate">{submission.pptFileName}</span>
-                  <span className="text-[10px] text-ivory-muted/60 font-mono">
-                    {formatFileSize(submission.pptSizeBytes)} • PowerPoint Presentation
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono uppercase text-emerald-400 font-bold tracking-wider">
+                      LIVE DEPLOYED APPLICATION
+                    </span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  </div>
+                  <span className="text-ivory font-mono text-xs truncate">
+                    {submission.deployedUrl || 'https://deployed-solution.app'}
                   </span>
                 </div>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-gold/10 text-gold border border-gold/30">
-                Encrypted Vault
-              </span>
+              {submission.deployedUrl && (
+                <a
+                  href={submission.deployedUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold/15 text-gold border border-gold/40 hover:bg-gold hover:text-obsidian transition-colors text-xs font-semibold shrink-0 ml-2 cursor-pointer font-cinzel"
+                >
+                  <span>LAUNCH APP</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
             </div>
           </div>
 
