@@ -8,11 +8,22 @@ import { Navbar } from '../components/Navbar';
 import { BannerDemo } from '../components/BannerDemo';
 import { ProgressSteps } from '../components/ProgressSteps';
 import { ChakravyuhWheel } from '../components/ChakravyuhWheel';
+import { ChakravyuhWheel3D } from '../components/ChakravyuhWheel3D';
 import {
   TrackCulturalBackground,
   PageCulturalAtmosphere,
 } from '../components/cultural-backgrounds';
-import { Shield, Rocket, Cpu, Coins, Leaf, ArrowRight, Lock } from 'lucide-react';
+import {
+  Shield,
+  Rocket,
+  Cpu,
+  Coins,
+  Leaf,
+  ArrowRight,
+  Lock,
+  Box,
+  Layers,
+} from 'lucide-react';
 
 export const TrackSelectionPage: React.FC = () => {
   const { team, selection, submission, isLoading } = useAuth();
@@ -20,6 +31,7 @@ export const TrackSelectionPage: React.FC = () => {
 
   const tracks = HACKATHON_CONFIG.tracks;
   const [selectedTrackId, setSelectedTrackId] = useState<string>(tracks[0].id);
+  const [wheelMode, setWheelMode] = useState<'3d' | '2d'>('3d');
 
   // Guard: Redirect to /login if not authenticated
   useEffect(() => {
@@ -99,16 +111,58 @@ export const TrackSelectionPage: React.FC = () => {
 
           {/* Interactive Wheel & Track Selector Matrix */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Left/Center: Interactive Chakravyuh Wheel */}
+            {/* Left/Center: Interactive Chakravyuh Wheel (3D Ancient / 2D Sacred Vector) */}
             <div className="lg:col-span-7 flex flex-col items-center justify-center py-2">
-              <ChakravyuhWheel
-                tracks={tracks}
-                selectedTrackId={selectedTrackId}
-                onSelectTrack={setSelectedTrackId}
-                size={580}
-              />
+
+              {/* Tactical Mode Switcher Pill */}
+              <div className="flex items-center p-1 rounded-full bg-[#12141B]/90 border border-charcoal-border backdrop-blur-md mb-4 shadow-lg">
+                <button
+                  type="button"
+                  onClick={() => setWheelMode('3d')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-cinzel font-bold transition-all duration-300 ${
+                    wheelMode === '3d'
+                      ? 'bg-gold/25 text-gold border border-gold/45 shadow-gold-subtle'
+                      : 'text-ivory-muted hover:text-ivory'
+                  }`}
+                >
+                  <Box className="w-3.5 h-3.5" />
+                  <span>3D Ancient Wheel</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWheelMode('2d')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-cinzel font-bold transition-all duration-300 ${
+                    wheelMode === '2d'
+                      ? 'bg-gold/25 text-gold border border-gold/45 shadow-gold-subtle'
+                      : 'text-ivory-muted hover:text-ivory'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>2D Sacred Vector</span>
+                </button>
+              </div>
+
+              {/* Dynamic Wheel Rendering */}
+              {wheelMode === '3d' ? (
+                <ChakravyuhWheel3D
+                  tracks={tracks}
+                  selectedTrackId={selectedTrackId}
+                  onSelectTrack={setSelectedTrackId}
+                  height={580}
+                />
+              ) : (
+                <ChakravyuhWheel
+                  tracks={tracks}
+                  selectedTrackId={selectedTrackId}
+                  onSelectTrack={setSelectedTrackId}
+                  size={580}
+                />
+              )}
+
               <span className="text-[11px] text-ivory-muted/60 mt-3 font-mono text-center">
-                Click any numbered gate marker on the wheel or a theme card to rotate the formation
+                {wheelMode === '3d'
+                  ? 'Drag to orbit in 3D • Scroll to zoom • Click any gate or theme card to reorient the formation'
+                  : 'Click any numbered gate marker on the wheel or a theme card to rotate the formation'}
               </span>
             </div>
 
