@@ -122,14 +122,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           <span className="font-cinzel text-base sm:text-lg font-bold text-ivory tracking-wide mb-1">
             Drag & Drop PowerPoint Presentation
           </span>
-          <p className="text-xs text-ivory-muted max-w-sm mb-4">
+          <p className="font-sans text-xs text-ivory-muted max-w-sm mb-4">
             Upload your team's tactical slide deck. Supports <strong className="text-gold">.PPT</strong> and <strong className="text-gold">.PPTX</strong> up to {maxMb} MB.
           </p>
 
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="px-4 py-2 rounded-xl bg-charcoal border border-gold/40 text-gold text-xs font-cinzel font-semibold tracking-wider hover:bg-gold hover:text-obsidian transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-charcoal border border-gold/40 text-gold text-xs font-sans font-semibold tracking-wider uppercase hover:bg-gold hover:text-obsidian transition-colors cursor-pointer"
             >
               BROWSE FILES
             </button>
@@ -148,7 +148,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 });
                 validateAndSetFile(demoFile);
               }}
-              className="px-3.5 py-2 rounded-xl bg-gold/15 border border-gold/40 text-gold text-xs font-cinzel tracking-wider hover:bg-gold/30 transition-colors cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-gold/15 border border-gold/40 text-gold text-xs font-sans font-semibold tracking-wider uppercase hover:bg-gold/30 transition-colors cursor-pointer"
             >
               + USE SAMPLE PPTX
             </button>

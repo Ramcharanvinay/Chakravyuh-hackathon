@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ScrollToTop } from './components/ScrollToTop';
 import { LoginPage } from './pages/LoginPage';
 import { TrackSelectionPage } from './pages/TrackSelectionPage';
 import { ThemeDetailPage } from './pages/ThemeDetailPage';
@@ -11,6 +12,7 @@ export const App: React.FC = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Navigate to="/tracks" replace />} />
           <Route path="/login" element={<LoginPage />} />

@@ -114,7 +114,7 @@ export const ProblemSelectionPage: React.FC = () => {
     try {
       await lockSelection(activeTrack.id, selectedProblemId);
       setIsModalOpen(false);
-      navigate('/submit');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to lock choice in database.');
     } finally {
@@ -123,6 +123,7 @@ export const ProblemSelectionPage: React.FC = () => {
   };
 
   const handleProceedToSubmission = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     navigate('/submit');
   };
 
@@ -143,7 +144,7 @@ export const ProblemSelectionPage: React.FC = () => {
       <div className="min-h-screen bg-[#08090D] flex items-center justify-center text-gold">
         <div className="flex flex-col items-center gap-3">
           <div className="w-12 h-12 rounded-full border-2 border-gold border-t-transparent animate-spin" />
-          <span className="font-cinzel text-xs tracking-widest uppercase">Fetching Sealed Challenges...</span>
+          <span className="font-sans font-semibold text-xs tracking-widest uppercase">Fetching Sealed Challenges...</span>
         </div>
       </div>
     );
@@ -171,7 +172,7 @@ export const ProblemSelectionPage: React.FC = () => {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-charcoal-border/70">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[11px] font-mono tracking-widest text-gold uppercase font-semibold">
+                <span className="text-[11px] font-sans font-semibold tracking-widest text-gold uppercase">
                   STAGE 02 • PROBLEM STATEMENT SELECTION
                 </span>
                 <span className="text-ivory-muted/40">•</span>
@@ -183,7 +184,7 @@ export const ProblemSelectionPage: React.FC = () => {
               <h1 className="font-cinzel text-2xl sm:text-4xl font-extrabold text-ivory tracking-wide">
                 Choose Your Challenge
               </h1>
-              <p className="text-xs sm:text-sm text-ivory-muted/80 mt-1 max-w-2xl">
+              <p className="text-xs sm:text-sm text-ivory-muted/80 mt-1 max-w-2xl font-sans">
                 Ten strategic problem statements forged for the <strong className="text-ivory">{activeTrack.name}</strong> track. Choose wisely: each squad may conquer exactly one challenge.
               </p>
             </div>
@@ -192,13 +193,13 @@ export const ProblemSelectionPage: React.FC = () => {
             <div className="flex items-center gap-3">
               {isLocked ? (
                 <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
-                  <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-semibold">
+                  <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-sans font-semibold">
                     <Lock className="w-3.5 h-3.5 text-emerald-400" />
                     <span>CHOICE LOCKED IN ARENA DATABASE</span>
                   </div>
                   <button
                     onClick={handleProceedToSubmission}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-wider flex items-center gap-2 hover:brightness-110 shadow-gold-glow cursor-pointer"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs tracking-wider uppercase flex items-center gap-2 hover:brightness-110 shadow-gold-glow cursor-pointer"
                   >
                     <span>PROCEED TO SUBMISSION</span>
                     <ArrowRight className="w-4 h-4" />
@@ -208,7 +209,7 @@ export const ProblemSelectionPage: React.FC = () => {
                 <button
                   onClick={handleOpenLockModal}
                   disabled={!selectedProblemId}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-gold to-amber-500 text-obsidian font-cinzel font-bold text-xs tracking-widest flex items-center gap-2 hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-gold to-amber-500 text-obsidian font-sans font-bold text-xs tracking-widest uppercase flex items-center gap-2 hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Lock className="w-4 h-4" />
                   <span>CONFIRM & LOCK CHOICE</span>
@@ -216,40 +217,6 @@ export const ProblemSelectionPage: React.FC = () => {
               )}
             </div>
           </div>
-
-          {/* Locked Notice Banner if locked */}
-          {isLocked && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-6 p-4 rounded-2xl bg-charcoal-card border-2 border-gold/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-gold-subtle"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gold/15 border border-gold/40 flex items-center justify-center text-gold shrink-0">
-                  <CheckCircle2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-gold font-bold">
-                    PERMANENTLY SEALED ASSIGNMENT
-                  </span>
-                  <div className="text-sm font-cinzel font-bold text-ivory">
-                    Your team is bound to <span className="text-gold">[{selectedProblem?.problemCode}] {selectedProblem?.title}</span>
-                  </div>
-                  <span className="text-xs text-ivory-muted">
-                    Locked at: {new Date(selection?.lockedAt || '').toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={handleProceedToSubmission}
-                className="px-4 py-2 rounded-xl bg-gold text-obsidian font-cinzel text-xs font-bold tracking-wider hover:brightness-110 flex items-center gap-2 shrink-0"
-              >
-                <span>ENTER SUBMISSION CHAMBER</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </motion.div>
-          )}
 
           {/* Error Message */}
           {errorMessage && (
@@ -290,10 +257,10 @@ export const ProblemSelectionPage: React.FC = () => {
                   <div>
                     <div className="flex items-start justify-between gap-3 mb-2.5">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono text-xs px-2 py-0.5 rounded bg-obsidian text-gold border border-gold/30 font-bold">
+                        <span className="font-sans text-xs px-2 py-0.5 rounded bg-obsidian text-gold border border-gold/30 font-bold">
                           {problem.problemCode}
                         </span>
-                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase ${getDifficultyBadge(problem.difficulty)}`}>
+                        <span className={`text-[10px] font-sans font-semibold px-2 py-0.5 rounded border uppercase ${getDifficultyBadge(problem.difficulty)}`}>
                           {problem.difficulty}
                         </span>
                       </div>
@@ -301,7 +268,7 @@ export const ProblemSelectionPage: React.FC = () => {
                       {/* Select/Radio Indicator */}
                       <div className="flex items-center gap-2 shrink-0">
                         {isLockedSelection ? (
-                          <span className="flex items-center gap-1 text-[10px] font-cinzel font-bold text-gold bg-gold/15 px-2 py-0.5 rounded-full border border-gold/40">
+                          <span className="flex items-center gap-1 text-[10px] font-sans font-bold text-gold bg-gold/15 px-2 py-0.5 rounded-full border border-gold/40">
                             <Lock className="w-3 h-3" /> LOCKED
                           </span>
                         ) : (
@@ -322,7 +289,7 @@ export const ProblemSelectionPage: React.FC = () => {
                       {problem.title}
                     </h3>
 
-                    <p className="text-xs text-ivory-muted/80 mt-2 leading-relaxed">
+                    <p className="text-xs font-sans text-ivory-muted/80 mt-2 leading-relaxed">
                       {problem.summary}
                     </p>
                   </div>
@@ -332,7 +299,7 @@ export const ProblemSelectionPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={(e) => handleToggleExpand(e, problem.id)}
-                      className="flex items-center justify-between w-full text-xs font-mono text-ivory-muted hover:text-gold transition-colors py-1"
+                      className="flex items-center justify-between w-full text-xs font-sans font-semibold text-ivory-muted hover:text-gold transition-colors py-1 cursor-pointer"
                     >
                       <span>{isExpanded ? 'Hide Tactical Dossier' : 'Inspect Full Requirements'}</span>
                       {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -348,17 +315,17 @@ export const ProblemSelectionPage: React.FC = () => {
                           className="pt-3 space-y-3.5 text-xs text-ivory-muted/90"
                         >
                           <div>
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-gold block mb-1">
+                            <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-gold block mb-1">
                               Battlefield Scenario:
                             </span>
-                            <p className="leading-relaxed bg-obsidian/70 p-3 rounded-xl border border-charcoal-border/70 text-ivory/90">
+                            <p className="leading-relaxed bg-obsidian/70 p-3 rounded-xl border border-charcoal-border/70 text-ivory/90 font-sans">
                               {problem.fullDescription}
                             </p>
                           </div>
 
                           {/* Key Deliverables */}
                           <div>
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-gold block mb-1.5">
+                            <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-gold block mb-1.5">
                               Key Technical Deliverables:
                             </span>
                             <ul className="space-y-1">
@@ -373,14 +340,14 @@ export const ProblemSelectionPage: React.FC = () => {
 
                           {/* Suggested Tech Stack */}
                           <div>
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-gold block mb-1.5">
+                            <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-gold block mb-1.5">
                               Recommended Arsenal / Tech:
                             </span>
                             <div className="flex flex-wrap gap-1.5">
                               {problem.suggestedTech.map((tech, tIdx) => (
                                 <span
                                   key={tIdx}
-                                  className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-charcoal border border-charcoal-border text-ivory-muted"
+                                  className="text-[10px] font-sans font-medium px-2 py-0.5 rounded-md bg-charcoal border border-charcoal-border text-ivory-muted"
                                 >
                                   {tech}
                                 </span>
@@ -403,7 +370,7 @@ export const ProblemSelectionPage: React.FC = () => {
                 <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/30 flex items-center justify-center text-gold">
                   <Shield className="w-4 h-4" />
                 </div>
-                <div className="text-xs">
+                <div className="text-xs font-sans">
                   <span className="text-ivory-muted">Ready to bind to squad:</span>{' '}
                   <strong className="text-gold font-cinzel">
                     [{selectedProblem?.problemCode}] {selectedProblem?.title}
@@ -414,7 +381,7 @@ export const ProblemSelectionPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleOpenLockModal}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-widest hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs tracking-widest uppercase hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Lock className="w-4 h-4" />
                 <span>CONFIRM AND LOCK CHOICE</span>
@@ -437,7 +404,7 @@ export const ProblemSelectionPage: React.FC = () => {
         />
       )}
 
-      <footer className="w-full py-6 text-center text-xs text-ivory-muted/40 border-t border-charcoal-border/40 mt-12">
+      <footer className="w-full py-6 text-center text-xs font-sans text-ivory-muted/40 border-t border-charcoal-border/40 mt-12">
         <span>{HACKATHON_CONFIG.hackathonName} • {HACKATHON_CONFIG.collegeName}</span>
       </footer>
     </div>

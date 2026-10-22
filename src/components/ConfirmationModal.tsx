@@ -58,7 +58,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               <ShieldAlert className="w-6 h-6 animate-pulse" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[11px] font-mono tracking-widest text-ember uppercase font-semibold">
+              <span className="text-[11px] font-sans font-semibold tracking-widest text-ember uppercase">
                 IRREVOCABLE BATTLE PLEDGE
               </span>
               <h2 className="font-cinzel text-xl sm:text-2xl font-bold text-ivory tracking-wide">
@@ -68,14 +68,14 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </div>
 
           {/* Selection Recap Box */}
-          <div className="my-6 p-4 rounded-xl bg-charcoal-card border border-charcoal-border space-y-3">
+          <div className="my-6 p-4 rounded-xl bg-charcoal-card border border-charcoal-border space-y-3 font-sans">
             <div className="flex items-center justify-between text-xs pb-2 border-b border-charcoal-border/70">
-              <span className="text-ivory-muted">Pledging Team:</span>
-              <span className="font-semibold text-ivory">{teamName}</span>
+              <span className="text-ivory-muted font-sans font-semibold">Pledging Team:</span>
+              <span className="font-sans font-semibold text-ivory">{teamName}</span>
             </div>
 
             <div className="flex items-center justify-between text-xs pb-2 border-b border-charcoal-border/70">
-              <span className="text-ivory-muted">Chosen Track Gate:</span>
+              <span className="text-ivory-muted font-sans font-semibold">Chosen Track Gate:</span>
               <div className="flex items-center gap-1.5 font-cinzel font-bold" style={{ color: track.accentColor }}>
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: track.accentColor }} />
                 <span>{track.name}</span>
@@ -84,29 +84,29 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
             <div className="text-xs space-y-1">
               <div className="flex items-center gap-2">
-                <span className="px-1.5 py-0.5 rounded bg-gold/15 text-gold border border-gold/30 font-mono text-[10px]">
+                <span className="px-1.5 py-0.5 rounded bg-gold/15 text-gold border border-gold/30 font-sans font-bold text-[10px]">
                   {problem.problemCode}
                 </span>
                 <span className="font-cinzel font-semibold text-ivory text-sm">
                   {problem.title}
                 </span>
               </div>
-              <p className="text-ivory-muted/80 text-[11px] line-clamp-2 pt-1">
+              <p className="text-ivory-muted/80 text-[11px] font-sans line-clamp-2 pt-1">
                 {problem.summary}
               </p>
             </div>
           </div>
 
           {/* Strict Warning Banner */}
-          <div className="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-3">
+          <div className="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-3 font-sans">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
-            <p className="leading-relaxed">
+            <p className="leading-relaxed font-sans text-xs">
               Once you lock your choice, your team is permanently committed in the Supabase database. You cannot re-select another track or problem statement under any circumstances.
             </p>
           </div>
 
           {/* Mandatory Checkbox for Second Explicit Confirmation */}
-          <label className="mt-5 flex items-start gap-3 cursor-pointer group select-none">
+          <label className="mt-5 flex items-start gap-3 cursor-pointer group select-none font-sans">
             <div
               onClick={() => setAcknowledged(!acknowledged)}
               className={`w-5 h-5 rounded border mt-0.5 flex items-center justify-center transition-all ${
@@ -119,19 +119,19 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             </div>
             <span
               onClick={() => setAcknowledged(!acknowledged)}
-              className="text-xs text-ivory-muted leading-tight group-hover:text-ivory transition-colors"
+              className="text-xs text-ivory-muted leading-tight group-hover:text-ivory transition-colors font-sans"
             >
-              I solemnly confirm on behalf of <strong className="text-gold font-semibold">{teamName}</strong> that we understand this lock is irrevocable and permanent.
+              I solemnly confirm on behalf of <strong className="text-gold font-semibold font-sans">{teamName}</strong> that we understand this lock is irrevocable and permanent.
             </span>
           </label>
 
           {/* Actions */}
-          <div className="mt-7 flex flex-col sm:flex-row items-center justify-end gap-3">
+          <div className="mt-7 flex flex-col sm:flex-row items-center justify-end gap-3 font-sans">
             <button
               type="button"
               onClick={onCancel}
               disabled={isLocking}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-charcoal-border text-ivory-muted hover:text-ivory hover:border-gold/40 text-xs tracking-wider font-cinzel transition-all"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-charcoal-border text-ivory-muted hover:text-ivory hover:border-gold/40 text-xs tracking-wider font-sans font-semibold uppercase transition-all"
             >
               RETREAT & REVIEW
             </button>
@@ -139,7 +139,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               type="button"
               onClick={onConfirm}
               disabled={!acknowledged || isLocking}
-              className={`w-full sm:w-auto px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 font-cinzel text-xs tracking-widest font-bold transition-all duration-300 shadow-gold-subtle ${
+              className={`w-full sm:w-auto px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 font-sans text-xs tracking-widest font-bold uppercase transition-all duration-300 shadow-gold-subtle ${
                 acknowledged && !isLocking
                   ? 'bg-gradient-to-r from-gold to-amber-500 text-obsidian hover:brightness-110 cursor-pointer shadow-gold-glow'
                   : 'bg-charcoal-border text-ivory-muted/50 cursor-not-allowed'

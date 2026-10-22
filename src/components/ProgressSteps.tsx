@@ -98,11 +98,11 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({ currentStep }) => 
 
               {/* Title */}
               <div className="flex flex-col text-center sm:text-left">
-                <span className="text-[10px] uppercase font-mono tracking-wider text-ivory-muted/60">
+                <span className="text-[10px] uppercase font-sans font-semibold tracking-wider text-ivory-muted/70">
                   Step {step.number}
                 </span>
                 <span
-                  className={`font-cinzel text-xs sm:text-sm tracking-wide font-semibold ${
+                  className={`font-sans font-semibold text-xs sm:text-sm tracking-wide ${
                     isActive ? 'text-gold' : isDone ? 'text-ivory' : 'text-ivory-muted/70'
                   }`}
                 >

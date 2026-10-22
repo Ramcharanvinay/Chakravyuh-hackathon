@@ -97,14 +97,14 @@ export const LoginPage: React.FC = () => {
 
       {/* Top Banner / College Header */}
       <header className="relative z-10 w-full pt-8 pb-4 px-6 flex flex-col items-center text-center">
-        <div className="flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-charcoal border border-gold/30 text-gold text-xs font-mono tracking-widest shadow-gold-subtle">
+        <div className="flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-charcoal border border-gold/30 text-gold text-xs font-sans font-semibold tracking-widest shadow-gold-subtle uppercase">
           <Sparkles className="w-3.5 h-3.5" />
           <span>{HACKATHON_CONFIG.edition} • BATTLE FOR EXCELLENCE</span>
         </div>
-        <h2 className="text-xs sm:text-sm font-semibold tracking-widest text-ivory-muted uppercase">
+        <h2 className="text-xs sm:text-sm font-sans font-semibold tracking-widest text-ivory-muted uppercase">
           {HACKATHON_CONFIG.collegeName}
         </h2>
-        <span className="text-[11px] text-ivory-muted/60 tracking-wider">
+        <span className="text-[11px] font-sans text-ivory-muted/60 tracking-wider">
           {HACKATHON_CONFIG.departmentName}
         </span>
       </header>
@@ -113,7 +113,7 @@ export const LoginPage: React.FC = () => {
       <main className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-12">
         {/* Left Column: Epic Visual & Narrative */}
         <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
-          <div className="inline-flex items-center gap-2 text-gold font-cinzel text-sm tracking-widest">
+          <div className="inline-flex items-center gap-2 text-gold font-sans font-semibold text-xs tracking-widest uppercase">
             <span className="w-8 h-[1px] bg-gold" />
             <span>SACRED FORMATION</span>
           </div>
@@ -129,7 +129,7 @@ export const LoginPage: React.FC = () => {
             "Every great solution begins with the courage to enter."
           </p>
 
-          <p className="text-sm text-ivory-muted/80 max-w-lg leading-relaxed">
+          <p className="font-sans text-sm text-ivory-muted/80 max-w-lg leading-relaxed">
             Inspired by the legendary strategic warfare labyrinth of the Mahabharata, the arena demands technological precision, tactical unity, and unyielding code. Choose your gate, lock your challenge, and emerge victorious.
           </p>
 
@@ -137,15 +137,15 @@ export const LoginPage: React.FC = () => {
           <div className="grid grid-cols-3 gap-3 pt-2 w-full max-w-md">
             <div className="p-3 rounded-xl bg-charcoal/80 border border-charcoal-border text-center">
               <span className="font-cinzel text-xl font-bold text-gold block">7</span>
-              <span className="text-[10px] text-ivory-muted uppercase tracking-wider">Concentric Rings</span>
+              <span className="text-[10px] font-sans font-semibold text-ivory-muted uppercase tracking-wider">Concentric Rings</span>
             </div>
             <div className="p-3 rounded-xl bg-charcoal/80 border border-charcoal-border text-center">
               <span className="font-cinzel text-xl font-bold text-gold block">5</span>
-              <span className="text-[10px] text-ivory-muted uppercase tracking-wider">Battle Tracks</span>
+              <span className="text-[10px] font-sans font-semibold text-ivory-muted uppercase tracking-wider">Battle Tracks</span>
             </div>
             <div className="p-3 rounded-xl bg-charcoal/80 border border-charcoal-border text-center">
               <span className="font-cinzel text-xl font-bold text-gold block">50</span>
-              <span className="text-[10px] text-ivory-muted uppercase tracking-wider">Challenges</span>
+              <span className="text-[10px] font-sans font-semibold text-ivory-muted uppercase tracking-wider">Challenges</span>
             </div>
           </div>
         </div>
@@ -172,7 +172,7 @@ export const LoginPage: React.FC = () => {
                   setMode('register');
                   setError(null);
                 }}
-                className={`flex-1 py-2 text-xs font-cinzel font-bold tracking-wider rounded-lg transition-all ${
+                className={`flex-1 py-2 text-xs font-sans font-semibold tracking-wider rounded-lg transition-all ${
                   mode === 'register'
                     ? 'bg-gold text-obsidian shadow-gold-subtle'
                     : 'text-ivory-muted hover:text-ivory'
@@ -186,7 +186,7 @@ export const LoginPage: React.FC = () => {
                   setMode('signin');
                   setError(null);
                 }}
-                className={`flex-1 py-2 text-xs font-cinzel font-bold tracking-wider rounded-lg transition-all ${
+                className={`flex-1 py-2 text-xs font-sans font-semibold tracking-wider rounded-lg transition-all ${
                   mode === 'signin'
                     ? 'bg-gold text-obsidian shadow-gold-subtle'
                     : 'text-ivory-muted hover:text-ivory'
@@ -201,7 +201,7 @@ export const LoginPage: React.FC = () => {
               <h2 className="font-cinzel text-xl font-bold text-ivory tracking-wide">
                 {mode === 'register' ? 'Enlist Your Battle Squad' : 'Return to the Formation'}
               </h2>
-              <p className="text-xs text-ivory-muted mt-1">
+              <p className="text-xs font-sans text-ivory-muted mt-1">
                 {mode === 'register'
                   ? 'Associate one team leader account to navigate the Chakravyuh.'
                   : 'Access your team\'s locked track and solution chamber.'}
@@ -215,7 +215,7 @@ export const LoginPage: React.FC = () => {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mb-5 p-3 rounded-xl bg-ember/15 border border-ember/40 text-ember text-xs flex items-center gap-2.5"
+                  className="mb-5 p-3 rounded-xl bg-ember/15 border border-ember/40 text-ember text-xs font-sans flex items-center gap-2.5"
                 >
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span className="leading-snug">{error}</span>
@@ -228,7 +228,7 @@ export const LoginPage: React.FC = () => {
               {/* Team Name (Register Only) */}
               {mode === 'register' && (
                 <div>
-                  <label className="block text-xs font-cinzel text-ivory-muted mb-1.5 uppercase tracking-wider">
+                  <label className="block text-xs font-sans font-semibold text-ivory-muted mb-1.5 uppercase tracking-wider">
                     Team / Squad Name <span className="text-gold">*</span>
                   </label>
                   <div className="relative">
@@ -241,7 +241,7 @@ export const LoginPage: React.FC = () => {
                       value={teamName}
                       onChange={(e) => setTeamName(e.target.value)}
                       placeholder="e.g. Garuda Cyber Vanguard"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-obsidian/70 border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-obsidian/70 border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-sans text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
                     />
                   </div>
                 </div>
@@ -249,7 +249,7 @@ export const LoginPage: React.FC = () => {
 
               {/* Team Leader Email */}
               <div>
-                <label className="block text-xs font-cinzel text-ivory-muted mb-1.5 uppercase tracking-wider">
+                <label className="block text-xs font-sans font-semibold text-ivory-muted mb-1.5 uppercase tracking-wider">
                   Team Leader Email <span className="text-gold">*</span>
                 </label>
                 <div className="relative">
@@ -262,14 +262,14 @@ export const LoginPage: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="leader@college.edu"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-obsidian/70 border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-obsidian/70 border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-sans text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
                   />
                 </div>
               </div>
 
               {/* Password */}
               <div>
-                <label className="block text-xs font-cinzel text-ivory-muted mb-1.5 uppercase tracking-wider">
+                <label className="block text-xs font-sans font-semibold text-ivory-muted mb-1.5 uppercase tracking-wider">
                   Secret Key / Password <span className="text-gold">*</span>
                 </label>
                 <div className="relative">
@@ -282,7 +282,7 @@ export const LoginPage: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-obsidian/70 border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-obsidian/70 border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-sans text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
                   />
                   <button
                     type="button"
@@ -298,7 +298,7 @@ export const LoginPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-widest flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs sm:text-sm tracking-widest uppercase flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
@@ -329,12 +329,12 @@ export const LoginPage: React.FC = () => {
                     setIsSubmitting(false);
                   }
                 }}
-                className="w-full py-2 px-3 rounded-xl bg-charcoal border border-gold/30 hover:border-gold text-gold/80 hover:text-gold text-xs font-mono tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2 px-3 rounded-xl bg-charcoal border border-gold/30 hover:border-gold text-gold/80 hover:text-gold text-xs font-sans font-semibold tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer uppercase"
               >
                 <Sparkles className="w-3.5 h-3.5 text-gold" />
                 <span>[QUICK SANDBOX ENTRY: ENLIST RANDOM SQUAD]</span>
               </button>
-              <div className="text-center text-[11px] text-ivory-muted/60">
+              <div className="text-center text-[11px] font-sans text-ivory-muted/60">
                 Protected by Supabase Row-Level Security • One team per account
               </div>
             </div>
@@ -343,7 +343,7 @@ export const LoginPage: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 w-full py-6 px-4 text-center text-xs text-ivory-muted/50 border-t border-charcoal-border/50">
+      <footer className="relative z-10 w-full py-6 px-4 text-center text-xs font-sans text-ivory-muted/50 border-t border-charcoal-border/50">
         <span>© {HACKATHON_CONFIG.year} {HACKATHON_CONFIG.hackathonName} • {HACKATHON_CONFIG.collegeName}</span>
       </footer>
     </div>

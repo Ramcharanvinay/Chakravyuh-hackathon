@@ -29,6 +29,11 @@ export const SubmissionPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [confirmPledge, setConfirmPledge] = useState<boolean>(false);
 
+  // Guarantee window is always at top (0, 0) when entering submission chamber
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
   // Guards: If not authenticated, redirect to /login
   useEffect(() => {
     if (!isLoading && !team) {
@@ -114,7 +119,7 @@ export const SubmissionPage: React.FC = () => {
       <div className="min-h-screen bg-[#08090D] flex items-center justify-center text-gold">
         <div className="flex flex-col items-center gap-3">
           <div className="w-12 h-12 rounded-full border-2 border-gold border-t-transparent animate-spin" />
-          <span className="font-cinzel text-xs tracking-widest uppercase">Opening The Inner Chamber...</span>
+          <span className="font-sans font-semibold text-xs tracking-widest uppercase">Opening The Inner Chamber...</span>
         </div>
       </div>
     );
@@ -154,7 +159,11 @@ export const SubmissionPage: React.FC = () => {
         </svg>
       </div>
 
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: 'easeOut' }}
+      >
         <BannerDemo />
         <Navbar />
         <ProgressSteps currentStep={3} />
@@ -162,13 +171,13 @@ export const SubmissionPage: React.FC = () => {
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto mb-8">
-            <span className="text-xs font-mono tracking-[0.25em] text-gold uppercase font-semibold">
+            <span className="text-xs font-sans font-semibold tracking-[0.25em] text-gold uppercase">
               STAGE 03 • THE INNER SANCTUM
             </span>
             <h1 className="font-cinzel text-3xl sm:text-5xl font-extrabold text-ivory tracking-wide mt-2">
               THE INNER CHAMBER
             </h1>
-            <p className="font-cinzel text-sm sm:text-base text-gold/90 mt-2 italic">
+            <p className="font-sans text-sm sm:text-base text-gold/90 mt-2 italic">
               "Your challenge is chosen. Now present your solution."
             </p>
           </div>
@@ -181,7 +190,7 @@ export const SubmissionPage: React.FC = () => {
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-ivory-muted/70">
+                  <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-ivory-muted/70">
                     PLEDGING TEAM
                   </span>
                   <div className="font-cinzel font-bold text-base text-ivory">
@@ -240,7 +249,7 @@ export const SubmissionPage: React.FC = () => {
                   <Github className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-cinzel text-sm font-bold text-ivory uppercase tracking-wider">
+                  <h3 className="font-sans font-semibold text-xs sm:text-sm text-ivory uppercase tracking-wider">
                     1. GitHub Repository URL <span className="text-gold">*</span>
                   </h3>
                   <p className="text-[11px] text-ivory-muted">
@@ -287,7 +296,7 @@ export const SubmissionPage: React.FC = () => {
                     <Globe className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-cinzel text-sm font-bold text-ivory uppercase tracking-wider">
+                    <h3 className="font-sans font-semibold text-xs sm:text-sm text-ivory uppercase tracking-wider">
                       2. Deployed Website Link <span className="text-gold">*</span>
                     </h3>
                     <p className="text-[11px] text-ivory-muted">
@@ -301,7 +310,7 @@ export const SubmissionPage: React.FC = () => {
                     href={deployedUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono hover:bg-emerald-500/25 transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-sans font-semibold hover:bg-emerald-500/25 transition-colors cursor-pointer"
                   >
                     <span>Test Live Link</span>
                     <ExternalLink className="w-3 h-3" />
@@ -370,7 +379,7 @@ export const SubmissionPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={!isGithubValid || !isDeployedUrlValid || !confirmPledge || isSubmitting}
-                className={`w-full py-3.5 rounded-xl font-cinzel font-bold text-xs tracking-widest flex items-center justify-center gap-2 transition-all duration-300 shadow-gold-subtle ${
+                className={`w-full py-3.5 rounded-xl font-sans font-bold text-xs sm:text-sm tracking-widest uppercase flex items-center justify-center gap-2 transition-all duration-300 shadow-gold-subtle ${
                   isGithubValid && isDeployedUrlValid && confirmPledge && !isSubmitting
                     ? 'bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian hover:brightness-110 active:scale-[0.99] shadow-gold-glow cursor-pointer'
                     : 'bg-charcoal-border text-ivory-muted/40 cursor-not-allowed'
@@ -391,9 +400,9 @@ export const SubmissionPage: React.FC = () => {
             </div>
           </form>
         </main>
-      </div>
+      </motion.div>
 
-      <footer className="w-full py-6 text-center text-xs text-ivory-muted/40 border-t border-charcoal-border/40 mt-12">
+      <footer className="w-full py-6 text-center text-xs font-sans text-ivory-muted/40 border-t border-charcoal-border/40 mt-12">
         <span>{HACKATHON_CONFIG.hackathonName} • {HACKATHON_CONFIG.collegeName}</span>
       </footer>
     </div>

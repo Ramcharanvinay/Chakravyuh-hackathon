@@ -53,65 +53,70 @@ const FIVE_GATES_CONFIG = [
     id: 'track-cybersecurity-blockchain',
     aliasId: 'track-agni',
     themeKey: 'agni',
-    name: 'AGNI',
-    title: 'GATE 01 • AGNI',
+    name: 'CYBERSECURITY',
+    title: 'CYBERSECURITY & BLOCKCHAIN',
     subtitle: 'Cybersecurity and Blockchain',
     accent: '#E05A47',
     glow: '#FF7A59',
     pointLightColor: 0xff4500,
     angle: 0, // Top / 12 o'clock entrance
+    slogan: 'Secure digital systems and build trust through decentralized technology.',
     motto: 'Defending Digital Frontiers with Cryptographic Security and Decentralized Trust',
   },
   {
     id: 'track-space-technology',
     aliasId: 'track-vayu',
     themeKey: 'vayu',
-    name: 'VAYU',
-    title: 'GATE 02 • VAYU',
+    name: 'SPACE TECH',
+    title: 'SPACE TECHNOLOGY',
     subtitle: 'Space Technology',
     accent: '#38BDF8',
     glow: '#0284C7',
     pointLightColor: 0x00e5ff,
     angle: (2 * Math.PI) / 5, // 72°
+    slogan: 'Innovate in satellites, space exploration, and aerospace systems.',
     motto: 'Advancing Satellite Intelligence, Orbital Telemetry and Aerospace Systems',
   },
   {
     id: 'track-quantum-computing',
     aliasId: 'track-vajra',
     themeKey: 'vajra',
-    name: 'VAJRA',
-    title: 'GATE 03 • VAJRA',
+    name: 'QUANTUM',
+    title: 'QUANTUM COMPUTING',
     subtitle: 'Quantum Computing',
     accent: '#8B5CF6',
     glow: '#A855F7',
     pointLightColor: 0x8b5cf6,
     angle: (4 * Math.PI) / 5, // 144°
+    slogan: 'Explore quantum algorithms, simulations, and next-generation computing.',
     motto: 'Unlocking Quantum Coherence, Superposition and Next-Gen Algorithms',
   },
   {
     id: 'track-fintech',
     aliasId: 'track-surya',
     themeKey: 'surya',
-    name: 'SURYA',
-    title: 'GATE 04 • SURYA',
+    name: 'FINTECH',
+    title: 'FINTECH',
     subtitle: 'FinTech',
     accent: '#D8B46A',
     glow: '#F59E0B',
     pointLightColor: 0xffd54f,
     angle: (6 * Math.PI) / 5, // 216°
+    slogan: 'Rethink digital payments, financial access, and intelligent financial services.',
     motto: 'Revolutionizing Digital Payments, Smart Ledgers and Intelligent Finance',
   },
   {
     id: 'track-energy-sustainability',
     aliasId: 'track-vanam',
     themeKey: 'vanam',
-    name: 'VANAM',
-    title: 'GATE 05 • VANAM',
+    name: 'SUSTAINABILITY',
+    title: 'ENERGY & SUSTAINABILITY',
     subtitle: 'Energy and Sustainability',
     accent: '#10B981',
     glow: '#34D399',
     pointLightColor: 0x10b981,
     angle: (8 * Math.PI) / 5, // 288°
+    slogan: 'Develop clean energy solutions and technologies for a sustainable future.',
     motto: 'Powering Clean Energy Grids and Climate-Resilient Technologies',
   },
 ];
@@ -835,7 +840,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
               style={{ backgroundColor: activeGate.accent }}
             />
             <span className="text-[11px] sm:text-xs tracking-[0.22em] font-cinzel font-black text-[#F3E8CF] uppercase whitespace-nowrap">
-              CHAKRAVYUHA • {activeGate.name} GATE
+              THEME GATE • {activeGate.name}
             </span>
           </div>
           {/* Ancient alignment needle */}
@@ -847,26 +852,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
           />
         </div>
 
-        {/* Hover Gate Tooltip Overlay */}
-        {hoveredGateId && (
-          <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-4 py-2 rounded-xl bg-[#0e1017]/95 border border-[#D8B46A]/40 shadow-2xl backdrop-blur-md text-center transition-all">
-            <div className="text-[10px] font-mono tracking-widest text-[#D8B46A] uppercase">
-              Click to Reorient Battle Formation
-            </div>
-            <div className="text-sm font-cinzel font-bold text-[#F3E8CF]">
-              {FIVE_GATES_CONFIG.find(g => g.id === hoveredGateId)?.title}
-            </div>
-            <div className="text-[11px] text-[#F3E8CF]/80 italic font-cinzel">
-              "{FIVE_GATES_CONFIG.find(g => g.id === hoveredGateId)?.motto}"
-            </div>
-          </div>
-        )}
-
-        {/* Subtle Interactive Instruction Pill */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none flex items-center gap-2 px-3 py-1 rounded-full bg-[#12141B]/80 border border-[#222738] text-[10px] font-mono text-[#F3E8CF]/70 backdrop-blur-sm">
-          <span>Drag to orbit in 3D • Scroll to zoom • Click or tap any gate to align</span>
         </div>
-      </div>
 
       {/* Five Gate Tactical Badges (Direct Selection underneath 3D Wheel) */}
       <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2 z-10 w-full px-2">
@@ -878,7 +864,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
               key={gate.id}
               type="button"
               onClick={() => onSelectTrack(gate.id)}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-cinzel font-bold transition-all duration-300 cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-sans font-semibold tracking-wider transition-all duration-300 cursor-pointer ${
                 isSelected
                   ? 'border-2 scale-105 shadow-[0_0_15px_rgba(201,164,92,0.3)]'
                   : 'bg-[#12141B]/80 border-[#222738] text-[#F3E8CF]/70 hover:border-[#D8B46A]/30 hover:text-[#F3E8CF]'

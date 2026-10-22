@@ -117,7 +117,7 @@ export const ThemeDetailPage: React.FC = () => {
     try {
       await lockSelection(currentTrack.id, selectedProblemId);
       setIsModalOpen(false);
-      navigate('/submit');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to lock choice in arena database.');
     } finally {
@@ -145,7 +145,7 @@ export const ThemeDetailPage: React.FC = () => {
       <div className="min-h-screen bg-[#08090D] flex items-center justify-center text-gold">
         <div className="flex flex-col items-center gap-3">
           <div className="w-12 h-12 rounded-full border-2 border-gold border-t-transparent animate-spin" />
-          <span className="font-cinzel text-xs tracking-widest uppercase">Loading Hackathon Theme...</span>
+          <span className="font-sans font-semibold text-xs tracking-widest uppercase">Loading Hackathon Theme...</span>
         </div>
       </div>
     );
@@ -167,7 +167,7 @@ export const ThemeDetailPage: React.FC = () => {
             <div className="flex items-center justify-between gap-4 mb-4">
               <Link
                 to="/tracks"
-                className="inline-flex items-center gap-2 text-xs font-cinzel text-gold/80 hover:text-gold transition-colors group cursor-pointer"
+                className="inline-flex items-center gap-2 text-xs font-sans font-semibold text-gold/80 hover:text-gold transition-colors group cursor-pointer uppercase tracking-wider"
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                 <span>RETURN TO THEME SELECTION</span>
@@ -175,7 +175,7 @@ export const ThemeDetailPage: React.FC = () => {
 
               {/* Theme Badge */}
               <div
-                className="px-3 py-1 rounded-full border text-xs font-mono font-bold tracking-widest uppercase backdrop-blur-md"
+                className="px-3 py-1 rounded-full border text-xs font-sans font-bold tracking-widest uppercase backdrop-blur-md"
                 style={{
                   backgroundColor: `${currentTrack.accentColor}20`,
                   borderColor: `${currentTrack.accentColor}60`,
@@ -188,16 +188,16 @@ export const ThemeDetailPage: React.FC = () => {
 
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div>
-                <span className="text-[11px] font-mono tracking-widest text-gold uppercase font-semibold">
+                <span className="text-[11px] font-sans font-semibold tracking-widest text-gold uppercase">
                   STAGE 02 • OFFICIAL THEME DOSSIER
                 </span>
                 <h1 className="font-cinzel text-3xl sm:text-5xl font-black text-ivory tracking-wide mt-1.5 flex items-center gap-3">
                   <span>{currentTrack.officialTitle}</span>
                 </h1>
-                <p className="text-xs sm:text-sm text-ivory-muted/90 mt-2 max-w-3xl leading-relaxed">
+                <p className="font-sans text-xs sm:text-sm text-ivory-muted/90 mt-2 max-w-3xl leading-relaxed">
                   {currentTrack.description}
                 </p>
-                <div className="mt-2 text-xs font-cinzel italic text-gold/90">
+                <div className="mt-2 text-xs font-sans italic text-gold/90">
                   "{currentTrack.motto}"
                 </div>
               </div>
@@ -206,20 +206,23 @@ export const ThemeDetailPage: React.FC = () => {
               <div className="flex items-center gap-3 shrink-0">
                 {isLockedToThisTheme ? (
                   <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-semibold">
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-sans font-semibold">
                       <Lock className="w-3.5 h-3.5 text-emerald-400" />
                       <span>THEME LOCKED IN ARENA DATABASE</span>
                     </div>
                     <button
-                      onClick={() => navigate('/submit')}
-                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-wider flex items-center gap-2 hover:brightness-110 shadow-gold-glow cursor-pointer"
+                      onClick={() => {
+                        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                        navigate('/submit');
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs tracking-wider uppercase flex items-center gap-2 hover:brightness-110 shadow-gold-glow cursor-pointer transition-transform hover:scale-[1.02]"
                     >
                       <span>PROCEED TO SUBMISSION</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 ) : isLockedToOtherTheme ? (
-                  <div className="p-3 rounded-xl bg-charcoal border border-charcoal-border text-xs text-ivory-muted flex items-center gap-2">
+                  <div className="p-3 rounded-xl bg-charcoal border border-charcoal-border text-xs font-sans text-ivory-muted flex items-center gap-2">
                     <Lock className="w-4 h-4 text-gold" />
                     <span>Your team is locked to another theme</span>
                   </div>
@@ -227,7 +230,7 @@ export const ThemeDetailPage: React.FC = () => {
                   <button
                     onClick={handleOpenLockModal}
                     disabled={!selectedProblemId}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-widest flex items-center gap-2 hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow cursor-pointer disabled:opacity-50"
+                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs tracking-widest uppercase flex items-center gap-2 hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow cursor-pointer disabled:opacity-50"
                   >
                     <Lock className="w-4 h-4" />
                     <span>CONFIRM & LOCK THIS CHALLENGE</span>
@@ -236,40 +239,6 @@ export const ThemeDetailPage: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Locked Notice Banner */}
-          {isLockedToThisTheme && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-6 p-4 rounded-2xl bg-charcoal-card border-2 border-gold/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-gold-subtle"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gold/15 border border-gold/40 flex items-center justify-center text-gold shrink-0">
-                  <CheckCircle2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-gold font-bold">
-                    PERMANENTLY SEALED ASSIGNMENT
-                  </span>
-                  <div className="text-sm font-cinzel font-bold text-ivory">
-                    Your team is bound to <span className="text-gold">[{selectedProblem?.problemCode}] {selectedProblem?.title}</span>
-                  </div>
-                  <span className="text-xs text-ivory-muted">
-                    Locked at: {new Date(selection?.lockedAt || '').toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => navigate('/submit')}
-                className="px-4 py-2 rounded-xl bg-gold text-obsidian font-cinzel text-xs font-bold tracking-wider hover:brightness-110 flex items-center gap-2 shrink-0 cursor-pointer"
-              >
-                <span>PROCEED TO SUBMISSION</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </motion.div>
-          )}
 
           {/* Error Message */}
           {errorMessage && (
@@ -308,12 +277,12 @@ export const ThemeDetailPage: React.FC = () => {
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
-                          className="font-mono text-xs px-2.5 py-1 rounded bg-obsidian text-gold border font-bold"
+                          className="font-sans text-xs px-2.5 py-1 rounded bg-obsidian text-gold border font-bold"
                           style={{ borderColor: `${currentTrack.accentColor}50` }}
                         >
                           {problem.problemCode}
                         </span>
-                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase ${getDifficultyBadge(problem.difficulty)}`}>
+                        <span className={`text-[10px] font-sans font-semibold px-2 py-0.5 rounded border uppercase ${getDifficultyBadge(problem.difficulty)}`}>
                           {problem.difficulty}
                         </span>
                       </div>
@@ -321,7 +290,7 @@ export const ThemeDetailPage: React.FC = () => {
                       {/* Selection Indicator */}
                       <div className="flex items-center gap-2 shrink-0">
                         {isLockedSelection ? (
-                          <span className="flex items-center gap-1 text-[10px] font-cinzel font-bold text-gold bg-gold/15 px-2 py-0.5 rounded-full border border-gold/40">
+                          <span className="flex items-center gap-1 text-[10px] font-sans font-bold text-gold bg-gold/15 px-2 py-0.5 rounded-full border border-gold/40">
                             <Lock className="w-3 h-3" /> LOCKED
                           </span>
                         ) : (
@@ -343,12 +312,12 @@ export const ThemeDetailPage: React.FC = () => {
                     </h3>
 
                     {problem.objective && (
-                      <p className="text-xs text-gold/90 mt-2 font-medium italic">
+                      <p className="text-xs text-gold/90 mt-2 font-sans font-medium italic">
                         Objective: {problem.objective}
                       </p>
                     )}
 
-                    <p className="text-xs text-ivory-muted/90 mt-2 leading-relaxed">
+                    <p className="text-xs font-sans text-ivory-muted/90 mt-2 leading-relaxed">
                       {problem.summary}
                     </p>
                   </div>
@@ -358,7 +327,7 @@ export const ThemeDetailPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={(e) => handleToggleExpand(e, problem.id)}
-                      className="flex items-center justify-between w-full text-xs font-mono text-ivory-muted hover:text-gold transition-colors py-1 cursor-pointer"
+                      className="flex items-center justify-between w-full text-xs font-sans font-semibold text-ivory-muted hover:text-gold transition-colors py-1 cursor-pointer"
                     >
                       <span>{isExpanded ? 'Hide Tactical Specifications' : 'Inspect Full Requirements & Datasets'}</span>
                       {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -374,10 +343,10 @@ export const ThemeDetailPage: React.FC = () => {
                           className="pt-3 space-y-3.5 text-xs text-ivory-muted/90"
                         >
                           <div>
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-gold block mb-1">
+                            <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-gold block mb-1">
                               Battlefield Scenario & Overview:
                             </span>
-                            <p className="leading-relaxed bg-obsidian/70 p-3 rounded-xl border border-charcoal-border/70 text-ivory/90">
+                            <p className="leading-relaxed bg-obsidian/70 p-3 rounded-xl border border-charcoal-border/70 text-ivory/90 font-sans">
                               {problem.fullDescription}
                             </p>
                           </div>
@@ -385,7 +354,7 @@ export const ThemeDetailPage: React.FC = () => {
                           {/* Expected Outcomes */}
                           {problem.expectedOutcomes && problem.expectedOutcomes.length > 0 && (
                             <div>
-                              <span className="text-[10px] font-mono uppercase tracking-widest text-gold block mb-1.5">
+                              <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-gold block mb-1.5">
                                 Expected Deliverables & Outcomes:
                               </span>
                               <ul className="space-y-1">
@@ -402,7 +371,7 @@ export const ThemeDetailPage: React.FC = () => {
                           {/* Datasets */}
                           {problem.datasets && problem.datasets.length > 0 && (
                             <div>
-                              <span className="text-[10px] font-mono uppercase tracking-widest text-gold block mb-1.5">
+                              <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-gold block mb-1.5">
                                 Required & Public Datasets:
                               </span>
                               <div className="space-y-1">
@@ -430,7 +399,7 @@ export const ThemeDetailPage: React.FC = () => {
                           {/* Recommended Arsenal / Tech */}
                           {problem.suggestedTech && problem.suggestedTech.length > 0 && (
                             <div>
-                              <span className="text-[10px] font-mono uppercase tracking-widest text-gold block mb-1.5">
+                              <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-gold block mb-1.5">
                                 Recommended Arsenal / Tech Stack:
                               </span>
                               <div className="flex flex-wrap gap-1.5">
@@ -461,7 +430,7 @@ export const ThemeDetailPage: React.FC = () => {
                 <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/30 flex items-center justify-center text-gold">
                   {selection ? <Lock className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
                 </div>
-                <div className="text-xs">
+                <div className="text-xs font-sans">
                   <span className="text-ivory-muted">
                     {selection ? 'Locked Assignment:' : 'Ready to bind to squad:'}
                   </span>{' '}
@@ -474,8 +443,11 @@ export const ThemeDetailPage: React.FC = () => {
               {selection ? (
                 <button
                   type="button"
-                  onClick={() => navigate('/submit')}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-widest hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={() => {
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                    navigate('/submit');
+                  }}
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs tracking-widest uppercase hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>PROCEED TO SUBMISSION</span>
                   <ArrowRight className="w-4 h-4" />
@@ -484,7 +456,7 @@ export const ThemeDetailPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleOpenLockModal}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-cinzel font-bold text-xs tracking-widest hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs tracking-widest uppercase hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Lock className="w-4 h-4" />
                   <span>CONFIRM & PROCEED TO SUBMISSION</span>
@@ -509,7 +481,7 @@ export const ThemeDetailPage: React.FC = () => {
         />
       )}
 
-      <footer className="w-full py-6 text-center text-xs text-ivory-muted/40 border-t border-charcoal-border/40 mt-12">
+      <footer className="w-full py-6 text-center text-xs font-sans text-ivory-muted/40 border-t border-charcoal-border/40 mt-12">
         <span>{HACKATHON_CONFIG.hackathonName} • {HACKATHON_CONFIG.collegeName}</span>
       </footer>
     </div>

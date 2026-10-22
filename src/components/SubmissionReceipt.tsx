@@ -124,31 +124,31 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
             </div>
           </div>
 
-          <span className="text-xs font-mono tracking-[0.3em] text-gold uppercase font-semibold">
+          <span className="text-xs font-sans font-semibold tracking-[0.3em] text-gold uppercase">
             OFFICIAL ARENA RECEIPT • RECORD IMMUTABLY SEALED
           </span>
           <h1 className="font-cinzel text-3xl sm:text-4xl font-extrabold text-ivory tracking-wide mt-2">
             SUBMISSION COMPLETE
           </h1>
-          <p className="font-cinzel text-sm sm:text-base text-gold/90 mt-2 max-w-lg italic">
+          <p className="font-sans text-sm sm:text-base text-gold/90 mt-2 max-w-lg italic">
             "Your solution has entered the eternal records of the Chakravyuh."
           </p>
         </div>
 
         {/* Receipt Details Card */}
         <div className="mt-8 rounded-2xl bg-[#0B0D13] border border-charcoal-border p-6 space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-charcoal-border/70 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-charcoal-border/70 text-xs font-sans">
             <div>
-              <span className="text-ivory-muted/70 block mb-1">Authenticated Team:</span>
+              <span className="text-ivory-muted/70 block mb-1 font-sans font-semibold">Authenticated Team:</span>
               <span className="text-sm font-bold text-ivory font-cinzel">{team.teamName}</span>
-              <span className="text-[11px] text-ivory-muted/80 block font-mono">Leader: {team.leaderName || 'Leader'} ({team.leaderEmail})</span>
+              <span className="text-[11px] text-ivory-muted/80 block font-sans">Leader: {team.leaderName || 'Leader'} ({team.leaderEmail})</span>
               {team.leaderPhone && (
-                <span className="text-[11px] text-gold/80 block font-mono">Contact: {team.leaderPhone}</span>
+                <span className="text-[11px] text-gold/80 block font-sans">Contact: {team.leaderPhone}</span>
               )}
             </div>
             <div>
-              <span className="text-ivory-muted/70 block mb-1">Time of Conquest:</span>
-              <div className="flex items-center gap-1.5 text-ivory font-mono">
+              <span className="text-ivory-muted/70 block mb-1 font-sans font-semibold">Time of Conquest:</span>
+              <div className="flex items-center gap-1.5 text-ivory font-sans">
                 <Calendar className="w-3.5 h-3.5 text-gold" />
                 <span>{formattedDate}</span>
               </div>
@@ -170,9 +170,9 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
           )}
 
           {/* Locked Track & Problem */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-charcoal-border/70 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-charcoal-border/70 text-xs font-sans">
             <div>
-              <span className="text-ivory-muted/70 block mb-1">Theme Gate:</span>
+              <span className="text-ivory-muted/70 block mb-1 font-sans font-semibold">Theme Gate:</span>
               <div className="flex items-center gap-2">
                 <span
                   className="w-2.5 h-2.5 rounded-full"
@@ -184,19 +184,19 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
               </div>
             </div>
             <div>
-              <span className="text-ivory-muted/70 block mb-1">Bound Challenge:</span>
-              <div className="text-ivory font-medium">
-                <span className="px-1.5 py-0.5 rounded bg-gold/15 text-gold font-mono text-[10px] mr-1.5 font-bold">
+              <span className="text-ivory-muted/70 block mb-1 font-sans font-semibold">Bound Challenge:</span>
+              <div className="text-ivory font-medium font-sans">
+                <span className="px-1.5 py-0.5 rounded bg-gold/15 text-gold font-sans text-[10px] mr-1.5 font-bold">
                   {problem?.problemCode || 'CHALLENGE'}
                 </span>
-                <span className="font-cinzel">{problem?.title || 'Locked Problem Statement'}</span>
+                <span className="font-cinzel font-bold">{problem?.title || 'Locked Problem Statement'}</span>
               </div>
             </div>
           </div>
 
           {/* Submitted Artifacts */}
-          <div className="space-y-3 text-xs">
-            <span className="text-ivory-muted/70 block">Submitted Artifacts & Repositories:</span>
+          <div className="space-y-3 text-xs font-sans">
+            <span className="text-ivory-muted/70 block font-sans font-semibold">Submitted Artifacts & Repositories:</span>
             
             {/* GitHub Repo */}
             <div className="flex items-center justify-between p-3 rounded-xl bg-charcoal-card border border-charcoal-border">
@@ -208,7 +208,7 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
                 href={submission.githubRepoUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1 text-gold hover:underline text-xs shrink-0 ml-2 cursor-pointer"
+                className="flex items-center gap-1 text-gold hover:underline text-xs font-sans font-semibold shrink-0 ml-2 cursor-pointer uppercase tracking-wider"
               >
                 <span>View</span>
                 <ExternalLink className="w-3 h-3" />
@@ -223,7 +223,7 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
                 </div>
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono uppercase text-emerald-400 font-bold tracking-wider">
+                    <span className="text-[10px] font-sans uppercase text-emerald-400 font-bold tracking-wider">
                       LIVE DEPLOYED APPLICATION
                     </span>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -238,7 +238,7 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
                   href={submission.deployedUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold/15 text-gold border border-gold/40 hover:bg-gold hover:text-obsidian transition-colors text-xs font-semibold shrink-0 ml-2 cursor-pointer font-cinzel"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold/15 text-gold border border-gold/40 hover:bg-gold hover:text-obsidian transition-colors text-xs font-sans font-bold tracking-wider uppercase shrink-0 ml-2 cursor-pointer"
                 >
                   <span>LAUNCH APP</span>
                   <ExternalLink className="w-3 h-3" />
@@ -248,7 +248,7 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
           </div>
 
           {/* Verification & Sync Footnote */}
-          <div className="pt-3 border-t border-charcoal-border/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="pt-3 border-t border-charcoal-border/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-sans">
             <div className="flex items-center gap-2 text-ivory-muted">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Selection & Submission: <strong className="text-emerald-400">LOCKED & VERIFIED</strong></span>
@@ -260,7 +260,7 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
         </div>
 
         {/* Permanent Lock Notice */}
-        <p className="mt-6 text-center text-xs text-ivory-muted/60">
+        <p className="mt-6 text-center text-xs font-sans text-ivory-muted/60">
           This submission receipt is permanently tied to your team. Edits are locked per hackathon bylaws.
         </p>
       </div>

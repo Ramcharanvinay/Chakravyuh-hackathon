@@ -72,6 +72,7 @@ export default {
       fontFamily: {
         cinzel: ['"Cinzel"', 'serif'],
         sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+        inter: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
       },
       animation: {
         'spin-slow': 'spin 90s linear infinite',

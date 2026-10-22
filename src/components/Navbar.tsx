@@ -40,7 +40,7 @@ export const Navbar: React.FC = () => {
                 {HACKATHON_CONFIG.hackathonName}
               </span>
             </div>
-            <span className="text-[11px] font-medium text-gold/80 tracking-widest uppercase truncate max-w-[220px] sm:max-w-none">
+            <span className="text-[11px] font-sans font-semibold text-gold/80 tracking-widest uppercase truncate max-w-[220px] sm:max-w-none">
               {HACKATHON_CONFIG.collegeName}
             </span>
           </div>
@@ -54,18 +54,18 @@ export const Navbar: React.FC = () => {
               {submission ? (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-xs">
                   <CheckCircle className="w-3.5 h-3.5" />
-                  <span className="font-medium tracking-wide">Solution Submitted</span>
+                  <span className="font-sans font-medium tracking-wide">Solution Submitted</span>
                 </div>
               ) : selection ? (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-charcoal border border-gold/40 text-xs">
                   <Lock className="w-3 h-3 text-gold" />
-                  <span className="text-ivory-muted">Locked Track:</span>
+                  <span className="text-ivory-muted font-sans font-semibold">Locked Track:</span>
                   <span className="font-cinzel text-gold font-bold">{selectedTrack?.officialTitle || selectedTrack?.name}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-charcoal border border-charcoal-border text-xs text-ivory-muted">
                   <Compass className="w-3.5 h-3.5 text-gold animate-spin-slow" />
-                  <span>Explore Themes</span>
+                  <span className="font-sans font-medium">Explore Themes</span>
                 </div>
               )}
             </div>
@@ -76,10 +76,10 @@ export const Navbar: React.FC = () => {
                 <Shield className="w-4 h-4" />
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-xs font-semibold text-ivory tracking-wide truncate max-w-[130px] sm:max-w-[180px]">
+                <span className="text-xs font-sans font-semibold text-ivory tracking-wide truncate max-w-[130px] sm:max-w-[180px]">
                   {team.teamName}
                 </span>
-                <span className="text-[10px] text-ivory-muted/60 truncate max-w-[130px] sm:max-w-[180px]">
+                <span className="text-[10px] font-sans text-ivory-muted/60 truncate max-w-[130px] sm:max-w-[180px]">
                   {team.leaderEmail}
                 </span>
               </div>
@@ -98,7 +98,7 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center gap-3">
             <Link
               to="/login"
-              className="px-4 py-2 rounded-xl bg-gold/15 text-gold border border-gold/40 hover:bg-gold hover:text-obsidian font-cinzel text-xs tracking-widest font-bold transition-all duration-300 shadow-gold-subtle"
+              className="px-4 py-2 rounded-xl bg-gold/15 text-gold border border-gold/40 hover:bg-gold hover:text-obsidian font-sans text-xs tracking-widest font-bold uppercase transition-all duration-300 shadow-gold-subtle"
             >
               ENTER ARENA
             </Link>
