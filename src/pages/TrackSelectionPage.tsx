@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,7 @@ import {
   Wallet,
   Zap,
   ArrowRight,
+  Lock,
 } from 'lucide-react';
 
 // Sleek, modern, domain-accurate vector artwork on the right side of each theme card
@@ -205,7 +206,31 @@ export const TrackSelectionPage: React.FC = () => {
   const navigate = useNavigate();
 
   const tracks = HACKATHON_CONFIG.tracks;
-  const [selectedTrackId, setSelectedTrackId] = useState<string>(tracks[0].id);
+
+  // Find locked track if team has already committed their selection
+  const lockedTrack = useMemo(() => {
+    if (!selection) return null;
+    return (
+      tracks.find(
+        t =>
+          t.id === selection.trackId ||
+          t.slug === selection.trackId ||
+          t.themeKey === selection.trackId ||
+          t.id.toLowerCase() === selection.trackId.toLowerCase()
+      ) || null
+    );
+  }, [selection, tracks]);
+
+  const [selectedTrackId, setSelectedTrackId] = useState<string>(
+    selection?.trackId || tracks[0].id
+  );
+
+  // When selection is present, lock the wheel & selector to their locked theme gate
+  useEffect(() => {
+    if (selection?.trackId) {
+      setSelectedTrackId(selection.trackId);
+    }
+  }, [selection]);
 
   // Guard: Redirect to /login if not authenticated
   useEffect(() => {
@@ -214,32 +239,22 @@ export const TrackSelectionPage: React.FC = () => {
     }
   }, [team, isLoading, navigate]);
 
-  // Guard: If team has already locked their choice, navigate them directly
-  useEffect(() => {
-    if (!isLoading && selection) {
-      if (submission) {
-        navigate('/submit', { replace: true });
-      } else {
-        const lockedTrack = tracks.find(t => t.id === selection.trackId);
-        if (lockedTrack) {
-          navigate(`/theme/${lockedTrack.slug}`, { replace: true });
-        } else {
-          navigate('/problems', { replace: true });
-        }
-      }
-    }
-  }, [selection, submission, isLoading, navigate, tracks]);
-
   const selectedTrack =
+    lockedTrack ||
     tracks.find(
       t =>
         t.id === selectedTrackId ||
         t.slug === selectedTrackId ||
         t.themeKey === selectedTrackId ||
         t.id.toLowerCase() === selectedTrackId.toLowerCase()
-    ) || tracks[0];
+    ) ||
+    tracks[0];
 
   const handleSelectTrack = (trackId: string) => {
+    if (selection) {
+      // Team choice is locked. Re-selection of other tracks is disabled.
+      return;
+    }
     const matched = tracks.find(
       t =>
         t.id === trackId ||
@@ -274,7 +289,11 @@ export const TrackSelectionPage: React.FC = () => {
   };
 
   const handleContinue = () => {
-    navigate(`/theme/${selectedTrack.slug}`);
+    if (submission) {
+      navigate('/submit');
+    } else {
+      navigate(`/theme/${selectedTrack.slug}`);
+    }
   };
 
   if (isLoading) {
@@ -302,13 +321,17 @@ export const TrackSelectionPage: React.FC = () => {
           {/* Header */}
           <div className="text-center max-w-3xl mx-auto mb-6">
             <span className="text-xs font-sans font-semibold tracking-[0.25em] text-gold uppercase">
-              STAGE 01 • STRATEGIC FORMATION ALIGNMENT
+              {selection ? 'STAGE 01 • STRATEGIC FORMATION ALIGNMENT (LOCKED)' : 'STAGE 01 • STRATEGIC FORMATION ALIGNMENT'}
             </span>
             <h1 className="font-cinzel text-3xl sm:text-5xl font-black text-ivory tracking-wide mt-2">
-              ALIGN YOUR THEME GATE
+              {selection ? 'YOUR LOCKED THEME GATE' : 'ALIGN YOUR THEME GATE'}
             </h1>
             <p className="font-sans text-xs sm:text-sm text-ivory-muted/90 mt-2 max-w-xl mx-auto leading-relaxed">
-              Select one of the five strategic hackathon themes below. The circular formation will reorient, unlocking your squad's dedicated 10-problem challenge chamber.
+              {submission
+                ? 'Your squad has completed problem statement submission for this theme. Your assigned theme gate is permanently locked in the arena records.'
+                : selection
+                ? 'Your squad has officially committed to this theme gate. Track re-selection is locked. You may inspect your theme challenges or proceed to submission.'
+                : "Select one of the five strategic hackathon themes below. The circular formation will reorient, unlocking your squad's dedicated 10-problem challenge chamber."}
             </p>
           </div>
 
@@ -321,6 +344,7 @@ export const TrackSelectionPage: React.FC = () => {
                 selectedTrackId={selectedTrack.id}
                 onSelectTrack={handleSelectTrack}
                 height={540}
+                isLocked={Boolean(selection)}
               />
             </div>
 
@@ -333,20 +357,27 @@ export const TrackSelectionPage: React.FC = () => {
               {/* Five Theme Cards */}
               <div className="space-y-2.5">
                 {tracks.map((track, idx) => {
+                  const isLockedTrack = Boolean(selection && (track.id === selection.trackId || track.slug === selection.trackId));
+                  const isOtherLockedOut = Boolean(selection && !isLockedTrack);
                   const isSelected = track.id === selectedTrack.id;
+
                   return (
                     <motion.div
                       key={track.id}
                       onClick={() => handleSelectTrack(track.id)}
-                      whileHover={{ x: 5 }}
+                      whileHover={!selection ? { x: 5 } : undefined}
                       transition={{ duration: 0.25, ease: 'easeOut' }}
-                      className={`relative overflow-hidden p-3.5 sm:p-4 rounded-2xl cursor-pointer transition-all duration-300 border ${
-                        isSelected
-                          ? 'bg-charcoal/90 border-2 shadow-gold-subtle'
-                          : 'bg-charcoal/60 border-charcoal-border hover:border-gold/30 hover:bg-charcoal/80'
+                      className={`relative overflow-hidden p-3.5 sm:p-4 rounded-2xl transition-all duration-300 border ${
+                        isLockedTrack
+                          ? 'bg-charcoal/95 border-2 shadow-gold-glow ring-1 ring-gold/40 cursor-default'
+                          : isOtherLockedOut
+                          ? 'bg-charcoal/30 border-charcoal-border/40 opacity-40 cursor-not-allowed'
+                          : isSelected
+                          ? 'bg-charcoal/90 border-2 shadow-gold-subtle cursor-pointer'
+                          : 'bg-charcoal/60 border-charcoal-border hover:border-gold/30 hover:bg-charcoal/80 cursor-pointer'
                       }`}
                       style={{
-                        borderColor: isSelected ? track.accentColor : undefined,
+                        borderColor: isLockedTrack || isSelected ? track.accentColor : undefined,
                       }}
                     >
                       {/* Domain-Reflecting Modern Vector Artwork on Right Side */}
@@ -357,7 +388,7 @@ export const TrackSelectionPage: React.FC = () => {
                       />
 
                       {/* Active indicator line */}
-                      {isSelected && (
+                      {(isSelected || isLockedTrack) && (
                         <div
                           className="absolute left-0 top-3 bottom-3 w-1.5 rounded-r-full z-10"
                           style={{ backgroundColor: track.accentColor }}
@@ -390,12 +421,22 @@ export const TrackSelectionPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {isSelected && (
+                        {isLockedTrack ? (
+                          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gold/20 border border-gold/50 text-gold text-[10px] font-sans font-bold uppercase tracking-wider shrink-0 mt-1 z-10">
+                            <Lock className="w-3 h-3 text-gold" />
+                            <span>LOCKED TRACK</span>
+                          </div>
+                        ) : isOtherLockedOut ? (
+                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-charcoal border border-charcoal-border text-ivory-muted/50 text-[10px] font-sans shrink-0 mt-1 z-10">
+                            <Lock className="w-2.5 h-2.5" />
+                            <span>LOCKED</span>
+                          </div>
+                        ) : isSelected ? (
                           <div
                             className="w-2.5 h-2.5 rounded-full animate-ping shrink-0 mt-2 z-10"
                             style={{ backgroundColor: track.accentColor }}
                           />
-                        )}
+                        ) : null}
                       </div>
 
                       <p className="relative z-10 text-xs sm:text-[13px] text-ivory-muted/90 font-sans font-normal mt-2 leading-relaxed max-w-[72%] sm:max-w-[78%]">
@@ -410,14 +451,21 @@ export const TrackSelectionPage: React.FC = () => {
               <div className="p-4 rounded-2xl bg-gradient-to-br from-charcoal to-[#0A0D14] border border-gold/40 mt-3 shadow-gold-subtle">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-sans font-semibold text-ivory-muted uppercase tracking-wider">Ready to Inspect:</span>
+                    <span className="text-xs font-sans font-semibold text-ivory-muted uppercase tracking-wider">
+                      {selection ? 'Locked Theme Gate:' : 'Ready to Inspect:'}
+                    </span>
                     <span
                       className="font-cinzel font-bold text-sm"
                       style={{ color: selectedTrack.accentColor }}
                     >
-                      {selectedTrack.officialTitle} (10 Problem Statements)
+                      {selectedTrack.officialTitle}
                     </span>
                   </div>
+                  {selection && (
+                    <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 text-xs font-sans font-semibold">
+                      <Lock className="w-3 h-3" /> {submission ? 'SOLUTION SUBMITTED' : 'SELECTION LOCKED'}
+                    </span>
+                  )}
                 </div>
 
                 <button
@@ -428,7 +476,13 @@ export const TrackSelectionPage: React.FC = () => {
                     background: `linear-gradient(135deg, #D8B46A 0%, ${selectedTrack.accentColor} 100%)`,
                   }}
                 >
-                  <span>EXPLORE PROBLEM STATEMENTS</span>
+                  <span>
+                    {submission
+                      ? 'VIEW FINAL SUBMISSION'
+                      : selection
+                      ? 'PROCEED TO LOCKED CHALLENGES'
+                      : 'EXPLORE PROBLEM STATEMENTS'}
+                  </span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>

@@ -20,7 +20,7 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({ currentStep }) => 
       isCompleted: Boolean(selection),
       isLocked: Boolean(selection),
       isActive: currentStep === 1,
-      canNavigate: !selection || location.pathname === '/tracks',
+      canNavigate: true,
     },
     {
       number: '02',

@@ -45,6 +45,7 @@ export interface ChakravyuhWheel3DProps {
   onSelectTrack: (trackId: string) => void;
   className?: string;
   height?: number | string;
+  isLocked?: boolean;
 }
 
 // 5 Sacred Gate Configurations mapped 1-to-1 to the 5 official hackathon themes
@@ -127,6 +128,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
   onSelectTrack,
   className = '',
   height = 540,
+  isLocked = false,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [hoveredGateId, setHoveredGateId] = useState<string | null>(null);
@@ -840,7 +842,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
               style={{ backgroundColor: activeGate.accent }}
             />
             <span className="text-[11px] sm:text-xs tracking-[0.22em] font-cinzel font-black text-[#F3E8CF] uppercase whitespace-nowrap">
-              THEME GATE • {activeGate.name}
+              {isLocked ? `LOCKED THEME GATE • ${activeGate.name}` : `THEME GATE • ${activeGate.name}`}
             </span>
           </div>
           {/* Ancient alignment needle */}
@@ -863,11 +865,16 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
             <button
               key={gate.id}
               type="button"
-              onClick={() => onSelectTrack(gate.id)}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-sans font-semibold tracking-wider transition-all duration-300 cursor-pointer ${
-                isSelected
-                  ? 'border-2 scale-105 shadow-[0_0_15px_rgba(201,164,92,0.3)]'
-                  : 'bg-[#12141B]/80 border-[#222738] text-[#F3E8CF]/70 hover:border-[#D8B46A]/30 hover:text-[#F3E8CF]'
+              onClick={() => !isLocked && onSelectTrack(gate.id)}
+              disabled={isLocked && !isSelected}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-sans font-semibold tracking-wider transition-all duration-300 ${
+                isSelected && isLocked
+                  ? 'border-2 scale-105 shadow-[0_0_15px_rgba(201,164,92,0.4)] ring-1 ring-gold/40 cursor-default'
+                  : isSelected
+                  ? 'border-2 scale-105 shadow-[0_0_15px_rgba(201,164,92,0.3)] cursor-pointer'
+                  : isLocked
+                  ? 'bg-[#12141B]/40 border-[#222738]/50 text-[#F3E8CF]/30 opacity-40 cursor-not-allowed'
+                  : 'bg-[#12141B]/80 border-[#222738] text-[#F3E8CF]/70 hover:border-[#D8B46A]/30 hover:text-[#F3E8CF] cursor-pointer'
               }`}
               style={{
                 backgroundColor: isSelected ? `${gate.accent}20` : undefined,
@@ -879,7 +886,9 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
                 className="w-2 h-2 rounded-full shrink-0"
                 style={{ backgroundColor: gate.accent }}
               />
-              <span className="tracking-wider">{`0${idx + 1} • ${gate.name}`}</span>
+              <span className="tracking-wider">
+                {isSelected && isLocked ? `0${idx + 1} • ${gate.name} (LOCKED)` : `0${idx + 1} • ${gate.name}`}
+              </span>
             </button>
           );
         })}
