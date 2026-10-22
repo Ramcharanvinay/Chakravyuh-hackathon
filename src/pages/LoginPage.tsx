@@ -23,7 +23,12 @@ export const LoginPage: React.FC = () => {
       if (submission) {
         navigate('/submit', { replace: true });
       } else if (selection) {
-        navigate('/problems', { replace: true });
+        const lockedTrack = HACKATHON_CONFIG.tracks.find(t => t.id === selection.trackId);
+        if (lockedTrack) {
+          navigate(`/theme/${lockedTrack.slug}`, { replace: true });
+        } else {
+          navigate('/submit', { replace: true });
+        }
       } else {
         navigate('/tracks', { replace: true });
       }

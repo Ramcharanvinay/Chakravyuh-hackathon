@@ -114,6 +114,7 @@ export const ProblemSelectionPage: React.FC = () => {
     try {
       await lockSelection(activeTrack.id, selectedProblemId);
       setIsModalOpen(false);
+      navigate('/submit');
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to lock choice in database.');
     } finally {

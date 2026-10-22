@@ -762,8 +762,22 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       }
 
       controls.update();
-      renderer.render(scene, camera);
+      try {
+        renderer.render(scene, camera);
+      } catch (e) {
+        // Gracefully recover if WebGL context was paused or interrupted
+      }
     };
+
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+      cancelAnimationFrame(animationFrameId);
+    };
+    const handleContextRestored = () => {
+      renderLoop();
+    };
+    renderer.domElement.addEventListener('webglcontextlost', handleContextLost, false);
+    renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored, false);
 
     renderLoop();
 
@@ -774,6 +788,8 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       renderer.domElement.removeEventListener('mousemove', handlePointerMove);
       renderer.domElement.removeEventListener('click', handlePointerDown);
       renderer.domElement.removeEventListener('touchend', handleTouchEnd);
+      renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
+      renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
 
       controls.dispose();
       renderer.dispose();

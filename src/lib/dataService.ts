@@ -303,32 +303,47 @@ export const dataService = {
 
   async getCurrentSession(): Promise<{ user: { id: string; email: string } | null; team: Team | null }> {
     if (isSupabaseConfigured && supabase) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session || !session.user) {
-        return { user: null, team: null };
+      try {
+        const client = supabase;
+        const fetchSupabaseSession = async () => {
+          if (!client) return { user: null, team: null };
+          const { data: { session }, error: sessionError } = await client.auth.getSession();
+          if (sessionError || !session || !session.user) {
+            return { user: null, team: null };
+          }
+
+          const userId = session.user.id;
+          const { data: teamData } = await client
+            .from('teams')
+            .select('*')
+            .eq('owner_user_id', userId)
+            .maybeSingle();
+
+          if (!teamData) {
+            return { user: { id: userId, email: session.user.email || '' }, team: null };
+          }
+
+          return {
+            user: { id: userId, email: session.user.email || '' },
+            team: {
+              id: teamData.id,
+              ownerUserId: teamData.owner_user_id,
+              teamName: teamData.team_name,
+              leaderEmail: teamData.leader_email,
+              createdAt: teamData.created_at,
+            },
+          };
+        };
+
+        const timeoutPromise = new Promise<{ user: null; team: null }>((resolve) =>
+          setTimeout(() => resolve({ user: null, team: null }), 3500)
+        );
+
+        const result = await Promise.race([fetchSupabaseSession(), timeoutPromise]);
+        if (result.user) return result;
+      } catch (err) {
+        console.warn('Supabase session fetch failed, falling back to local storage:', err);
       }
-
-      const userId = session.user.id;
-      const { data: teamData } = await supabase
-        .from('teams')
-        .select('*')
-        .eq('owner_user_id', userId)
-        .maybeSingle();
-
-      if (!teamData) {
-        return { user: { id: userId, email: session.user.email || '' }, team: null };
-      }
-
-      return {
-        user: { id: userId, email: session.user.email || '' },
-        team: {
-          id: teamData.id,
-          ownerUserId: teamData.owner_user_id,
-          teamName: teamData.team_name,
-          leaderEmail: teamData.leader_email,
-          createdAt: teamData.created_at,
-        },
-      };
     }
 
     const sessionStr = localStorage.getItem(LOCAL_ACTIVE_SESSION_KEY);
