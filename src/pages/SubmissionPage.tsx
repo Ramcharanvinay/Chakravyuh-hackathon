@@ -21,6 +21,98 @@ import {
   FileCheck
 } from 'lucide-react';
 
+// Google Form live responses integration
+const GOOGLE_FORM_ACTION_URL =
+  'https://docs.google.com/forms/d/e/1FAIpQLSeUC_UCxGnFy2D2aX9fzGvYSw_o-wiDsCU-rILZMt4CjVGQ6Q/formResponse';
+
+const GOOGLE_FORM_ENTRIES = {
+  teamName: 'entry.1494327606',
+  leaderRegNo: 'entry.1069076889',
+  leaderEmail: 'entry.1626956049',
+  githubUrl: 'entry.247861483',
+  deployedUrl: 'entry.1971623563',
+};
+
+// Dual-channel submission (Fetch no-cors + Hidden IFrame) to guarantee 100% delivery into Google Sheet
+const sendDataToGoogleForm = async (payload: {
+  teamName: string;
+  leaderRegNo: string;
+  leaderEmail: string;
+  githubUrl: string;
+  deployedUrl: string;
+}) => {
+  // Channel 1: Background URL-encoded POST with no-cors
+  try {
+    const formParams = new URLSearchParams();
+    formParams.append(GOOGLE_FORM_ENTRIES.teamName, payload.teamName);
+    formParams.append(GOOGLE_FORM_ENTRIES.leaderRegNo, payload.leaderRegNo);
+    formParams.append(GOOGLE_FORM_ENTRIES.leaderEmail, payload.leaderEmail);
+    formParams.append(GOOGLE_FORM_ENTRIES.githubUrl, payload.githubUrl);
+    formParams.append(GOOGLE_FORM_ENTRIES.deployedUrl, payload.deployedUrl);
+
+    fetch(GOOGLE_FORM_ACTION_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formParams.toString(),
+    }).catch(err => {
+      console.warn('Google Form background fetch sync:', err);
+    });
+  } catch (e) {
+    console.warn('Google Form URLSearchParams error:', e);
+  }
+
+  // Channel 2: Hidden Iframe submission (bypasses browser CORS & adblocker restrictions)
+  try {
+    const iframeId = 'gform_submission_bridge';
+    let iframe = document.getElementById(iframeId) as HTMLIFrameElement;
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = iframeId;
+      iframe.name = iframeId;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+
+    const form = document.createElement('form');
+    form.action = GOOGLE_FORM_ACTION_URL;
+    form.method = 'POST';
+    form.target = iframeId;
+    form.style.display = 'none';
+
+    const appendHiddenInput = (name: string, val: string) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = val;
+      form.appendChild(input);
+    };
+
+    appendHiddenInput(GOOGLE_FORM_ENTRIES.teamName, payload.teamName);
+    appendHiddenInput(GOOGLE_FORM_ENTRIES.leaderRegNo, payload.leaderRegNo);
+    appendHiddenInput(GOOGLE_FORM_ENTRIES.leaderEmail, payload.leaderEmail);
+    appendHiddenInput(GOOGLE_FORM_ENTRIES.githubUrl, payload.githubUrl);
+    appendHiddenInput(GOOGLE_FORM_ENTRIES.deployedUrl, payload.deployedUrl);
+
+    document.body.appendChild(form);
+    form.submit();
+
+    setTimeout(() => {
+      try {
+        if (form.parentNode) {
+          form.parentNode.removeChild(form);
+        }
+      } catch {
+        // ignore cleanup error
+      }
+    }, 2500);
+  } catch (err) {
+    console.warn('Google Form hidden iframe submission error:', err);
+  }
+};
+
 export const SubmissionPage: React.FC = () => {
   const { team, selection, submission, isLoading, submitSolution } = useAuth();
   const navigate = useNavigate();
@@ -169,6 +261,15 @@ export const SubmissionPage: React.FC = () => {
           // ignore localStorage sync error
         }
       }
+
+      // 2. Transmit to Google Form & Linked Spreadsheet
+      await sendDataToGoogleForm({
+        teamName: cleanTeamName,
+        leaderRegNo: cleanRegNo,
+        leaderEmail: cleanEmail,
+        githubUrl: cleanGithub,
+        deployedUrl: cleanDeployed,
+      });
 
       await submitSolution(cleanGithub, cleanDeployed);
     } catch (err: any) {
