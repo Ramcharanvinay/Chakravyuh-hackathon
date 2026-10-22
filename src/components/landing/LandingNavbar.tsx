@@ -4,14 +4,12 @@ import {
   Menu,
   X,
   LogIn,
-  Shield,
   Home,
   Trophy,
   Sparkles,
   ScrollText,
   MapPin
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import PillNav, { PillNavItem } from '../navigation/PillNav';
 
 const navItems: PillNavItem[] = [
@@ -25,7 +23,6 @@ const navItems: PillNavItem[] = [
 export const LandingNavbar: React.FC = () => {
   const [scrolled, setScrolled]   = useState(false);
   const [menuOpen, setMenuOpen]   = useState(false);
-  const { user, team }            = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,11 +30,6 @@ export const LandingNavbar: React.FC = () => {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  const handleAuthClick = () => {
-    if (user && team) navigate('/tracks');
-    else navigate('/login');
-  };
 
   const scrollTo = (href: string) => {
     setMenuOpen(false);
@@ -120,31 +112,14 @@ export const LandingNavbar: React.FC = () => {
               />
             </div>
 
-            {/* Profile / Dashboard Shortcut (if authenticated) */}
-            {user && team && (
-              <button
-                onClick={() => navigate('/tracks')}
-                title={`Arena Dashboard: ${team.teamName}`}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#121318] border border-[#806638]/60 text-[#F0E6D1] hover:border-[#C6A15B] hover:text-[#E0BC70] transition-all text-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[#C6A15B]"
-                aria-label="Open arena dashboard"
-              >
-                <div className="w-5 h-5 rounded-md bg-[#C6A15B]/15 flex items-center justify-center text-[#C6A15B]">
-                  <Shield className="w-3.5 h-3.5" />
-                </div>
-                <span className="hidden md:inline font-sans font-medium text-xs text-[#C6A15B] max-w-[120px] truncate">
-                  {team.teamName}
-                </span>
-              </button>
-            )}
-
             {/* Register / Sign In Button */}
             <button
-              onClick={handleAuthClick}
+              onClick={() => navigate('/login')}
               className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C6A15B] hover:bg-[#E0BC70] text-[#08090B] font-cinzel font-bold text-xs tracking-wider transition-all shadow-[0_0_15px_rgba(198,161,91,0.25)] hover:shadow-[0_0_20px_rgba(224,188,112,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E0BC70]"
-              aria-label={user ? 'Go to arena dashboard' : 'Register or sign in'}
+              aria-label="Register or sign in"
             >
               <LogIn className="w-3.5 h-3.5 text-[#08090B]" />
-              <span>{user && team ? 'ENTER ARENA' : 'REGISTER / SIGN IN'}</span>
+              <span>REGISTER / SIGN IN</span>
             </button>
 
             {/* Mobile Hamburger */}
@@ -186,10 +161,10 @@ export const LandingNavbar: React.FC = () => {
               </div>
 
               <button
-                onClick={() => { setMenuOpen(false); handleAuthClick(); }}
+                onClick={() => { setMenuOpen(false); navigate('/login'); }}
                 className="w-full py-3.5 text-center rounded-xl bg-[#C6A15B] text-[#08090B] font-cinzel font-bold text-xs tracking-wider shadow-gold-subtle"
               >
-                {user && team ? 'ENTER ARENA' : 'REGISTER / SIGN IN'}
+                REGISTER / SIGN IN
               </button>
             </div>
           </nav>

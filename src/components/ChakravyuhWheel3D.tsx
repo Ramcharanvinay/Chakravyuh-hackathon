@@ -190,6 +190,16 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     );
   }, [selectedTrackId]);
 
+  const onSelectTrackRef = useRef(onSelectTrack);
+  useEffect(() => {
+    onSelectTrackRef.current = onSelectTrack;
+  }, [onSelectTrack]);
+
+  const activeGateRef = useRef(activeGate);
+  useEffect(() => {
+    activeGateRef.current = activeGate;
+  }, [activeGate]);
+
   // Handle target rotation when selected track changes:
   // Smoothly rotates the wheelGroup so the selected gate faces the front entrance (12 o'clock)
   useEffect(() => {
@@ -713,7 +723,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       if (intersects.length > 0) {
         const hit = interactiveGatesRef.current.find(item => item.mesh === intersects[0].object);
         if (hit) {
-          onSelectTrack(hit.gateId);
+          onSelectTrackRef.current(hit.gateId);
         }
       }
     };
@@ -746,7 +756,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       if (intersects.length > 0) {
         const hit = interactiveGatesRef.current.find(item => item.mesh === intersects[0].object);
         if (hit) {
-          onSelectTrack(hit.gateId);
+          onSelectTrackRef.current(hit.gateId);
         }
       }
     };
@@ -777,16 +787,17 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       const delta = clock.getDelta();
       const elapsedTime = clock.getElapsedTime();
 
-      // Smooth Inertial Wheel Rotation toward target gate (stays locked on target gate without drifting)
+      // Smooth Inertial Wheel Rotation toward target gate + continuous cosmic rotation movement
       if (wheelGroup) {
         const diff = targetRotationY.current - currentRotationY.current;
         if (Math.abs(diff) > 0.0008) {
           currentRotationY.current += diff * 0.082;
-          wheelGroup.rotation.y = currentRotationY.current;
         } else {
-          currentRotationY.current = targetRotationY.current;
-          wheelGroup.rotation.y = targetRotationY.current;
+          // Dynamic continuous cosmic movement of the wheel
+          targetRotationY.current += 0.0022;
+          currentRotationY.current += 0.0022;
         }
+        wheelGroup.rotation.y = currentRotationY.current;
       }
 
       // Gentle counter-rotation of Sanctum Sudarshana spokes
@@ -820,7 +831,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
         // Pulse selected gate beacon
         const beacon = wheelGroup.getObjectByName(`beacon-${gate.id}`) as THREE.Mesh | undefined;
         if (beacon) {
-          const isSelected = activeGate.id === gate.id;
+          const isSelected = activeGateRef.current.id === gate.id;
           beacon.visible = isSelected;
           if (isSelected && beacon.material) {
             (beacon.material as THREE.MeshBasicMaterial).opacity =
@@ -884,7 +895,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
         container.removeChild(renderer.domElement);
       }
     };
-  }, [height, onSelectTrack, activeGate.id]);
+  }, [height]);
 
   return (
     <div className={`relative flex flex-col items-center justify-center select-none w-full ${className}`}>

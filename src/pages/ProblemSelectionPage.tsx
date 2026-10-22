@@ -31,7 +31,12 @@ export const ProblemSelectionPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-// No login redirect - open arena directly
+  // Redirect unauthenticated visitors to login
+  useEffect(() => {
+    if (!isLoading && !team) {
+      navigate('/login', { replace: true });
+    }
+  }, [isLoading, team, navigate]);
 
   // Determine active track
   const queryTrackId = searchParams.get('track');
@@ -109,7 +114,7 @@ export const ProblemSelectionPage: React.FC = () => {
     try {
       await lockSelection(activeTrack.id, selectedProblemId);
       setIsModalOpen(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      navigate('/submit');
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to lock choice in database.');
     } finally {
@@ -394,6 +399,7 @@ export const ProblemSelectionPage: React.FC = () => {
           problem={selectedProblem}
           teamName={team?.teamName || 'Your Team'}
           isLocking={isLocking}
+          error={errorMessage}
           onCancel={() => setIsModalOpen(false)}
           onConfirm={handleConfirmLock}
         />

@@ -38,7 +38,12 @@ export const ThemeDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { team, selection, submission, isLoading, lockSelection } = useAuth();
 
-// No login redirect - open arena directly
+  // Redirect unauthenticated visitors to login
+  useEffect(() => {
+    if (!isLoading && !team) {
+      navigate('/login', { replace: true });
+    }
+  }, [isLoading, team, navigate]);
 
   // Find track matching slug or id
   const currentTrack = useMemo(() => {
@@ -112,7 +117,7 @@ export const ThemeDetailPage: React.FC = () => {
     try {
       await lockSelection(currentTrack.id, selectedProblemId);
       setIsModalOpen(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      navigate('/submit');
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to lock choice in arena database.');
     } finally {
@@ -471,6 +476,7 @@ export const ThemeDetailPage: React.FC = () => {
           problem={selectedProblem}
           teamName={team?.teamName || 'Your Team'}
           isLocking={isLocking}
+          error={errorMessage}
           onCancel={() => setIsModalOpen(false)}
           onConfirm={handleConfirmLock}
         />

@@ -9,6 +9,7 @@ interface ConfirmationModalProps {
   problem: ProblemStatement;
   teamName: string;
   isLocking: boolean;
+  error?: string | null;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -19,6 +20,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   problem,
   teamName,
   isLocking,
+  error,
   onCancel,
   onConfirm,
 }) => {
@@ -96,6 +98,14 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               </p>
             </div>
           </div>
+
+          {/* Error Alert if lock failed */}
+          {error && (
+            <div className="mb-4 p-3 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs flex items-start gap-2.5 font-sans">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
+              <p className="leading-relaxed">{error}</p>
+            </div>
+          )}
 
           {/* Strict Warning Banner */}
           <div className="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-3 font-sans">
