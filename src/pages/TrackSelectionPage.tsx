@@ -390,48 +390,49 @@ export const TrackSelectionPage: React.FC = () => {
                         />
                       )}
 
-                      <div className="relative z-10 flex items-start justify-between gap-3 max-w-[70%] sm:max-w-[75%]">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border backdrop-blur-sm shadow-inner"
-                            style={{
-                              backgroundColor: `${track.accentColor}25`,
-                              borderColor: `${track.accentColor}60`,
-                            }}
-                          >
-                            {getTrackIcon(track.iconName, track.accentColor)}
-                          </div>
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-sans font-semibold px-2 py-0.5 rounded bg-obsidian/90 text-ivory-muted border border-charcoal-border backdrop-blur-sm">
-                                {`0${idx + 1}`}
-                              </span>
-                              <h3 className="font-cinzel text-base font-bold text-ivory tracking-wide">
-                                {track.officialTitle}
-                              </h3>
-                            </div>
-                            <span className="text-xs text-ivory-muted/80 font-sans italic line-clamp-1 mt-0.5">
-                              "{track.motto}"
-                            </span>
-                          </div>
-                        </div>
-
+                      {/* Status Badge in Top-Right Corner */}
+                      <div className="absolute top-3 sm:top-3.5 right-3 sm:right-4 z-20">
                         {isLockedTrack ? (
-                          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gold/20 border border-gold/50 text-gold text-[10px] font-sans font-bold uppercase tracking-wider shrink-0 mt-1 z-10">
+                          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gold/20 border border-gold/50 text-gold text-[10px] font-sans font-bold uppercase tracking-wider backdrop-blur-sm shadow-sm">
                             <Lock className="w-3 h-3 text-gold" />
                             <span>LOCKED TRACK</span>
                           </div>
                         ) : isOtherLockedOut ? (
-                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-charcoal border border-charcoal-border text-ivory-muted/50 text-[10px] font-sans shrink-0 mt-1 z-10">
+                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-charcoal/90 border border-charcoal-border text-ivory-muted/50 text-[10px] font-sans backdrop-blur-sm">
                             <Lock className="w-2.5 h-2.5" />
                             <span>LOCKED</span>
                           </div>
                         ) : isSelected ? (
                           <div
-                            className="w-2.5 h-2.5 rounded-full animate-ping shrink-0 mt-2 z-10"
+                            className="w-2.5 h-2.5 rounded-full animate-ping mt-1"
                             style={{ backgroundColor: track.accentColor }}
                           />
                         ) : null}
+                      </div>
+
+                      <div className="relative z-10 flex items-start gap-3 pr-24 sm:pr-28">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border backdrop-blur-sm shadow-inner"
+                          style={{
+                            backgroundColor: `${track.accentColor}25`,
+                            borderColor: `${track.accentColor}60`,
+                          }}
+                        >
+                          {getTrackIcon(track.iconName, track.accentColor)}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-sans font-semibold px-2 py-0.5 rounded bg-obsidian/90 text-ivory-muted border border-charcoal-border backdrop-blur-sm shrink-0">
+                              {`0${idx + 1}`}
+                            </span>
+                            <h3 className="font-cinzel text-base font-bold text-ivory tracking-wide">
+                              {track.officialTitle}
+                            </h3>
+                          </div>
+                          <span className="text-xs text-ivory-muted/80 font-sans italic line-clamp-1 mt-0.5">
+                            "{track.motto}"
+                          </span>
+                        </div>
                       </div>
 
                       <p className="relative z-10 text-xs sm:text-[13px] text-ivory-muted/90 font-sans font-normal mt-2 leading-relaxed max-w-[72%] sm:max-w-[78%]">
