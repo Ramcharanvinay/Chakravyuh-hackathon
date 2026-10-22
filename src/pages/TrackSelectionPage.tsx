@@ -232,12 +232,7 @@ export const TrackSelectionPage: React.FC = () => {
     }
   }, [selection]);
 
-  // Guard: Redirect to /login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !team) {
-      navigate('/login', { replace: true });
-    }
-  }, [team, isLoading, navigate]);
+// No login redirect - open arena directly
 
   const selectedTrack =
     lockedTrack ||

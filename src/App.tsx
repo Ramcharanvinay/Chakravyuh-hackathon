@@ -15,7 +15,7 @@ export const App: React.FC = () => {
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<Navigate to="/tracks" replace />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<Navigate to="/tracks" replace />} />
           <Route path="/tracks" element={<TrackSelectionPage />} />
           {/* Dedicated Individual Theme Pages */}
           <Route path="/theme/:themeSlug" element={<ThemeDetailPage />} />

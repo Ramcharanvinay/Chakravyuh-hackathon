@@ -38,12 +38,7 @@ export const ThemeDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { team, selection, submission, isLoading, lockSelection } = useAuth();
 
-  // Guard: Redirect to /login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !team) {
-      navigate('/login', { replace: true });
-    }
-  }, [team, isLoading, navigate]);
+// No login redirect - open arena directly
 
   // Find track matching slug or id
   const currentTrack = useMemo(() => {

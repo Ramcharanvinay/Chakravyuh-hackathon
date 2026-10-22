@@ -31,12 +31,7 @@ export const ProblemSelectionPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Guard: Redirect to /login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !team) {
-      navigate('/login', { replace: true });
-    }
-  }, [team, isLoading, navigate]);
+// No login redirect - open arena directly
 
   // Determine active track
   const queryTrackId = searchParams.get('track');

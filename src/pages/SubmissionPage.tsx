@@ -34,12 +34,7 @@ export const SubmissionPage: React.FC = () => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
 
-  // Guards: If not authenticated, redirect to /login
-  useEffect(() => {
-    if (!isLoading && !team) {
-      navigate('/login', { replace: true });
-    }
-  }, [team, isLoading, navigate]);
+// No login redirect - open arena directly
 
   // Guard: If team has NOT locked a selection yet, redirect to /tracks
   useEffect(() => {

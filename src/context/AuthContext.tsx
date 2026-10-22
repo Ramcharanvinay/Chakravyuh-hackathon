@@ -117,8 +117,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       await dataService.signOut();
-      setUser(null);
-      setTeam(null);
+      const session = await dataService.getCurrentSession();
+      setUser(session.user);
+      setTeam(session.team);
       setSelection(null);
       setSubmission(null);
     } finally {

@@ -10,7 +10,7 @@ export const Navbar: React.FC = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/login');
+    navigate('/tracks');
   };
 
   const selectedTrack = selection
@@ -97,7 +97,7 @@ export const Navbar: React.FC = () => {
         ) : (
           <div className="flex items-center gap-3">
             <Link
-              to="/login"
+              to="/tracks"
               className="px-4 py-2 rounded-xl bg-gold/15 text-gold border border-gold/40 hover:bg-gold hover:text-obsidian font-sans text-xs tracking-widest font-bold uppercase transition-all duration-300 shadow-gold-subtle"
             >
               ENTER ARENA
