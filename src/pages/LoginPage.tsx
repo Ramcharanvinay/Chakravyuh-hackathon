@@ -81,7 +81,7 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="relative min-h-screen w-full bg-[#08090B] text-[#C7BDA9] flex flex-col justify-between items-center px-4 py-8 overflow-hidden select-none">
-      
+
       {/* Return to Landing Navigation */}
       <div className="absolute top-6 left-6 z-20">
         <Link
@@ -110,7 +110,7 @@ export const LoginPage: React.FC = () => {
             <circle cx="0" cy="0" r="170" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="40 12" />
             <circle cx="0" cy="0" r="120" fill="none" stroke="currentColor" strokeWidth="1" />
             <circle cx="0" cy="0" r="70" fill="none" stroke="currentColor" strokeWidth="0.8" strokeDasharray="10 8" />
-            
+
             {/* Radial battle-formation crosshairs */}
             <line x1="-540" y1="0" x2="540" y2="0" stroke="currentColor" strokeWidth="0.6" strokeDasharray="12 8" />
             <line x1="0" y1="-540" x2="0" y2="540" stroke="currentColor" strokeWidth="0.6" strokeDasharray="12 8" />

@@ -64,10 +64,10 @@ export const FinalCTASection: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {/* Primary: Antique Gold */}
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/tracks')}
               className="group flex items-center justify-center gap-3 px-10 py-4 rounded-xl bg-[#C6A15B] hover:bg-[#E0BC70] text-[#08090B] font-cinzel font-bold text-xs tracking-wider transition-all shadow-[0_0_20px_rgba(198,161,91,0.25)] hover:shadow-[0_0_25px_rgba(224,188,112,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E0BC70]"
             >
-              <span>REGISTER FOR CHAKRAVYUH</span>
+              <span>ENTER THE ARENA</span>
               <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
 

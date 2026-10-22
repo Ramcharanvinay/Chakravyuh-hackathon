@@ -31,12 +31,7 @@ export const ProblemSelectionPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Redirect unauthenticated visitors to login
-  useEffect(() => {
-    if (!isLoading && !team) {
-      navigate('/login', { replace: true });
-    }
-  }, [isLoading, team, navigate]);
+
 
   // Determine active track
   const queryTrackId = searchParams.get('track');

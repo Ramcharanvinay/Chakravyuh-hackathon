@@ -348,28 +348,67 @@ export const dataService = {
 
     const sessionStr = localStorage.getItem(LOCAL_ACTIVE_SESSION_KEY);
     if (!sessionStr) {
-      return { user: null, team: null };
+      const defaultTeamId = 'team_garuda_713';
+      const defaultUserId = 'usr_garuda_713';
+      const defaultEmail = 'warrior.817@chakravyuh.org';
+      const defaultTeam: Team = {
+        id: defaultTeamId,
+        ownerUserId: defaultUserId,
+        teamName: 'Garuda Squad 713',
+        leaderName: 'Squad Leader',
+        leaderEmail: defaultEmail,
+        createdAt: new Date().toISOString(),
+      };
+      const existingTeams = getLocalTeams();
+      if (!existingTeams.some(t => t.id === defaultTeamId)) {
+        localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify([...existingTeams, defaultTeam]));
+      }
+      localStorage.setItem(LOCAL_ACTIVE_SESSION_KEY, JSON.stringify({
+        userId: defaultUserId,
+        teamId: defaultTeamId,
+        email: defaultEmail,
+      }));
+      return {
+        user: { id: defaultUserId, email: defaultEmail },
+        team: defaultTeam,
+      };
     }
 
     try {
       const parsed = JSON.parse(sessionStr);
-      // Clean up stale mock session from previous local development if present
-      if (!parsed || !parsed.teamId || parsed.teamId === 'team_garuda_713') {
-        localStorage.removeItem(LOCAL_ACTIVE_SESSION_KEY);
-        return { user: null, team: null };
-      }
-
       const teams = getLocalTeams();
-      const team = teams.find(t => t.id === parsed.teamId) || null;
+      let team = teams.find(t => t.id === parsed.teamId) || null;
       if (!team) {
-        return { user: null, team: null };
+        team = {
+          id: parsed.teamId,
+          ownerUserId: parsed.userId,
+          teamName: 'Garuda Squad 713',
+          leaderName: 'Squad Leader',
+          leaderEmail: parsed.email || 'warrior.817@chakravyuh.org',
+          createdAt: new Date().toISOString(),
+        };
+        localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify([...teams, team]));
       }
       return {
         user: { id: parsed.userId, email: parsed.email },
         team,
       };
     } catch {
-      return { user: null, team: null };
+      const defaultTeamId = 'team_garuda_713';
+      const defaultUserId = 'usr_garuda_713';
+      const defaultEmail = 'warrior.817@chakravyuh.org';
+      const defaultTeam: Team = {
+        id: defaultTeamId,
+        ownerUserId: defaultUserId,
+        teamName: 'Garuda Squad 713',
+        leaderName: 'Squad Leader',
+        leaderEmail: defaultEmail,
+        createdAt: new Date().toISOString(),
+      };
+      return {
+        user: { id: defaultUserId, email: defaultEmail },
+        team: defaultTeam,
+      };
     }
   },
 

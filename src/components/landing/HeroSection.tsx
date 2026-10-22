@@ -63,10 +63,10 @@ export const HeroSection: React.FC = () => {
             >
               {/* Primary: Antique Gold with Dark Text */}
               <button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/tracks')}
                 className="group flex items-center justify-center gap-3 px-9 py-4 rounded-xl bg-gradient-to-r from-[#D8B46A] via-[#E5C37A] to-[#C6A15B] hover:brightness-110 active:scale-[0.98] text-[#08090B] font-cinzel font-black text-xs sm:text-sm tracking-[0.16em] transition-all shadow-[0_0_25px_rgba(198,161,91,0.35)] hover:shadow-[0_0_35px_rgba(224,188,112,0.55)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E0BC70] cursor-pointer"
               >
-                <span>REGISTER NOW</span>
+                <span>ENTER THE ARENA</span>
                 <ChevronRight className="w-4 h-4 text-[#08090B] group-hover:translate-x-1 transition-transform" />
               </button>
 

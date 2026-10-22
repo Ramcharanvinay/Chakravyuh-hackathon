@@ -232,12 +232,7 @@ export const TrackSelectionPage: React.FC = () => {
     }
   }, [selection]);
 
-  // Classic login page must be visited between initial and tracks page
-  useEffect(() => {
-    if (!isLoading && !team) {
-      navigate('/login', { replace: true });
-    }
-  }, [isLoading, team, navigate]);
+
 
   const selectedTrack =
     lockedTrack ||

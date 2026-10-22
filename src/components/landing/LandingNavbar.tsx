@@ -13,16 +13,16 @@ import {
 import PillNav, { PillNavItem } from '../navigation/PillNav';
 
 const navItems: PillNavItem[] = [
-  { label: 'Home',     href: '#hero',     icon: <Home className="w-3.5 h-3.5" /> },
-  { label: 'Prizes',   href: '#prizes',   icon: <Trophy className="w-3.5 h-3.5" /> },
+  { label: 'Home', href: '#hero', icon: <Home className="w-3.5 h-3.5" /> },
+  { label: 'Prizes', href: '#prizes', icon: <Trophy className="w-3.5 h-3.5" /> },
   { label: 'Sponsors', href: '#sponsors', icon: <Sparkles className="w-3.5 h-3.5" /> },
-  { label: 'Rules',    href: '#rules',    icon: <ScrollText className="w-3.5 h-3.5" /> },
-  { label: 'Venue',    href: '#venue',    icon: <MapPin className="w-3.5 h-3.5" /> },
+  { label: 'Rules', href: '#rules', icon: <ScrollText className="w-3.5 h-3.5" /> },
+  { label: 'Venue', href: '#venue', icon: <MapPin className="w-3.5 h-3.5" /> },
 ];
 
 export const LandingNavbar: React.FC = () => {
-  const [scrolled, setScrolled]   = useState(false);
-  const [menuOpen, setMenuOpen]   = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,11 +39,10 @@ export const LandingNavbar: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-[#08090B]/95 backdrop-blur-xl border-b border-[#302920] shadow-[0_10px_30px_rgba(0,0,0,0.8)]'
-          : 'bg-[#08090B]/70 backdrop-blur-md border-b border-[#302920]/40'
-      }`}
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled
+        ? 'bg-[#08090B]/95 backdrop-blur-xl border-b border-[#302920] shadow-[0_10px_30px_rgba(0,0,0,0.8)]'
+        : 'bg-[#08090B]/70 backdrop-blur-md border-b border-[#302920]/40'
+        }`}
     >
       <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 gap-4">
@@ -112,14 +111,14 @@ export const LandingNavbar: React.FC = () => {
               />
             </div>
 
-            {/* Register / Sign In Button */}
+            {/* Enter The Arena Button */}
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/tracks')}
               className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C6A15B] hover:bg-[#E0BC70] text-[#08090B] font-cinzel font-bold text-xs tracking-wider transition-all shadow-[0_0_15px_rgba(198,161,91,0.25)] hover:shadow-[0_0_20px_rgba(224,188,112,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E0BC70]"
-              aria-label="Register or sign in"
+              aria-label="Enter the arena"
             >
               <LogIn className="w-3.5 h-3.5 text-[#08090B]" />
-              <span>REGISTER / SIGN IN</span>
+              <span>ENTER THE ARENA</span>
             </button>
 
             {/* Mobile Hamburger */}
@@ -161,10 +160,10 @@ export const LandingNavbar: React.FC = () => {
               </div>
 
               <button
-                onClick={() => { setMenuOpen(false); navigate('/login'); }}
+                onClick={() => { setMenuOpen(false); navigate('/tracks'); }}
                 className="w-full py-3.5 text-center rounded-xl bg-[#C6A15B] text-[#08090B] font-cinzel font-bold text-xs tracking-wider shadow-gold-subtle"
               >
-                REGISTER / SIGN IN
+                ENTER THE ARENA
               </button>
             </div>
           </nav>

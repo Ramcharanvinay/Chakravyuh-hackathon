@@ -38,12 +38,7 @@ export const ThemeDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { team, selection, submission, isLoading, lockSelection } = useAuth();
 
-  // Redirect unauthenticated visitors to login
-  useEffect(() => {
-    if (!isLoading && !team) {
-      navigate('/login', { replace: true });
-    }
-  }, [isLoading, team, navigate]);
+
 
   // Find track matching slug or id
   const currentTrack = useMemo(() => {
