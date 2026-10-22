@@ -365,4 +365,22 @@
   }
 }
 
+/* ── Landing Page Backgrounds & Animations ── */
+.bg-ancient-grid {
+  background-size: 48px 48px;
+  background-image:
+    linear-gradient(to right, rgba(198, 161, 91, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(198, 161, 91, 0.03) 1px, transparent 1px);
+}
+.animate-spin-slow {
+  animation: spin 90s linear infinite;
+}
+.text-gold-gradient {
+  background: linear-gradient(135deg, #F0E6D1 0%, #E0BC70 40%, #C6A15B 70%, #806638 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ScrollToTop } from './components/ScrollToTop';
+import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { TrackSelectionPage } from './pages/TrackSelectionPage';
 import { ThemeDetailPage } from './pages/ThemeDetailPage';
@@ -14,17 +15,25 @@ export const App: React.FC = () => {
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
-          <Route path="/" element={<Navigate to="/tracks" replace />} />
-          <Route path="/login" element={<Navigate to="/tracks" replace />} />
+          {/* 1) Initial landing page */}
+          <Route path="/" element={<LandingPage />} />
+
+          {/* 2) Classic login page */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* 3) 3D Track selection page */}
           <Route path="/tracks" element={<TrackSelectionPage />} />
-          {/* Dedicated Individual Theme Pages */}
+
+          {/* 4) Problem statements & theme details */}
           <Route path="/theme/:themeSlug" element={<ThemeDetailPage />} />
           <Route path="/themes/:themeSlug" element={<ThemeDetailPage />} />
-          {/* Problem selection fallback */}
           <Route path="/problems" element={<ProblemSelectionPage />} />
-          {/* Submission Chamber */}
+
+          {/* 5) Submission chamber */}
           <Route path="/submit" element={<SubmissionPage />} />
-          <Route path="*" element={<Navigate to="/tracks" replace />} />
+
+          {/* Fallback to initial landing page */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

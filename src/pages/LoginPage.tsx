@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { HACKATHON_CONFIG } from '../config/hackathonConfig';
-import { Shield, Eye, EyeOff, Lock, Mail, Users, ArrowRight, AlertCircle, Sparkles } from 'lucide-react';
+import { Users, Mail, Circle, Shield, AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { user, team, selection, submission, isLoading, signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState<'signin' | 'register'>('register');
   const [teamName, setTeamName] = useState('');
+  const [regNumber, setRegNumber] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -23,12 +21,7 @@ export const LoginPage: React.FC = () => {
       if (submission) {
         navigate('/submit', { replace: true });
       } else if (selection) {
-        const lockedTrack = HACKATHON_CONFIG.tracks.find(t => t.id === selection.trackId);
-        if (lockedTrack) {
-          navigate(`/theme/${lockedTrack.slug}`, { replace: true });
-        } else {
-          navigate('/submit', { replace: true });
-        }
+        navigate('/problems', { replace: true });
       } else {
         navigate('/tracks', { replace: true });
       }
@@ -38,28 +31,46 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const trimmedTeam = teamName.trim();
+    const trimmedEmail = email.trim();
+    const trimmedReg = regNumber.trim();
+
+    if (!trimmedTeam) {
+      setError('Please enter your team name.');
+      return;
+    }
+    if (!trimmedReg) {
+      setError("Please enter team lead's registration number.");
+      return;
+    }
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      setError('Please enter a valid registered email address.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      if (mode === 'register') {
-        if (!teamName.trim()) {
-          throw new Error('Please enter your warrior team name.');
+      // 1. Attempt sign in with email and registration number (used as verification secret)
+      try {
+        await signIn(trimmedEmail, trimmedReg);
+      } catch (signInErr: any) {
+        // 2. If team/account is not yet registered, register automatically
+        const errMsg = (signInErr?.message || '').toLowerCase();
+        if (
+          errMsg.includes('invalid') ||
+          errMsg.includes('not found') ||
+          errMsg.includes('credentials') ||
+          errMsg.includes('no team profile')
+        ) {
+          await signUp(trimmedEmail, trimmedReg, trimmedTeam, {
+            leaderName: trimmedTeam,
+            leaderPhone: trimmedReg,
+          });
+        } else {
+          throw signInErr;
         }
-        if (!email.trim() || !email.includes('@')) {
-          throw new Error('Please enter a valid email address.');
-        }
-        if (password.length < 6) {
-          throw new Error('Password must be at least 6 characters.');
-        }
-        await signUp(email, password, teamName);
-      } else {
-        if (!email.trim() || !email.includes('@')) {
-          throw new Error('Please enter your registered email address.');
-        }
-        if (!password) {
-          throw new Error('Please enter your password.');
-        }
-        await signIn(email, password);
       }
     } catch (err: any) {
       setError(err?.message || 'Authentication failed. Please verify your details.');
@@ -69,283 +80,197 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#08090D] flex flex-col justify-between overflow-hidden">
-      {/* Dynamic Background Chakravyuh Formation */}
+    <div className="relative min-h-screen w-full bg-[#08090B] text-[#C7BDA9] flex flex-col justify-between items-center px-4 py-8 overflow-hidden select-none">
+      
+      {/* Return to Landing Navigation */}
+      <div className="absolute top-6 left-6 z-20">
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-xs font-sans font-medium tracking-wider text-[#898174]/70 hover:text-[#C6A15B] transition-colors group"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 text-[#898174]/70 group-hover:-translate-x-1 transition-transform" />
+          <span>RETURN TO ARENA</span>
+        </Link>
+      </div>
+
+      {/* Atmospheric Background: Centered Ancient Formation Rings matching reference */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
-        {/* Subtle radial glow */}
-        <div className="absolute w-[650px] h-[650px] rounded-full bg-gold/5 blur-[120px]" />
-        
-        {/* Atmospheric slow-spinning ancient Chakravyuha backdrop */}
-        <div className="w-[850px] h-[850px] opacity-[0.07] animate-spin-slow">
-          <svg viewBox="-300 -300 600 600" className="w-full h-full text-gold">
-            <circle cx="0" cy="0" r="280" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="16 8" />
-            <circle cx="0" cy="0" r="240" fill="none" stroke="currentColor" strokeWidth="2" />
-            <circle cx="0" cy="0" r="200" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="10 10" />
-            <circle cx="0" cy="0" r="160" fill="none" stroke="currentColor" strokeWidth="3" />
-            <circle cx="0" cy="0" r="120" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="8 6" />
-            <circle cx="0" cy="0" r="80" fill="none" stroke="currentColor" strokeWidth="3" />
-            <circle cx="0" cy="0" r="40" fill="none" stroke="currentColor" strokeWidth="4" />
-            <path
-              d="M 0,-280 A 280,280 0 0,1 200,0 A 200,200 0 0,1 0,160 A 120,120 0 0,1 -80,0 A 40,40 0 0,1 0,-20"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-            />
+        {/* Subtle Ambient Gold Glow */}
+        <div className="absolute w-[700px] h-[700px] rounded-full bg-[#C6A15B]/[0.03] blur-[150px]" />
+
+        {/* Concentric Chakravyuh Maze Rings */}
+        <div className="w-[1100px] h-[1100px] opacity-[0.11]">
+          <svg viewBox="-550 -550 1100 1100" className="w-full h-full text-[#C6A15B]">
+            {/* Outermost ring */}
+            <circle cx="0" cy="0" r="500" fill="none" stroke="currentColor" strokeWidth="0.8" strokeDasharray="30 20" />
+            <circle cx="0" cy="0" r="430" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="140 10 40 10" />
+            <circle cx="0" cy="0" r="360" fill="none" stroke="currentColor" strokeWidth="0.8" />
+            <circle cx="0" cy="0" r="290" fill="none" stroke="currentColor" strokeWidth="1.2" strokeDasharray="80 15 20 15" />
+            <circle cx="0" cy="0" r="230" fill="none" stroke="currentColor" strokeWidth="0.8" />
+            <circle cx="0" cy="0" r="170" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="40 12" />
+            <circle cx="0" cy="0" r="120" fill="none" stroke="currentColor" strokeWidth="1" />
+            <circle cx="0" cy="0" r="70" fill="none" stroke="currentColor" strokeWidth="0.8" strokeDasharray="10 8" />
+            
+            {/* Radial battle-formation crosshairs */}
+            <line x1="-540" y1="0" x2="540" y2="0" stroke="currentColor" strokeWidth="0.6" strokeDasharray="12 8" />
+            <line x1="0" y1="-540" x2="0" y2="540" stroke="currentColor" strokeWidth="0.6" strokeDasharray="12 8" />
+            <line x1="-380" y1="-380" x2="380" y2="380" stroke="currentColor" strokeWidth="0.4" strokeDasharray="6 14" opacity="0.6" />
+            <line x1="380" y1="-380" x2="-380" y2="380" stroke="currentColor" strokeWidth="0.4" strokeDasharray="6 14" opacity="0.6" />
           </svg>
         </div>
       </div>
 
-      {/* Top Banner / College Header */}
-      <header className="relative z-10 w-full pt-8 pb-4 px-6 flex flex-col items-center text-center">
-        <div className="flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-charcoal border border-gold/30 text-gold text-xs font-sans font-semibold tracking-widest shadow-gold-subtle uppercase">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>{HACKATHON_CONFIG.edition} • BATTLE FOR EXCELLENCE</span>
+      {/* Spacer to balance top & center */}
+      <div className="w-full h-4" />
+
+      {/* ── Central Authentication Card ── */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="relative z-10 w-full max-w-[460px] rounded-2xl bg-[#0D0E12] border border-[#302920] shadow-[0_25px_60px_rgba(0,0,0,0.85)] p-8 sm:p-10"
+      >
+        {/* Subtle Card Glow Frame */}
+        <div className="absolute -inset-px rounded-2xl border border-[#806638]/20 pointer-events-none" />
+
+        {/* Top Eyebrow Label */}
+        <div className="text-center mb-3">
+          <span className="text-[10px] font-sans tracking-[0.28em] text-[#C6A15B] uppercase font-semibold">
+            CHAKRAVYUH • TEAM PORTAL
+          </span>
         </div>
-        <h2 className="text-xs sm:text-sm font-sans font-semibold tracking-widest text-ivory-muted uppercase">
-          {HACKATHON_CONFIG.collegeName}
-        </h2>
-        <span className="text-[11px] font-sans text-ivory-muted/60 tracking-wider">
-          {HACKATHON_CONFIG.departmentName}
-        </span>
-      </header>
 
-      {/* Center Arena Section: Split Screen on Large Screens */}
-      <main className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-12">
-        {/* Left Column: Epic Visual & Narrative */}
-        <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
-          <div className="inline-flex items-center gap-2 text-gold font-sans font-semibold text-xs tracking-widest uppercase">
-            <span className="w-8 h-[1px] bg-gold" />
-            <span>SACRED FORMATION</span>
-          </div>
-
-          <h1 className="font-cinzel text-4xl sm:text-6xl font-black text-ivory tracking-wider leading-tight">
-            ENTER THE <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold via-ivory to-amber-500">
-              CHAKRAVYUH
-            </span>
+        {/* Header Title */}
+        <div className="text-center mb-3">
+          <h1 className="font-cinzel text-3xl sm:text-4xl text-[#F0E6D1] font-normal tracking-wide">
+            WELCOME BACK
           </h1>
-
-          <p className="font-cinzel text-lg sm:text-xl text-ivory-muted italic max-w-lg">
-            "Every great solution begins with the courage to enter."
-          </p>
-
-          <p className="font-sans text-sm text-ivory-muted/80 max-w-lg leading-relaxed">
-            Inspired by the legendary strategic warfare labyrinth of the Mahabharata, the arena demands technological precision, tactical unity, and unyielding code. Choose your gate, lock your challenge, and emerge victorious.
-          </p>
-
-          {/* Quick Stats Pills */}
-          <div className="grid grid-cols-3 gap-3 pt-2 w-full max-w-md">
-            <div className="p-3 rounded-xl bg-charcoal/80 border border-charcoal-border text-center">
-              <span className="font-cinzel text-xl font-bold text-gold block">7</span>
-              <span className="text-[10px] font-sans font-semibold text-ivory-muted uppercase tracking-wider">Concentric Rings</span>
-            </div>
-            <div className="p-3 rounded-xl bg-charcoal/80 border border-charcoal-border text-center">
-              <span className="font-cinzel text-xl font-bold text-gold block">5</span>
-              <span className="text-[10px] font-sans font-semibold text-ivory-muted uppercase tracking-wider">Battle Tracks</span>
-            </div>
-            <div className="p-3 rounded-xl bg-charcoal/80 border border-charcoal-border text-center">
-              <span className="font-cinzel text-xl font-bold text-gold block">50</span>
-              <span className="text-[10px] font-sans font-semibold text-ivory-muted uppercase tracking-wider">Challenges</span>
-            </div>
-          </div>
         </div>
 
-        {/* Right Column: Tactical Glassmorphic Login/Register Panel */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="w-full max-w-md"
-        >
-          <div className="relative rounded-3xl bg-charcoal/90 border-2 border-gold/40 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_25px_rgba(216,180,106,0.15)] overflow-hidden">
-            {/* Ancient Indian Ornamental Corner Markers */}
-            <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-gold/60" />
-            <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-gold/60" />
-            <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-gold/60" />
-            <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-gold/60" />
+        {/* Subtitle */}
+        <div className="text-center mb-6 space-y-0.5">
+          <p className="text-xs text-[#898174] leading-relaxed">
+            The next chapter of your conquest awaits.
+          </p>
+          <p className="text-xs text-[#898174] leading-relaxed">
+            Sign in to enter the arena.
+          </p>
+        </div>
 
-            {/* Mode Switch Tabs */}
-            <div className="flex rounded-xl bg-obsidian/80 border border-charcoal-border p-1 mb-6">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('register');
-                  setError(null);
-                }}
-                className={`flex-1 py-2 text-xs font-sans font-semibold tracking-wider rounded-lg transition-all ${
-                  mode === 'register'
-                    ? 'bg-gold text-obsidian shadow-gold-subtle'
-                    : 'text-ivory-muted hover:text-ivory'
-                }`}
-              >
-                REGISTER TEAM
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('signin');
-                  setError(null);
-                }}
-                className={`flex-1 py-2 text-xs font-sans font-semibold tracking-wider rounded-lg transition-all ${
-                  mode === 'signin'
-                    ? 'bg-gold text-obsidian shadow-gold-subtle'
-                    : 'text-ivory-muted hover:text-ivory'
-                }`}
-              >
-                SIGN IN
-              </button>
-            </div>
+        {/* Decorative Diamond Divider */}
+        <div className="flex items-center justify-center gap-3 mb-7">
+          <div className="h-px w-16 bg-gradient-to-r from-transparent via-[#806638]/60 to-[#806638]" />
+          <div className="w-1.5 h-1.5 rotate-45 bg-[#C6A15B] shadow-[0_0_6px_rgba(198,161,91,0.6)]" />
+          <div className="h-px w-16 bg-gradient-to-l from-transparent via-[#806638]/60 to-[#806638]" />
+        </div>
 
-            {/* Form Title */}
-            <div className="mb-6">
-              <h2 className="font-cinzel text-xl font-bold text-ivory tracking-wide">
-                {mode === 'register' ? 'Enlist Your Battle Squad' : 'Return to the Formation'}
-              </h2>
-              <p className="text-xs font-sans text-ivory-muted mt-1">
-                {mode === 'register'
-                  ? 'Associate one team leader account to navigate the Chakravyuh.'
-                  : 'Access your team\'s locked track and solution chamber.'}
-              </p>
-            </div>
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-6 p-3 rounded-xl bg-red-950/40 border border-red-500/30 flex items-start gap-2.5 text-xs text-red-300">
+            <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+            <p className="leading-relaxed">{error}</p>
+          </div>
+        )}
 
-            {/* Error Notification */}
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mb-5 p-3 rounded-xl bg-ember/15 border border-ember/40 text-ember text-xs font-sans flex items-center gap-2.5"
-                >
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span className="leading-snug">{error}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Team Name (Register Only) */}
-              {mode === 'register' && (
-                <div>
-                  <label className="block text-xs font-sans font-semibold text-ivory-muted mb-1.5 uppercase tracking-wider">
-                    Team / Squad Name <span className="text-gold">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gold/60">
-                      <Users className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      value={teamName}
-                      onChange={(e) => setTeamName(e.target.value)}
-                      placeholder="e.g. Garuda Cyber Vanguard"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-obsidian/70 border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-sans text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Team Leader Email */}
-              <div>
-                <label className="block text-xs font-sans font-semibold text-ivory-muted mb-1.5 uppercase tracking-wider">
-                  Team Leader Email <span className="text-gold">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gold/60">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="leader@college.edu"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-obsidian/70 border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-sans text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
-                  />
-                </div>
+        {/* Form Fields */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Field 1: Team Name */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-[#C7BDA9]">
+              Team name:
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#898174]">
+                <Users className="w-4 h-4" />
               </div>
-
-              {/* Password */}
-              <div>
-                <label className="block text-xs font-sans font-semibold text-ivory-muted mb-1.5 uppercase tracking-wider">
-                  Secret Key / Password <span className="text-gold">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gold/60">
-                    <Lock className="w-4 h-4" />
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-obsidian/70 border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-sans text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-ivory-muted hover:text-gold transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs sm:text-sm tracking-widest uppercase flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Lock className="w-4 h-4 animate-spin" />
-                    <span>VERIFYING WITH ARENA...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>{mode === 'register' ? 'CROSS THE OUTER PERIMETER' : 'BREACH THE GATES'}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="mt-6 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={async () => {
-                  const demoEmail = `warrior_${Math.floor(Math.random() * 8999 + 1000)}@chakravyuh.org`;
-                  const demoTeam = `Garuda Squad ${Math.floor(Math.random() * 899 + 100)}`;
-                  setIsSubmitting(true);
-                  try {
-                    await signUp(demoEmail, 'password123', demoTeam);
-                  } catch (err: any) {
-                    setError(err?.message || 'Demo registration failed.');
-                  } finally {
-                    setIsSubmitting(false);
-                  }
-                }}
-                className="w-full py-2 px-3 rounded-xl bg-charcoal border border-gold/30 hover:border-gold text-gold/80 hover:text-gold text-xs font-sans font-semibold tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer uppercase"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-gold" />
-                <span>[QUICK SANDBOX ENTRY: ENLIST RANDOM SQUAD]</span>
-              </button>
-              <div className="text-center text-[11px] font-sans text-ivory-muted/60">
-                Protected by Supabase Row-Level Security • One team per account
-              </div>
+              <input
+                type="text"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                placeholder="Enter your team name"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#090A0D] border border-[#252830] focus:border-[#C6A15B] focus:ring-1 focus:ring-[#C6A15B] text-sm text-[#F0E6D1] placeholder-[#505460] outline-none transition-colors"
+                autoComplete="organization"
+              />
             </div>
           </div>
-        </motion.div>
-      </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 w-full py-6 px-4 text-center text-xs font-sans text-ivory-muted/50 border-t border-charcoal-border/50">
-        <span>© {HACKATHON_CONFIG.year} {HACKATHON_CONFIG.hackathonName} • {HACKATHON_CONFIG.collegeName}</span>
+          {/* Field 2: Registration number of team lead */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-[#C7BDA9]">
+              Registration number of team lead:
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#898174]">
+                <Circle className="w-4 h-4" />
+              </div>
+              <input
+                type="text"
+                value={regNumber}
+                onChange={(e) => setRegNumber(e.target.value)}
+                placeholder="Enter team lead's registration number"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#090A0D] border border-[#252830] focus:border-[#C6A15B] focus:ring-1 focus:ring-[#C6A15B] text-sm text-[#F0E6D1] placeholder-[#505460] outline-none transition-colors"
+                autoComplete="username"
+              />
+            </div>
+          </div>
+
+          {/* Field 3: Team lead registration mail */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-[#C7BDA9]">
+              Team lead registration mail:
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#898174]">
+                <Mail className="w-4 h-4" />
+              </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter team lead's registered email"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#090A0D] border border-[#252830] focus:border-[#C6A15B] focus:ring-1 focus:ring-[#C6A15B] text-sm text-[#F0E6D1] placeholder-[#505460] outline-none transition-colors"
+                autoComplete="email"
+              />
+            </div>
+          </div>
+
+          {/* Submit Action Button */}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#D8B46A] via-[#E0BC70] to-[#C6A15B] hover:brightness-110 active:scale-[0.99] text-[#08090B] font-cinzel font-bold text-sm tracking-widest shadow-[0_4px_20px_rgba(198,161,91,0.25)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-[#08090B]" />
+                <span>AUTHENTICATING...</span>
+              </>
+            ) : (
+              <span>LOGIN</span>
+            )}
+          </button>
+        </form>
+
+        {/* Reserved Note */}
+        <div className="mt-5 flex items-center justify-center gap-1.5 text-xs text-[#898174]">
+          <Shield className="w-3.5 h-3.5 text-[#898174]" />
+          <span>Reserved for registered teams</span>
+        </div>
+      </motion.div>
+
+      {/* ── Footer Branding Line ── */}
+      <footer className="relative z-10 mt-8 mb-2 flex flex-col items-center gap-2">
+        <div className="flex items-center justify-center gap-3">
+          <div className="h-px w-8 bg-gradient-to-r from-transparent via-[#806638]/50 to-[#806638]" />
+          <div className="w-1 h-1 rotate-45 bg-[#C6A15B]" />
+          <div className="h-px w-8 bg-gradient-to-l from-transparent via-[#806638]/50 to-[#806638]" />
+        </div>
+        <p className="text-[10px] text-[#898174] font-sans font-medium tracking-[0.25em] uppercase">
+          CHAKRAVYUH HACKATHON • VIT-AP UNIVERSITY
+        </p>
       </footer>
     </div>
   );
 };
+
+export default LoginPage;
