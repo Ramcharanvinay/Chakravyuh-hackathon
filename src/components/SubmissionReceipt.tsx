@@ -207,7 +207,7 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
               <a
                 href={submission.githubRepoUrl}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="flex items-center gap-1 text-gold hover:underline text-xs font-sans font-semibold shrink-0 ml-2 cursor-pointer uppercase tracking-wider"
               >
                 <span>View</span>

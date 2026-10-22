@@ -122,6 +122,31 @@ const FIVE_GATES_CONFIG = [
   },
 ];
 
+// Helper to render crisp 3D gate lintel labels matching the theme domains
+function createGateSignTexture(numberStr: string, nameStr: string, accentColor: string): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#0E1118';
+    ctx.fillRect(0, 0, 512, 128);
+
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 6;
+    ctx.strokeRect(6, 6, 500, 116);
+
+    ctx.fillStyle = '#F3E8CF';
+    ctx.font = 'bold 36px "Cinzel", Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${numberStr} • ${nameStr}`, 256, 64);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+  return texture;
+}
+
 export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
   tracks,
   selectedTrackId,
@@ -327,13 +352,13 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       for (let m = 0; m < numMerlons; m++) {
         const mAngle = (m / numMerlons) * Math.PI * 2;
         // Leave gaps for the entrance channel at 12 o'clock
-        if (Math.abs(mAngle) < 0.18 || Math.abs(mAngle - Math.PI * 2) < 0.18) continue;
+        if (Math.abs(mAngle) < 0.22 || Math.abs(mAngle - Math.PI * 2) < 0.22) continue;
 
         const merlon = new THREE.Mesh(merlonGeo, bronzeMaterial);
         merlon.position.set(
-          Math.cos(mAngle) * radius,
+          Math.sin(mAngle) * radius,
           wallHeight + 0.09,
-          Math.sin(mAngle) * radius
+          -Math.cos(mAngle) * radius
         );
         merlon.rotation.y = -mAngle;
         wheelGroup.add(merlon);
@@ -346,7 +371,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     for (let t = 0; t < numTicks; t++) {
       const tAngle = (t / numTicks) * Math.PI * 2;
       const tick = new THREE.Mesh(tickGeo, goldTrimMaterial);
-      tick.position.set(Math.cos(tAngle) * 12.8, 0.05, Math.sin(tAngle) * 12.8);
+      tick.position.set(Math.sin(tAngle) * 12.8, 0.05, -Math.cos(tAngle) * 12.8);
       tick.rotation.y = -tAngle;
       wheelGroup.add(tick);
     }
@@ -360,7 +385,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     for (let d = 0; d < 20; d++) {
       const dAngle = (d / 20) * Math.PI * 2;
       const diamond = new THREE.Mesh(diamondGeo, ceremonialGoldMaterial);
-      diamond.position.set(Math.cos(dAngle) * 12.8, 0.45, Math.sin(dAngle) * 12.8);
+      diamond.position.set(Math.sin(dAngle) * 12.8, 0.45, -Math.cos(dAngle) * 12.8);
       diamond.rotation.y = dAngle;
       diamondsGroup.add(diamond);
     }
@@ -422,19 +447,20 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     beamMesh.position.y = 7.5;
     sanctumGroup.add(beamMesh);
 
-    // --- E. 5 SACRED ELEMENTAL GATES (Agni, Vayu, Vajra, Surya, Vanam) ---
+    // --- E. 5 SACRED ELEMENTAL GATES (1-to-1 matching official themes) ---
     interactiveGatesRef.current = [];
     gateLightsRef.current = {};
     elementalTotemsRef.current = {};
 
-    FIVE_GATES_CONFIG.forEach(gate => {
+    FIVE_GATES_CONFIG.forEach((gate, idx) => {
       const gateGroup = new THREE.Group();
       const radius = 9.45;
-      const gx = Math.cos(gate.angle) * radius;
-      const gz = Math.sin(gate.angle) * radius;
+      // Position Gate 0 at 12 o'clock (x=0, z=-radius) and other gates clockwise around circle
+      const gx = Math.sin(gate.angle) * radius;
+      const gz = -Math.cos(gate.angle) * radius;
       gateGroup.position.set(gx, 0, gz);
-      // Face inward towards the center
-      gateGroup.rotation.y = -gate.angle - Math.PI / 2;
+      // Face inward towards the central altar
+      gateGroup.lookAt(0, 0, 0);
 
       // 1. Bastion Terrace Platform
       const bastionPlatform = new THREE.Mesh(
@@ -465,7 +491,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
 
       // 3. Ornate Torana Architrave / Lintel Beam
       const lintelMesh = new THREE.Mesh(
-        new THREE.BoxGeometry(2.1, 0.35, 0.45),
+        new THREE.BoxGeometry(2.2, 0.35, 0.45),
         goldTrimMaterial
       );
       lintelMesh.position.set(0, 2.65, 0);
@@ -475,8 +501,20 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       // Temple Crown Finial (Kalasha spire atop gate)
       const finialGeo = new THREE.ConeGeometry(0.24, 0.55, 8);
       const finial = new THREE.Mesh(finialGeo, ceremonialGoldMaterial);
-      finial.position.set(0, 3.05, 0);
+      finial.position.set(0, 3.25, 0);
       gateGroup.add(finial);
+
+      // 3B. Crisp 3D Sign Banner on Lintel with Theme Name
+      const signTexture = createGateSignTexture(`0${idx + 1}`, gate.name, gate.accent);
+      const signGeo = new THREE.PlaneGeometry(1.9, 0.42);
+      const signMat = new THREE.MeshBasicMaterial({
+        map: signTexture,
+        transparent: true,
+        side: THREE.DoubleSide,
+      });
+      const signMesh = new THREE.Mesh(signGeo, signMat);
+      signMesh.position.set(0, 2.65, 0.24);
+      gateGroup.add(signMesh);
 
       // 4. Ceremonial Braziers with Active Flame Lights
       const brazierGeo = new THREE.CylinderGeometry(0.22, 0.12, 0.4, 8);
@@ -490,7 +528,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       rightBrazier.position.set(1.15, 0.65, 0.5);
       gateGroup.add(rightBrazier);
 
-      // 5. Unique Floating 3D Elemental Totem in the portal
+      // 5. Unique Floating 3D Elemental Totem in the portal (Accurately matching theme card artwork)
       const totemGroup = new THREE.Group();
       totemGroup.position.set(0, 1.65, 0);
       gateGroup.add(totemGroup);
@@ -499,51 +537,65 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       const elementMat = new THREE.MeshStandardMaterial({
         color: gate.pointLightColor,
         emissive: gate.pointLightColor,
-        emissiveIntensity: 0.85,
+        emissiveIntensity: 0.9,
         roughness: 0.2,
         metalness: 0.7,
       });
 
-      if (gate.themeKey === 'agni' || gate.name === 'AGNI') {
-        // Cybersecurity & Blockchain: Cryptographic Shield & Ledger Node
-        const shieldPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.45, 0.1, 6), elementMat);
+      if (idx === 0 || gate.themeKey === 'agni') {
+        // 01: CYBERSECURITY & BLOCKCHAIN - Cryptographic Shield, Padlock & Connected Ledger Nodes
+        const shieldPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.46, 0.1, 6), elementMat);
         shieldPlate.rotation.x = Math.PI / 2;
         const lockBody = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.14), goldTrimMaterial);
-        lockBody.position.set(0, -0.06, 0.06);
+        lockBody.position.set(0, -0.06, 0.08);
         const lockShackle = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.03, 8, 16, Math.PI), goldTrimMaterial);
-        lockShackle.position.set(0, 0.08, 0.06);
-        totemGroup.add(shieldPlate, lockBody, lockShackle);
-      } else if (gate.themeKey === 'vayu' || gate.name === 'VAYU') {
-        // Space Technology: Satellite Space Station with Solar Array Wings
-        const satBody = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.32, 0.42), elementMat);
-        const solarWings = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.03, 0.32), goldTrimMaterial);
-        const commDish = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.12, 16, 1, true), goldTrimMaterial);
-        commDish.position.set(0, 0.25, 0);
+        lockShackle.position.set(0, 0.08, 0.08);
+        // Blockchain node blocks
+        const node1 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), goldTrimMaterial);
+        node1.position.set(-0.55, 0.1, 0);
+        const node2 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), goldTrimMaterial);
+        node2.position.set(0.55, 0.1, 0);
+        const connBar = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.02, 0.02), ceremonialGoldMaterial);
+        connBar.position.set(0, 0.1, 0);
+        totemGroup.add(shieldPlate, lockBody, lockShackle, node1, node2, connBar);
+      } else if (idx === 1 || gate.themeKey === 'vayu') {
+        // 02: SPACE TECHNOLOGY - Satellite Spacecraft with Solar Panels, Orbital Ring & Antenna
+        const satBody = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.32, 0.44), elementMat);
+        const solarWings = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.03, 0.32), goldTrimMaterial);
+        const commDish = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.14, 16, 1, true), goldTrimMaterial);
+        commDish.position.set(0, 0.26, 0);
         commDish.rotation.x = Math.PI;
-        totemGroup.add(satBody, solarWings, commDish);
-      } else if (gate.themeKey === 'vajra' || gate.name === 'VAJRA') {
-        // Quantum Computing: Superposition Atom Core with 3 Qubit Orbital Rings
-        const nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), ceremonialGoldMaterial);
-        const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.03, 8, 32), elementMat);
-        const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.03, 8, 32), elementMat);
+        const orbitRing = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.018, 6, 32), ceremonialGoldMaterial);
+        orbitRing.rotation.x = Math.PI / 3;
+        totemGroup.add(satBody, solarWings, commDish, orbitRing);
+      } else if (idx === 2 || gate.themeKey === 'vajra') {
+        // 03: QUANTUM COMPUTING - Superposition Quantum Core with 3 Golden Qubit Orbital Rings
+        const nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), ceremonialGoldMaterial);
+        const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.025, 8, 32), elementMat);
+        const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.025, 8, 32), elementMat);
         ring2.rotation.x = Math.PI / 3;
-        const ring3 = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.03, 8, 32), elementMat);
+        const ring3 = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.025, 8, 32), elementMat);
         ring3.rotation.x = -Math.PI / 3;
         totemGroup.add(nucleus, ring1, ring2, ring3);
-      } else if (gate.themeKey === 'surya' || gate.name === 'SURYA') {
-        // FinTech: Digital Currency Medallion & Intelligent Ledger Ring
-        const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.08, 32), elementMat);
+      } else if (idx === 3 || gate.themeKey === 'surya') {
+        // 04: FINTECH - Digital Currency Token Coin & Ascending Ledger Pillars
+        const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.08, 32), elementMat);
         coin.rotation.x = Math.PI / 2;
-        const ledgerRing = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.03, 8, 32), goldTrimMaterial);
-        const centerGem = new THREE.Mesh(new THREE.OctahedronGeometry(0.14, 0), ceremonialGoldMaterial);
-        centerGem.position.z = 0.06;
-        totemGroup.add(coin, ledgerRing, centerGem);
-      } else if (gate.themeKey === 'vanam' || gate.name === 'VANAM') {
-        // Energy & Sustainability: Clean Energy Core & Eco-Turbine Blades
-        const sunCore = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), ceremonialGoldMaterial);
-        const bladeGeo = new THREE.ConeGeometry(0.12, 0.46, 6);
+        const hexRing = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, 0.04, 6, 1, true), goldTrimMaterial);
+        hexRing.rotation.x = Math.PI / 2;
+        const bar1 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.22, 0.1), ceremonialGoldMaterial);
+        bar1.position.set(-0.25, -0.15, 0.06);
+        const bar2 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.36, 0.1), ceremonialGoldMaterial);
+        bar2.position.set(0, -0.08, 0.06);
+        const bar3 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.1), ceremonialGoldMaterial);
+        bar3.position.set(0.25, -0.01, 0.06);
+        totemGroup.add(coin, hexRing, bar1, bar2, bar3);
+      } else {
+        // 05: ENERGY & SUSTAINABILITY - Clean Energy Core & 3 Eco-Turbine Blades with Lightning Surge
+        const sunCore = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), ceremonialGoldMaterial);
+        const bladeGeo = new THREE.ConeGeometry(0.13, 0.48, 6);
         const blade1 = new THREE.Mesh(bladeGeo, elementMat);
-        blade1.position.set(0, 0.24, 0);
+        blade1.position.set(0, 0.25, 0);
         const blade2 = new THREE.Mesh(bladeGeo, elementMat);
         blade2.position.set(0.22, -0.16, 0);
         blade2.rotation.z = (2 * Math.PI) / 3;
@@ -615,6 +667,8 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     // 8. RAYCASTING INTERACTION (Hover & Click Selection on Desktop & Mobile)
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
+    let pointerDownPos = { x: 0, y: 0 };
+    let pointerDownTime = 0;
 
     const handlePointerMove = (e: MouseEvent) => {
       const rect = renderer.domElement.getBoundingClientRect();
@@ -638,6 +692,16 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     };
 
     const handlePointerDown = (e: MouseEvent) => {
+      pointerDownPos = { x: e.clientX, y: e.clientY };
+      pointerDownTime = Date.now();
+    };
+
+    const handlePointerUp = (e: MouseEvent) => {
+      const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+      const duration = Date.now() - pointerDownTime;
+      // If user was dragging to orbit the camera, ignore click
+      if (dist > 7 || duration > 450) return;
+
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -655,9 +719,22 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     };
 
     // Mobile touch interaction
+    let touchDownPos = { x: 0, y: 0 };
+    let touchDownTime = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 0) return;
+      touchDownPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      touchDownTime = Date.now();
+    };
+
     const handleTouchEnd = (e: TouchEvent) => {
       if (e.changedTouches.length === 0) return;
       const touch = e.changedTouches[0];
+      const dist = Math.hypot(touch.clientX - touchDownPos.x, touch.clientY - touchDownPos.y);
+      const duration = Date.now() - touchDownTime;
+      if (dist > 10 || duration > 500) return;
+
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
@@ -675,7 +752,9 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     };
 
     renderer.domElement.addEventListener('mousemove', handlePointerMove);
-    renderer.domElement.addEventListener('click', handlePointerDown);
+    renderer.domElement.addEventListener('mousedown', handlePointerDown);
+    renderer.domElement.addEventListener('mouseup', handlePointerUp);
+    renderer.domElement.addEventListener('touchstart', handleTouchStart);
     renderer.domElement.addEventListener('touchend', handleTouchEnd);
 
     // 9. WINDOW RESIZE HANDLER
@@ -698,17 +777,16 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       const delta = clock.getDelta();
       const elapsedTime = clock.getElapsedTime();
 
-      // Smooth Inertial Wheel Rotation toward target gate + continuous cosmic rotation movement
+      // Smooth Inertial Wheel Rotation toward target gate (stays locked on target gate without drifting)
       if (wheelGroup) {
         const diff = targetRotationY.current - currentRotationY.current;
-        if (Math.abs(diff) > 0.003) {
-          currentRotationY.current += diff * 0.058;
+        if (Math.abs(diff) > 0.0008) {
+          currentRotationY.current += diff * 0.082;
+          wheelGroup.rotation.y = currentRotationY.current;
         } else {
-          // Dynamic continuous cosmic movement of the wheel
-          targetRotationY.current += 0.0022;
-          currentRotationY.current += 0.0022;
+          currentRotationY.current = targetRotationY.current;
+          wheelGroup.rotation.y = targetRotationY.current;
         }
-        wheelGroup.rotation.y = currentRotationY.current;
       }
 
       // Gentle counter-rotation of Sanctum Sudarshana spokes
@@ -793,7 +871,9 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
       renderer.domElement.removeEventListener('mousemove', handlePointerMove);
-      renderer.domElement.removeEventListener('click', handlePointerDown);
+      renderer.domElement.removeEventListener('mousedown', handlePointerDown);
+      renderer.domElement.removeEventListener('mouseup', handlePointerUp);
+      renderer.domElement.removeEventListener('touchstart', handleTouchStart);
       renderer.domElement.removeEventListener('touchend', handleTouchEnd);
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
       renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
@@ -842,7 +922,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
               style={{ backgroundColor: activeGate.accent }}
             />
             <span className="text-[11px] sm:text-xs tracking-[0.22em] font-cinzel font-black text-[#F3E8CF] uppercase whitespace-nowrap">
-              {isLocked ? `LOCKED THEME GATE • ${activeGate.name}` : `THEME GATE • ${activeGate.name}`}
+              {isLocked ? `LOCKED THEME GATE • ${activeGate.title}` : `THEME GATE • ${activeGate.title}`}
             </span>
           </div>
           {/* Ancient alignment needle */}
