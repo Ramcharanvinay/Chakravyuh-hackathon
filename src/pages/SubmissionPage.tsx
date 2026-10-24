@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { HACKATHON_CONFIG } from '../config/hackathonConfig';
 import { Navbar } from '../components/Navbar';
-import { BannerDemo } from '../components/BannerDemo';
 import { ProgressSteps } from '../components/ProgressSteps';
 import { SubmissionReceipt } from '../components/SubmissionReceipt';
 import { 
@@ -267,7 +266,6 @@ export const SubmissionPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-[#08090D] text-[#F3E8CF] flex flex-col justify-between">
         <div>
-          <BannerDemo />
           <Navbar />
           <ProgressSteps currentStep={3} />
           <SubmissionReceipt
@@ -305,7 +303,6 @@ export const SubmissionPage: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: 'easeOut' }}
       >
-        <BannerDemo />
         <Navbar />
         <ProgressSteps currentStep={3} />
 

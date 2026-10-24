@@ -19,7 +19,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { TeamMember } from '../types';
-import { RegistrationPendingError } from '../lib/dataService';
+import { RegistrationPendingError, dataService } from '../lib/dataService';
 import { rosterError, MAX_EXTRA_MEMBERS, TEAM_MIN_SIZE, TEAM_MAX_SIZE } from '../lib/teamRules';
 
 export const LoginPage: React.FC = () => {
@@ -68,6 +68,23 @@ export const LoginPage: React.FC = () => {
     }
   }, [user, team, selection, submission, isLoading, navigate, redirectTarget, searchParams]);
 
+  // Emails a password-reset link to the address typed in the sign-in form
+  const handleForgotPasscode = async () => {
+    setError(null);
+    setNotice(null);
+    const addr = signInIdentifier.trim();
+    if (!addr.includes('@')) {
+      setError('Enter your leader email above first, then choose "Forgot passcode?".');
+      return;
+    }
+    try {
+      await dataService.requestPasswordReset(addr);
+      setNotice('If that email has a squad account, a reset link is on its way. Check your inbox.');
+    } catch (err: any) {
+      setError(err?.message || 'Could not send the reset email. Please try again.');
+    }
+  };
+
   // Handle Sign In Submit
   const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +95,7 @@ export const LoginPage: React.FC = () => {
     const pass = signInPassword.trim();
 
     if (!ident) {
-      setError('Please provide your squad leader email or registration ID.');
+      setError('Please provide your squad leader email address.');
       return;
     }
     if (!pass) {
@@ -123,8 +140,8 @@ export const LoginPage: React.FC = () => {
       setError('Please provide a valid leader email address.');
       return;
     }
-    if (pass.length < 4) {
-      setError('Passcode must be at least 4 characters.');
+    if (pass.length < 6) {
+      setError('Passcode must be at least 6 characters.');
       return;
     }
 
@@ -353,17 +370,18 @@ export const LoginPage: React.FC = () => {
                 >
                   <div className="space-y-1">
                     <label className="block font-mono text-[11px] font-semibold tracking-wider uppercase text-zinc-300">
-                      Leader Email or Registration ID
+                      Leader Email
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
                         <Mail className="w-4 h-4" />
                       </div>
                       <input
-                        type="text"
+                        type="email"
+                        autoComplete="username"
                         value={signInIdentifier}
                         onChange={(e) => setSignInIdentifier(e.target.value)}
-                        placeholder="e.g. leader@vitap.ac.in or 23BCE1099"
+                        placeholder="leader@vitap.ac.in"
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#08090C] border border-white/[0.1] focus:border-white focus:ring-1 focus:ring-white text-xs sm:text-sm text-white placeholder-zinc-600 outline-none transition-colors"
                         required
                       />
@@ -400,10 +418,20 @@ export const LoginPage: React.FC = () => {
                     </div>
                   </div>
 
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleForgotPasscode}
+                      className="font-mono text-[10px] tracking-wider uppercase text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                    >
+                      Forgot passcode?
+                    </button>
+                  </div>
+
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full mt-3 py-3.5 px-4 rounded-xl bg-white hover:bg-zinc-200 active:scale-[0.99] text-[#08090C] font-mono font-bold text-xs uppercase tracking-[0.2em] shadow-[0_4px_25px_rgba(255,255,255,0.12)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full mt-1 py-3.5 px-4 rounded-xl bg-white hover:bg-zinc-200 active:scale-[0.99] text-[#08090C] font-mono font-bold text-xs uppercase tracking-[0.2em] shadow-[0_4px_25px_rgba(255,255,255,0.12)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <>
@@ -494,7 +522,7 @@ export const LoginPage: React.FC = () => {
 
                     <div className="space-y-1">
                       <label className="block font-mono text-[11px] font-semibold tracking-wider uppercase text-zinc-300">
-                        Passcode (Min 4 chars)
+                        Passcode (Min 6 chars)
                       </label>
                       <div className="relative">
                         <input

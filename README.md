@@ -11,7 +11,7 @@
 - **Backend & Database**: Supabase PostgreSQL with Row Level Security (RLS) and atomic lock RPC function (`lock_team_selection`).
 - **Storage**: Supabase Storage private bucket (`hackathon-ppts`) with 25MB max limit.
 - **Spreadsheet Synchronization**: Supabase Edge Function (`supabase/functions/sync-sheets`) using Google Service Account JWT authentication.
-- **Resilient Sandbox Fallback**: Built-in persistent browser sandbox mode if Supabase credentials are not provided initially, allowing instant end-to-end evaluation.
+- **Real accounts only**: every participant and admin signs in with a real Supabase account. There is no demo or sandbox mode; without its Supabase connection the site shows a "not connected" screen instead of storing anything.
 
 ---
 
@@ -59,7 +59,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## 🗄️ SUPABASE CONFIGURATION (PRODUCTION)
 
-Without Supabase credentials the app runs in a local **Sandbox Mode** (data stays in the browser; demo admin `admin@chakravyuh.local` / `admin2026`). With credentials, registrations are stored in Supabase.
+The portal needs its Supabase project to run. Registrations, logins and the admin console all use real Supabase accounts; there are no demo logins.
 
 ### 1. Run the database schema
 Open your Supabase Dashboard -> **SQL Editor**, paste and run
@@ -88,7 +88,14 @@ Dashboard -> **Authentication -> Providers -> Email**:
 - Turn **Confirm email** OFF so participants are registered the moment they submit the form. If it stays ON, registration still works: participants confirm their email, sign in once, and the squad is created at that first sign-in. Note Supabase's built-in email sender is limited to a few emails per hour, so use a custom SMTP provider if you keep confirmation on.
 - Consider enabling CAPTCHA protection (Authentication -> Attack Protection) to stop bots mass-registering.
 
-### 4. Configure environment variables
+### 4. Allow your site URL for emails (confirmation + password reset)
+Dashboard -> **Authentication -> URL Configuration**:
+- **Site URL**: your live address, e.g. `https://your-event-site.vercel.app`
+- **Redirect URLs**: add `https://your-event-site.vercel.app/login` and `https://your-event-site.vercel.app/reset-password` (and the same two for `http://localhost:5173` while developing).
+
+Participants sign in with **email + passcode (min 6 characters)**. "Forgot passcode?" on the sign-in page emails a reset link to `/reset-password`. Admin accounts are managed the same way from the Supabase dashboard (Authentication -> Users).
+
+### 5. Configure environment variables
 Copy `.env.example` to `.env` (never commit it) and fill in your project values:
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co

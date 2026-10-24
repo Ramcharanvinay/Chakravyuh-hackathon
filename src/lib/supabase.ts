@@ -5,11 +5,11 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
+// https for hosted projects; plain http only for a local Supabase on this machine.
+const isSecureOrLoopback = /^(https:\/\/|http:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$))/.test(supabaseUrl);
+
 export const isSupabaseConfigured = Boolean(
-  supabaseUrl && 
-  supabaseAnonKey && 
-  supabaseUrl.startsWith('https://') &&
-  !supabaseUrl.includes('placeholder')
+  supabaseUrl && supabaseAnonKey && isSecureOrLoopback && !supabaseUrl.includes('placeholder')
 );
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured

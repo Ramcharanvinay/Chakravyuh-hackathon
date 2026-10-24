@@ -15,8 +15,7 @@ import {
   UserCheck,
   Users,
 } from 'lucide-react';
-import { dataService, DEMO_ADMIN } from '../lib/dataService';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { dataService } from '../lib/dataService';
 import { HACKATHON_CONFIG } from '../config/hackathonConfig';
 import { TEAM_MAX_SIZE, TEAM_MIN_SIZE } from '../lib/teamRules';
 import { AdminStats, AdminTeamRow, TeamStatus } from '../types';
@@ -251,11 +250,6 @@ export const AdminPage: React.FC = () => {
                 {loggingIn && <Loader2 className="w-4 h-4 animate-spin" />}
                 Enter console
               </button>
-              {!isSupabaseConfigured && (
-                <p className="text-[11px] font-mono text-amber-400/80 leading-relaxed">
-                  Sandbox mode (no Supabase connected). Demo admin: {DEMO_ADMIN.email} / {DEMO_ADMIN.password}
-                </p>
-              )}
             </form>
           )}
         </div>
