@@ -56,19 +56,16 @@ export const LandingNavbar: React.FC = () => {
             {/* Left: Monolith Logo & Institutional Co-Branding */}
             <button
               onClick={() => scrollTo('#hero')}
-              className="flex items-center gap-3.5 text-left focus:outline-none rounded-lg group shrink-0"
+              className="flex items-center gap-3.5 text-left focus:outline-none rounded-lg group shrink-0 cursor-pointer"
               aria-label="Chakravyuh home"
             >
-              {/* Minimalist Tactical Emblem */}
-              <div className="relative w-9 h-9 rounded-lg bg-[#12141C] border border-white/[0.12] flex items-center justify-center p-2 group-hover:border-white/40 transition-colors shrink-0">
-                <svg viewBox="0 0 100 100" className="w-full h-full text-white animate-spin-slow">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="4" />
-                  <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="10 6" />
-                  <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" strokeWidth="2.5" />
-                  <circle cx="50" cy="50" r="6" fill="#FF3B30" />
-                  <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" strokeWidth="1.5" />
-                  <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="1.5" />
-                </svg>
+              {/* Ancient Luxury Wheel Emblem */}
+              <div className="relative w-10 h-10 shrink-0 flex items-center justify-center">
+                <img
+                  src="/chakravyuh-luxury-wheel.svg"
+                  alt="Chakravyuh Emblem"
+                  className="w-full h-full object-contain animate-spin-wheel drop-shadow-[0_0_12px_rgba(216,180,106,0.5)] group-hover:drop-shadow-[0_0_20px_rgba(216,180,106,0.8)] transition-all duration-300"
+                />
               </div>
 
               <div className="flex items-center gap-3 shrink-0">

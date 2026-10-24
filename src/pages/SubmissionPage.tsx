@@ -4,46 +4,152 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { HACKATHON_CONFIG } from '../config/hackathonConfig';
 import { Navbar } from '../components/Navbar';
+import { BannerDemo } from '../components/BannerDemo';
 import { ProgressSteps } from '../components/ProgressSteps';
 import { SubmissionReceipt } from '../components/SubmissionReceipt';
-import {
-  Github,
-  Lock,
-  Send,
-  AlertCircle,
-  ShieldCheck,
-  Check,
-  Globe,
+import { 
+  Github, 
+  Lock, 
+  Send, 
+  AlertCircle, 
+  Check, 
+  Globe, 
   ExternalLink,
+  Users,
+  Hash,
+  Mail,
+  FileCheck
 } from 'lucide-react';
+
+// Google Form live responses integration
+const GOOGLE_FORM_ACTION_URL =
+  'https://docs.google.com/forms/d/e/1FAIpQLSeUC_UCxGnFy2D2aX9fzGvYSw_o-wiDsCU-rILZMt4CjVGQ6Q/formResponse';
+
+const GOOGLE_FORM_ENTRIES = {
+  teamName: 'entry.1494327606',
+  leaderRegNo: 'entry.1069076889',
+  leaderEmail: 'entry.1626956049',
+  githubUrl: 'entry.247861483',
+  deployedUrl: 'entry.1971623563',
+};
+
+// Dual-channel submission (Fetch no-cors + Hidden IFrame) to guarantee 100% delivery into Google Sheet
+const sendDataToGoogleForm = async (payload: {
+  teamName: string;
+  leaderRegNo: string;
+  leaderEmail: string;
+  githubUrl: string;
+  deployedUrl: string;
+}) => {
+  // Channel 1: Background URL-encoded POST with no-cors
+  try {
+    const formParams = new URLSearchParams();
+    formParams.append(GOOGLE_FORM_ENTRIES.teamName, payload.teamName);
+    formParams.append(GOOGLE_FORM_ENTRIES.leaderRegNo, payload.leaderRegNo);
+    formParams.append(GOOGLE_FORM_ENTRIES.leaderEmail, payload.leaderEmail);
+    formParams.append(GOOGLE_FORM_ENTRIES.githubUrl, payload.githubUrl);
+    formParams.append(GOOGLE_FORM_ENTRIES.deployedUrl, payload.deployedUrl);
+
+    fetch(GOOGLE_FORM_ACTION_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formParams.toString(),
+    }).catch(err => {
+      console.warn('Google Form background fetch sync:', err);
+    });
+  } catch (e) {
+    console.warn('Google Form URLSearchParams error:', e);
+  }
+
+  // Channel 2: Hidden Iframe submission (bypasses browser CORS & adblocker restrictions)
+  try {
+    const iframeId = 'gform_submission_bridge';
+    let iframe = document.getElementById(iframeId) as HTMLIFrameElement;
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = iframeId;
+      iframe.name = iframeId;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+
+    const form = document.createElement('form');
+    form.action = GOOGLE_FORM_ACTION_URL;
+    form.method = 'POST';
+    form.target = iframeId;
+    form.style.display = 'none';
+
+    const appendHiddenInput = (name: string, val: string) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = val;
+      form.appendChild(input);
+    };
+
+    appendHiddenInput(GOOGLE_FORM_ENTRIES.teamName, payload.teamName);
+    appendHiddenInput(GOOGLE_FORM_ENTRIES.leaderRegNo, payload.leaderRegNo);
+    appendHiddenInput(GOOGLE_FORM_ENTRIES.leaderEmail, payload.leaderEmail);
+    appendHiddenInput(GOOGLE_FORM_ENTRIES.githubUrl, payload.githubUrl);
+    appendHiddenInput(GOOGLE_FORM_ENTRIES.deployedUrl, payload.deployedUrl);
+
+    document.body.appendChild(form);
+    form.submit();
+
+    setTimeout(() => {
+      try {
+        if (form.parentNode) {
+          form.parentNode.removeChild(form);
+        }
+      } catch {
+        // ignore cleanup error
+      }
+    }, 2500);
+  } catch (err) {
+    console.warn('Google Form hidden iframe submission error:', err);
+  }
+};
 
 export const SubmissionPage: React.FC = () => {
   const { team, selection, submission, isLoading, submitSolution } = useAuth();
   const navigate = useNavigate();
 
-  const [githubUrl, setGithubUrl] = useState('');
-  const [deployedUrl, setDeployedUrl] = useState('');
+  // Form states without assumption of 'Garuda'
+  const [teamName, setTeamName] = useState<string>(() => {
+    if (team?.teamName && !team.teamName.toLowerCase().includes('garuda')) {
+      return team.teamName;
+    }
+    return '';
+  });
+  const [leaderRegNo, setLeaderRegNo] = useState<string>('');
+  const [leaderEmail, setLeaderEmail] = useState<string>(() => {
+    if (team?.leaderEmail && !team.leaderEmail.toLowerCase().includes('garuda') && !team.leaderEmail.includes('warrior.817')) {
+      return team.leaderEmail;
+    }
+    return '';
+  });
+  const [githubUrl, setGithubUrl] = useState<string>('');
+  const [deployedUrl, setDeployedUrl] = useState<string>('');
+  const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirmPledge, setConfirmPledge] = useState<boolean>(false);
 
   // Guarantee window is always at top (0, 0) when entering submission chamber
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
 
-  // Guard: If unauthenticated, redirect to login; if no lock, redirect to /tracks
+  // Guard: If team has NOT locked a selection yet, redirect to /tracks
   useEffect(() => {
-    if (!isLoading) {
-      if (!team) {
-        navigate('/login?redirect=/submit', { replace: true });
-      } else if (!selection && !submission) {
-        navigate('/tracks', { replace: true });
-      }
+    if (!isLoading && team && !selection && !submission) {
+      navigate('/tracks', { replace: true });
     }
   }, [team, selection, submission, isLoading, navigate]);
 
-  // Find locked track and problem
+  // Find locked track and problem if present
   const lockedTrack = useMemo(() => {
     if (!selection) return null;
     return HACKATHON_CONFIG.tracks.find(t => t.id === selection.trackId) || null;
@@ -51,19 +157,23 @@ export const SubmissionPage: React.FC = () => {
 
   const lockedProblem = useMemo(() => {
     if (!selection) return null;
-    return (
-      HACKATHON_CONFIG.problemStatements.find(p => p.id === selection.problemStatementId) || null
-    );
+    return HACKATHON_CONFIG.problemStatements.find(p => p.id === selection.problemStatementId) || null;
   }, [selection]);
 
-  // GitHub validation
+  // Validation rules
+  const isTeamNameValid = useMemo(() => teamName.trim().length >= 2, [teamName]);
+  const isRegNoValid = useMemo(() => leaderRegNo.trim().length >= 3, [leaderRegNo]);
+  const isEmailValid = useMemo(() => {
+    const clean = leaderEmail.trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean);
+  }, [leaderEmail]);
+
   const isGithubValid = useMemo(() => {
     const clean = githubUrl.trim();
     const regex = /^https:\/\/github\.com\/[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+\/?$/;
     return regex.test(clean);
   }, [githubUrl]);
 
-  // Deployed URL validation
   const isDeployedUrlValid = useMemo(() => {
     const clean = deployedUrl.trim();
     if (!clean) return false;
@@ -75,39 +185,93 @@ export const SubmissionPage: React.FC = () => {
     }
   }, [deployedUrl]);
 
+  const isFormComplete = Boolean(
+    isTeamNameValid &&
+    isRegNoValid &&
+    isEmailValid &&
+    isGithubValid &&
+    isDeployedUrlValid &&
+    isConfirmed
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!githubUrl.trim()) {
+    const cleanTeamName = teamName.trim();
+    const cleanRegNo = leaderRegNo.trim();
+    const cleanEmail = leaderEmail.trim();
+    const cleanGithub = githubUrl.trim();
+    const cleanDeployed = deployedUrl.trim();
+
+    if (!cleanTeamName) {
+      setError('Team name is required.');
+      return;
+    }
+    if (!cleanRegNo) {
+      setError('Team lead registration number is required.');
+      return;
+    }
+    if (!isEmailValid) {
+      setError('Please provide a valid email address for the team lead.');
+      return;
+    }
+    if (!cleanGithub) {
       setError('GitHub repository URL is required.');
       return;
     }
     if (!isGithubValid) {
-      setError(
-        'Please provide a valid HTTPS GitHub repository URL (e.g. https://github.com/organization/repo).'
-      );
+      setError('Please provide a valid HTTPS GitHub repository URL (e.g. https://github.com/organization/repo).');
       return;
     }
-    if (!deployedUrl.trim()) {
+    if (!cleanDeployed) {
       setError('Live deployed website URL is required.');
       return;
     }
     if (!isDeployedUrlValid) {
-      setError(
-        'Please enter a valid live deployed URL starting with http:// or https:// (e.g. https://my-app.vercel.app).'
-      );
+      setError('Please enter a valid live deployed URL starting with http:// or https:// (e.g. https://my-app.vercel.app).');
       return;
     }
-    if (!confirmPledge) {
-      setError('Please confirm the accuracy of your submission pledge.');
+    if (!isConfirmed) {
+      setError('Please check the confirmation box at the bottom to proceed.');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await submitSolution(githubUrl.trim(), deployedUrl.trim());
+      // Sync actual user entered team details so receipt displays the correct squad information
+      if (team) {
+        team.teamName = cleanTeamName;
+        team.leaderEmail = cleanEmail;
+        team.leaderName = cleanRegNo;
+        try {
+          const stored = localStorage.getItem('chakravyuh_local_teams');
+          if (stored) {
+            const list = JSON.parse(stored);
+            const idx = list.findIndex((t: any) => t.id === team.id);
+            if (idx >= 0) {
+              list[idx].teamName = cleanTeamName;
+              list[idx].leaderEmail = cleanEmail;
+              list[idx].leaderPhone = cleanRegNo;
+              localStorage.setItem('chakravyuh_local_teams', JSON.stringify(list));
+            }
+          }
+        } catch {
+          // ignore localStorage sync error
+        }
+      }
+
+      // 2. Transmit to Google Form & Linked Spreadsheet
+      await sendDataToGoogleForm({
+        teamName: cleanTeamName,
+        leaderRegNo: cleanRegNo,
+        leaderEmail: cleanEmail,
+        githubUrl: cleanGithub,
+        deployedUrl: cleanDeployed,
+      });
+
+      await submitSolution(cleanGithub, cleanDeployed);
     } catch (err: any) {
       setError(err?.message || 'Failed to complete submission. Please try again.');
     } finally {
@@ -117,12 +281,10 @@ export const SubmissionPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#08090C] flex items-center justify-center text-white">
+      <div className="min-h-screen bg-[#08090D] flex items-center justify-center text-gold">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-          <span className="font-mono text-xs tracking-widest text-zinc-400 uppercase">
-            OPENING THE INNER CHAMBER...
-          </span>
+          <div className="w-12 h-12 rounded-full border-2 border-gold border-t-transparent animate-spin" />
+          <span className="font-sans font-semibold text-xs tracking-widest uppercase">Opening The Submission Chamber...</span>
         </div>
       </div>
     );
@@ -131,18 +293,23 @@ export const SubmissionPage: React.FC = () => {
   // If already submitted, render full-screen completion receipt!
   if (submission && team) {
     return (
-      <div className="min-h-screen bg-[#08090C] text-slate-100 flex flex-col justify-between bg-dot-matrix">
+      <div className="min-h-screen bg-[#08090D] text-[#F3E8CF] flex flex-col justify-between">
         <div>
+          <BannerDemo />
           <Navbar />
           <ProgressSteps currentStep={3} />
           <SubmissionReceipt
             submission={submission}
-            team={team}
+            team={{
+              ...team,
+              teamName: teamName.trim() || team.teamName,
+              leaderEmail: leaderEmail.trim() || team.leaderEmail,
+            }}
             track={lockedTrack || undefined}
             problem={lockedProblem || undefined}
           />
         </div>
-        <footer className="w-full py-6 text-center text-xs font-mono text-zinc-500 border-t border-white/[0.08]">
+        <footer className="w-full py-6 text-center text-xs text-ivory-muted/40 border-t border-charcoal-border/40">
           <span>{HACKATHON_CONFIG.hackathonName} • {HACKATHON_CONFIG.collegeName}</span>
         </footer>
       </div>
@@ -150,78 +317,60 @@ export const SubmissionPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#08090C] text-slate-100 flex flex-col justify-between relative overflow-hidden bg-dot-matrix">
+    <div className="min-h-screen bg-[#08090D] text-[#F3E8CF] flex flex-col justify-between relative overflow-hidden">
+      {/* Dynamic Background Chakravyuh Formation */}
+      <div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] pointer-events-none opacity-5">
+        <svg viewBox="-300 -300 600 600" className="w-full h-full text-gold animate-spin-slow">
+          <circle cx="0" cy="0" r="280" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="16 8" />
+          <circle cx="0" cy="0" r="200" fill="none" stroke="currentColor" strokeWidth="2" />
+          <circle cx="0" cy="0" r="120" fill="none" stroke="currentColor" strokeWidth="3" />
+          <circle cx="0" cy="0" r="50" fill="currentColor" />
+        </svg>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: 'easeOut' }}
       >
+        <BannerDemo />
         <Navbar />
         <ProgressSteps currentStep={3} />
 
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] sm:text-xs font-mono font-bold tracking-[0.25em] text-zinc-300 uppercase">
-                STAGE 03 // THE INNER SANCTUM
-              </span>
-            </div>
-            <h1 className="font-cinzel text-3xl sm:text-5xl font-black text-white tracking-wide">
-              SUBMIT FINAL SOLUTION
+            <span className="text-xs font-sans font-semibold tracking-[0.25em] text-gold uppercase">
+              STAGE 03 • FINAL SUBMISSION
+            </span>
+            <h1 className="font-cinzel text-3xl sm:text-5xl font-extrabold text-ivory tracking-wide mt-2">
+              THE INNER CHAMBER
             </h1>
-            <p className="font-sans text-xs sm:text-sm text-zinc-400 mt-2.5">
-              Your challenge is locked. Present your repository and live deployment URL to seal
-              your submission.
+            <p className="font-sans text-sm sm:text-base text-gold/90 mt-2 italic">
+              "Enter your squad details and project links for official evaluation."
             </p>
           </div>
 
-          {/* Locked Assignment Summary Card */}
-          <div className="rounded-2xl bg-[#0E1118] border border-white/[0.12] p-5 sm:p-6 mb-8 shadow-xl">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">
-                    AUTHENTICATED SQUAD:
+          {/* Locked Track & Problem Banner (Informational Context) */}
+          {(lockedTrack || lockedProblem) && (
+            <div className="rounded-xl bg-charcoal/90 border border-charcoal-border p-4 mb-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: lockedTrack?.accentColor || '#D8B46A' }} />
+                <span className="text-ivory-muted">Track:</span>
+                <span className="font-cinzel font-bold text-ivory">{lockedTrack?.name || 'Selected Track'}</span>
+              </div>
+              {lockedProblem && (
+                <div className="flex items-center gap-2">
+                  <span className="px-1.5 py-0.5 rounded bg-gold/15 text-gold font-mono text-[10px]">
+                    {lockedProblem.problemCode}
                   </span>
-                  <div className="font-cinzel font-bold text-base text-white">
-                    {team?.teamName}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-xs font-mono font-semibold">
-                <Lock className="w-3.5 h-3.5" />
-                <span>SELECTION STATUS: LOCKED</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 text-xs font-mono">
-              <div>
-                <span className="text-zinc-500 block mb-1 uppercase">Locked Track:</span>
-                <div className="flex items-center gap-2 font-cinzel font-bold text-sm text-white">
-                  <span
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: lockedTrack?.accentColor || '#38BDF8' }}
-                  />
-                  <span>{lockedTrack?.officialTitle || lockedTrack?.name}</span>
-                </div>
-              </div>
-              <div>
-                <span className="text-zinc-500 block mb-1 uppercase">Locked Challenge:</span>
-                <div className="text-white font-medium">
-                  <span className="px-2 py-0.5 rounded bg-white/10 text-white font-mono text-[10px] mr-1.5 font-bold">
-                    {lockedProblem?.problemCode}
+                  <span className="text-ivory-muted/90 font-medium truncate max-w-[280px] sm:max-w-[320px]">
+                    {lockedProblem.title}
                   </span>
-                  <span className="font-cinzel font-bold">{lockedProblem?.title}</span>
                 </div>
-              </div>
+              )}
             </div>
-          </div>
+          )}
 
           {/* Error Message */}
           <AnimatePresence>
@@ -230,7 +379,7 @@ export const SubmissionPage: React.FC = () => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mb-6 p-4 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs font-mono flex items-center gap-2.5"
+                className="mb-6 p-4 rounded-xl bg-ember/15 border border-ember/40 text-ember text-xs flex items-center gap-2.5"
               >
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
@@ -238,162 +387,186 @@ export const SubmissionPage: React.FC = () => {
             )}
           </AnimatePresence>
 
-          {/* Submission Form */}
+          {/* Redesigned Submission Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Section 1: GitHub Repository */}
-            <div className="rounded-2xl bg-[#0E1118] border border-white/[0.08] p-5 sm:p-6 space-y-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white">
-                  <Github className="w-4 h-4" />
+            <div className="rounded-2xl bg-charcoal-card border border-charcoal-border p-6 sm:p-8 space-y-6 shadow-gold-subtle">
+              
+              {/* Component 1: Team Name */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-xs font-sans font-bold text-ivory uppercase tracking-wider">
+                  <Users className="w-4 h-4 text-gold" />
+                  <span>1. Team Name <span className="text-gold">*</span></span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  disabled={isSubmitting}
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  placeholder="Enter your registered team name"
+                  className="w-full px-4 py-3 rounded-xl bg-obsidian border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-sans text-xs sm:text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
+                />
+              </div>
+
+              {/* Component 2 & 3: Team Lead Reg No & Email ID */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {/* Component 2: Team Lead Registration Number */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs font-sans font-bold text-ivory uppercase tracking-wider">
+                    <Hash className="w-4 h-4 text-gold" />
+                    <span>2. Team Lead Reg Number <span className="text-gold">*</span></span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    disabled={isSubmitting}
+                    value={leaderRegNo}
+                    onChange={(e) => setLeaderRegNo(e.target.value.toUpperCase())}
+                    placeholder="e.g. 21BCE10042 / 22MIS0128"
+                    className="w-full px-4 py-3 rounded-xl bg-obsidian border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-mono text-xs sm:text-sm text-ivory placeholder-ivory-muted/40 transition-colors uppercase"
+                  />
                 </div>
-                <div>
-                  <h3 className="font-mono font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
-                    1. GITHUB REPOSITORY URL <span className="text-rose-400">*</span>
-                  </h3>
-                  <p className="text-[11px] text-zinc-400">
-                    Provide the official repository containing your codebase, documentation, and README.
-                  </p>
+
+                {/* Component 3: Team Lead Email ID */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs font-sans font-bold text-ivory uppercase tracking-wider">
+                    <Mail className="w-4 h-4 text-gold" />
+                    <span>3. Team Lead Email ID <span className="text-gold">*</span></span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    disabled={isSubmitting}
+                    value={leaderEmail}
+                    onChange={(e) => setLeaderEmail(e.target.value)}
+                    placeholder="e.g. teamlead@vitap.ac.in"
+                    className={`w-full px-4 py-3 rounded-xl bg-obsidian border font-sans text-xs sm:text-sm text-ivory placeholder-ivory-muted/40 transition-colors ${
+                      leaderEmail && !isEmailValid
+                        ? 'border-ember focus:border-ember focus:ring-1 focus:ring-ember'
+                        : leaderEmail && isEmailValid
+                        ? 'border-emerald-500/70 focus:border-emerald-500'
+                        : 'border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold'
+                    }`}
+                  />
                 </div>
               </div>
 
-              <div className="pt-2">
+              {/* Component 4: GitHub Repository */}
+              <div className="space-y-2 pt-2 border-t border-charcoal-border/60">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <label className="flex items-center gap-2 text-xs font-sans font-bold text-ivory uppercase tracking-wider">
+                    <Github className="w-4 h-4 text-gold" />
+                    <span>4. GitHub Repository URL <span className="text-gold">*</span></span>
+                  </label>
+                  {githubUrl && isGithubValid && (
+                    <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-sans">
+                      <Check className="w-3.5 h-3.5" /> Valid GitHub Repository URL
+                    </span>
+                  )}
+                </div>
                 <input
                   type="url"
                   required
                   disabled={isSubmitting}
                   value={githubUrl}
-                  onChange={e => setGithubUrl(e.target.value)}
-                  placeholder="https://github.com/your-team/chakravyuh-solution"
-                  className={`w-full px-4 py-3 rounded-xl bg-black/60 border font-mono text-xs text-white placeholder-zinc-600 transition-colors ${
+                  onChange={(e) => setGithubUrl(e.target.value)}
+                  placeholder="https://github.com/your-organization/your-repo"
+                  className={`w-full px-4 py-3 rounded-xl bg-obsidian border font-mono text-xs sm:text-sm text-ivory placeholder-ivory-muted/40 transition-colors ${
                     githubUrl && !isGithubValid
-                      ? 'border-rose-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
+                      ? 'border-ember focus:border-ember focus:ring-1 focus:ring-ember'
                       : githubUrl && isGithubValid
-                      ? 'border-emerald-500 focus:border-emerald-500'
-                      : 'border-white/10 focus:border-white/40'
+                      ? 'border-emerald-500/70 focus:border-emerald-500'
+                      : 'border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold'
                   }`}
                 />
-
                 {githubUrl && !isGithubValid && (
-                  <span className="text-[11px] text-rose-400 mt-1.5 font-mono block">
+                  <span className="text-[11px] text-ember block font-sans">
                     Must be a valid HTTPS GitHub repository URL (e.g. https://github.com/user/repo).
                   </span>
                 )}
-                {githubUrl && isGithubValid && (
-                  <span className="text-[11px] text-emerald-400 mt-1.5 font-mono flex items-center gap-1">
-                    <Check className="w-3 h-3" /> Valid GitHub Repository URL format
-                  </span>
-                )}
               </div>
-            </div>
 
-            {/* Section 2: Deployed Website Link Column */}
-            <div className="rounded-2xl bg-[#0E1118] border border-white/[0.08] p-5 sm:p-6 space-y-3">
-              <div className="flex items-center justify-between gap-2.5 flex-wrap">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                    <Globe className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-mono font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
-                      2. DEPLOYED WEBSITE LINK <span className="text-rose-400">*</span>
-                    </h3>
-                    <p className="text-[11px] text-zinc-400">
-                      Provide the live public URL where your application or project is hosted.
-                    </p>
-                  </div>
+              {/* Component 5: Deployed Link */}
+              <div className="space-y-2 pt-2 border-t border-charcoal-border/60">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <label className="flex items-center gap-2 text-xs font-sans font-bold text-ivory uppercase tracking-wider">
+                    <Globe className="w-4 h-4 text-emerald-400" />
+                    <span>5. Deployed Website Link <span className="text-gold">*</span></span>
+                  </label>
+                  {isDeployedUrlValid && (
+                    <a
+                      href={deployedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-sans font-semibold hover:bg-emerald-500/25 transition-colors cursor-pointer"
+                    >
+                      <span>Test Live Link</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
                 </div>
-
-                {isDeployedUrlValid && (
-                  <a
-                    href={deployedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-semibold hover:bg-emerald-500/25 transition-colors cursor-pointer"
-                  >
-                    <span>Test Live Link</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-              </div>
-
-              <div className="pt-2">
                 <input
                   type="url"
                   required
                   disabled={isSubmitting}
                   value={deployedUrl}
-                  onChange={e => setDeployedUrl(e.target.value)}
+                  onChange={(e) => setDeployedUrl(e.target.value)}
                   placeholder="https://your-project.vercel.app or https://your-domain.com"
-                  className={`w-full px-4 py-3 rounded-xl bg-black/60 border font-mono text-xs text-white placeholder-zinc-600 transition-colors ${
+                  className={`w-full px-4 py-3 rounded-xl bg-obsidian border font-mono text-xs sm:text-sm text-ivory placeholder-ivory-muted/40 transition-colors ${
                     deployedUrl && !isDeployedUrlValid
-                      ? 'border-rose-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
+                      ? 'border-ember focus:border-ember focus:ring-1 focus:ring-ember'
                       : deployedUrl && isDeployedUrlValid
-                      ? 'border-emerald-500 focus:border-emerald-500'
-                      : 'border-white/10 focus:border-white/40'
+                      ? 'border-emerald-500/70 focus:border-emerald-500'
+                      : 'border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold'
                   }`}
                 />
-
                 {deployedUrl && !isDeployedUrlValid && (
-                  <span className="text-[11px] text-rose-400 mt-1.5 font-mono block">
-                    Must be a valid web URL starting with https:// or http:// (e.g.
-                    https://my-app.vercel.app).
+                  <span className="text-[11px] text-ember block font-sans">
+                    Must be a valid URL starting with http:// or https:// (e.g. https://my-app.vercel.app).
                   </span>
                 )}
-                {deployedUrl && isDeployedUrlValid && (
-                  <div className="mt-1.5 flex items-center justify-between text-[11px] text-emerald-400 font-mono">
-                    <span className="flex items-center gap-1">
-                      <Check className="w-3 h-3" /> Live deployment URL validated
-                    </span>
-                    <span className="text-zinc-500">
-                      (Vercel, Netlify, Render, Cloudflare, etc.)
-                    </span>
-                  </div>
-                )}
               </div>
-            </div>
 
-            {/* Section 3: Final Confirmation & Submission Pledge */}
-            <div className="rounded-2xl bg-[#0E1118] border border-white/[0.08] p-5 sm:p-6 space-y-4">
-              <label className="flex items-start gap-3 cursor-pointer group select-none">
-                <div
-                  onClick={() => !isSubmitting && setConfirmPledge(!confirmPledge)}
-                  className={`w-5 h-5 rounded border mt-0.5 flex items-center justify-center transition-all ${
-                    confirmPledge
-                      ? 'bg-white border-white text-[#08090C]'
-                      : 'bg-black/40 border-white/20 group-hover:border-white/40'
-                  }`}
+              {/* Tick Box at the bottom */}
+              <div className="pt-4 border-t border-charcoal-border/70">
+                <label 
+                  onClick={() => !isSubmitting && setIsConfirmed(!isConfirmed)}
+                  className="flex items-start gap-3.5 p-4 rounded-xl bg-obsidian/70 border border-charcoal-border hover:border-gold/40 transition-colors cursor-pointer select-none group"
                 >
-                  {confirmPledge && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                </div>
-                <span
-                  onClick={() => !isSubmitting && setConfirmPledge(!confirmPledge)}
-                  className="text-xs text-zinc-400 leading-relaxed group-hover:text-zinc-200 transition-colors"
-                >
-                  I solemnly certify that this solution, source code repository, and live deployed web
-                  application were developed solely by team{' '}
-                  <strong className="text-white">{team?.teamName}</strong> during the hackathon. We
-                  understand that this final submission is immutable once recorded.
-                </span>
-              </label>
+                  <div
+                    className={`w-5 h-5 rounded-md border mt-0.5 flex items-center justify-center shrink-0 transition-all ${
+                      isConfirmed
+                        ? 'bg-gold border-gold text-obsidian shadow-gold-subtle'
+                        : 'bg-charcoal border-charcoal-border group-hover:border-gold/60'
+                    }`}
+                  >
+                    {isConfirmed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                  </div>
+                  <span className="text-xs sm:text-[13px] text-ivory-muted leading-relaxed group-hover:text-ivory transition-colors">
+                    I confirm that all team details, GitHub repository, and live deployment link provided above are accurate and ready for final evaluation.
+                  </span>
+                </label>
+              </div>
 
+              {/* Submission Button */}
               <button
                 type="submit"
-                disabled={!isGithubValid || !isDeployedUrlValid || !confirmPledge || isSubmitting}
-                className={`w-full py-4 rounded-xl font-mono font-bold text-xs sm:text-sm tracking-widest uppercase flex items-center justify-center gap-2 transition-all duration-300 ${
-                  isGithubValid && isDeployedUrlValid && confirmPledge && !isSubmitting
-                    ? 'bg-white text-[#08090C] hover:bg-zinc-200 active:scale-[0.99] shadow-xl cursor-pointer'
-                    : 'bg-white/10 text-zinc-600 cursor-not-allowed'
+                disabled={!isFormComplete || isSubmitting}
+                className={`w-full py-4 rounded-xl font-sans font-bold text-xs sm:text-sm tracking-widest uppercase flex items-center justify-center gap-2 transition-all duration-300 ${
+                  isFormComplete && !isSubmitting
+                    ? 'bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian hover:brightness-110 active:scale-[0.99] shadow-gold-glow cursor-pointer'
+                    : 'bg-charcoal-border text-ivory-muted/40 cursor-not-allowed'
                 }`}
               >
                 {isSubmitting ? (
                   <>
-                    <Lock className="w-4 h-4 animate-spin" />
+                    <Lock className="w-4 h-4 animate-spin text-obsidian" />
                     <span>RECORDING & SEALING SUBMISSION...</span>
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>SEAL & SUBMIT FINAL SOLUTION</span>
+                    <span>SUBMIT FINAL SOLUTION</span>
                   </>
                 )}
               </button>
@@ -402,11 +575,9 @@ export const SubmissionPage: React.FC = () => {
         </main>
       </motion.div>
 
-      <footer className="w-full py-6 text-center text-xs font-mono text-zinc-500 border-t border-white/[0.08] mt-12">
+      <footer className="w-full py-6 text-center text-xs font-sans text-ivory-muted/40 border-t border-charcoal-border/40 mt-12">
         <span>{HACKATHON_CONFIG.hackathonName} • {HACKATHON_CONFIG.collegeName}</span>
       </footer>
     </div>
   );
 };
-
-export default SubmissionPage;

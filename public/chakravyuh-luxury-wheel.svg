@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <title>CHAKRAVYUH royal wheel icon</title>
+  <desc>A luxurious ancient strategic formation medallion with five gates, engraved labyrinth rings, and an enamel core.</desc>
+
+  <defs>
+    <radialGradient id="obsidian" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(218 178) rotate(51) scale(384)">
+      <stop stop-color="#211A16"/>
+      <stop offset=".48" stop-color="#0E0E10"/>
+      <stop offset="1" stop-color="#050607"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="89" y1="70" x2="425" y2="450" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7D592A"/>
+      <stop offset=".22" stop-color="#E1BC69"/>
+      <stop offset=".42" stop-color="#FFF0B5"/>
+      <stop offset=".61" stop-color="#B9873D"/>
+      <stop offset=".82" stop-color="#F0D28A"/>
+      <stop offset="1" stop-color="#715027"/>
+    </linearGradient>
+    <linearGradient id="bronze" x1="130" y1="90" x2="388" y2="438" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B58A4B"/>
+      <stop offset=".5" stop-color="#6E4C29"/>
+      <stop offset="1" stop-color="#C49B59"/>
+    </linearGradient>
+    <radialGradient id="enamel" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(238 232) rotate(54) scale(102)">
+      <stop stop-color="#8B3442"/>
+      <stop offset=".58" stop-color="#641E2A"/>
+      <stop offset="1" stop-color="#2C1016"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#000000" flood-opacity=".7"/>
+    </filter>
+    <filter id="softGold" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Layered royal medallion -->
+  <circle cx="256" cy="256" r="244" fill="url(#obsidian)" stroke="#4B351F" stroke-width="3"/>
+  <circle cx="256" cy="256" r="235" stroke="url(#gold)" stroke-width="6"/>
+  <circle cx="256" cy="256" r="225" stroke="#302419" stroke-width="2"/>
+  <circle cx="256" cy="256" r="216" stroke="url(#bronze)" stroke-width="2" stroke-dasharray="2 9"/>
+  <circle cx="256" cy="256" r="207" stroke="#5B4327" stroke-width="1"/>
+
+  <!-- Five architectural gates -->
+  <g fill="#090A0D" stroke="url(#gold)" stroke-width="5" filter="url(#shadow)">
+    <g transform="rotate(0 256 256)">
+      <path d="M232 21H280V67H269V47H243V67H232V21Z"/>
+      <circle cx="256" cy="34" r="4" fill="#F0D28A" stroke="none"/>
+    </g>
+    <g transform="rotate(72 256 256)">
+      <path d="M232 21H280V67H269V47H243V67H232V21Z"/>
+      <circle cx="256" cy="34" r="4" fill="#F0D28A" stroke="none"/>
+    </g>
+    <g transform="rotate(144 256 256)">
+      <path d="M232 21H280V67H269V47H243V67H232V21Z"/>
+      <circle cx="256" cy="34" r="4" fill="#F0D28A" stroke="none"/>
+    </g>
+    <g transform="rotate(216 256 256)">
+      <path d="M232 21H280V67H269V47H243V67H232V21Z"/>
+      <circle cx="256" cy="34" r="4" fill="#F0D28A" stroke="none"/>
+    </g>
+    <g transform="rotate(288 256 256)">
+      <path d="M232 21H280V67H269V47H243V67H232V21Z"/>
+      <circle cx="256" cy="34" r="4" fill="#F0D28A" stroke="none"/>
+    </g>
+  </g>
+
+  <!-- Engraved labyrinth pathways -->
+  <g fill="none" stroke-linecap="square">
+    <circle cx="256" cy="256" r="185" stroke="url(#gold)" stroke-width="13" stroke-dasharray="196 36.5" transform="rotate(-10 256 256)"/>
+    <circle cx="256" cy="256" r="185" stroke="#FFF0B5" stroke-opacity=".28" stroke-width="2" stroke-dasharray="196 36.5" transform="rotate(-10 256 256)"/>
+
+    <circle cx="256" cy="256" r="149" stroke="url(#bronze)" stroke-width="11" stroke-dasharray="158 29" transform="rotate(27 256 256)"/>
+    <circle cx="256" cy="256" r="149" stroke="#F0D28A" stroke-opacity=".22" stroke-width="1.5" stroke-dasharray="158 29" transform="rotate(27 256 256)"/>
+
+    <circle cx="256" cy="256" r="115" stroke="url(#gold)" stroke-width="9" stroke-dasharray="122 22.5" transform="rotate(-38 256 256)"/>
+    <circle cx="256" cy="256" r="82" stroke="url(#bronze)" stroke-width="7" stroke-dasharray="87 16" transform="rotate(16 256 256)"/>
+  </g>
+
+  <!-- Fine inward markers -->
+  <g stroke="#80623A" stroke-width="3">
+    <path d="M256 70V93"/>
+    <path d="M432.9 198.5L411 205.6"/>
+    <path d="M365.3 406.4L351.8 387.9"/>
+    <path d="M146.7 406.4L160.2 387.9"/>
+    <path d="M79.1 198.5L101 205.6"/>
+  </g>
+
+  <!-- Royal enamel core -->
+  <g filter="url(#shadow)">
+    <circle cx="256" cy="256" r="61" fill="#0A0B0D" stroke="url(#bronze)" stroke-width="3"/>
+    <path d="M256 198L311.2 238.1L290.1 303H221.9L200.8 238.1L256 198Z" fill="url(#enamel)" stroke="url(#gold)" stroke-width="7" stroke-linejoin="bevel"/>
+    <path d="M256 216L294.1 243.7L279.6 288.3H232.4L217.9 243.7L256 216Z" fill="#0A0B0D" stroke="#D4A64A" stroke-width="3"/>
+    <path d="M256 233L277.9 248.9L269.5 274.6H242.5L234.1 248.9L256 233Z" fill="#185B50" stroke="#F0D28A" stroke-width="3"/>
+    <circle cx="256" cy="256" r="8" fill="#F8E4A7" filter="url(#softGold)"/>
+  </g>
+
+  <!-- Subtle inner engraving -->
+  <circle cx="256" cy="256" r="49" stroke="#80623A" stroke-width="1" stroke-dasharray="1 6"/>
+</svg>

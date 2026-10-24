@@ -7,7 +7,7 @@ interface ConfirmationModalProps {
   isOpen: boolean;
   track: Track;
   problem: ProblemStatement;
-  teamName: string;
+  teamName?: string;
   isLocking: boolean;
   error?: string | null;
   onCancel: () => void;
@@ -18,7 +18,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen,
   track,
   problem,
-  teamName,
+  teamName = 'Your Squad',
   isLocking,
   error,
   onCancel,

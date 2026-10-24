@@ -64,6 +64,7 @@ export interface Submission {
   id: string;
   teamId: string;
   githubRepoUrl: string;
+  githubUrl?: string;
   deployedUrl: string;
   pptFileName?: string;
   pptStoragePath?: string;

@@ -164,17 +164,21 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#121622] border border-white/[0.08]">
               <div className="flex items-center gap-2.5">
                 <Github className="w-4 h-4 text-zinc-400" />
-                <span className="font-mono text-zinc-300 break-all">{submission.githubUrl}</span>
+                <span className="font-mono text-zinc-300 break-all">
+                  {submission.githubRepoUrl || submission.githubUrl}
+                </span>
               </div>
-              <a
-                href={submission.githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono text-[11px] shrink-0 ml-3"
-              >
-                <span>Inspect</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              {(submission.githubRepoUrl || submission.githubUrl) && (
+                <a
+                  href={submission.githubRepoUrl || submission.githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono text-[11px] shrink-0 ml-3"
+                >
+                  <span>Inspect</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
             </div>
 
             {/* Deployed Web App URL */}
