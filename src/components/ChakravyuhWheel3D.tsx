@@ -3,6 +3,14 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Track } from '../types';
 import { RotateCw, Eye } from 'lucide-react';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import {
+  buildCyberGate,
+  buildSpaceGate,
+  buildQuantumGate,
+  buildFintechGate,
+  buildEnergyGate,
+} from './gateModels';
 
 export interface Gate3DConfig {
   id: string;
@@ -158,17 +166,17 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     // Camera target and position adjustment
     if (cameraRef.current && controlsRef.current) {
       if (isChakravyuh) {
-        cameraRef.current.position.set(0, 20, 27);
+        cameraRef.current.position.set(0, 17.5, 23.5);
         cameraRef.current.lookAt(0, 0, 0);
         controlsRef.current.target.set(0, 0, 0);
         controlsRef.current.maxDistance = 44;
         controlsRef.current.minDistance = 12;
       } else {
-        cameraRef.current.position.set(6.5, 4.5, 22);
+        cameraRef.current.position.set(4.8, 3.4, 15.5);
         cameraRef.current.lookAt(0, 0.9, 0);
         controlsRef.current.target.set(0, 0.9, 0);
-        controlsRef.current.maxDistance = 38;
-        controlsRef.current.minDistance = 12;
+        controlsRef.current.maxDistance = 32;
+        controlsRef.current.minDistance = 9;
       }
       controlsRef.current.update();
     }
@@ -181,11 +189,11 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       if (isChakravyuh) {
         // Positioned radially at the 5 gates of the concentric Chakravyuh formation
         grp.visible = true;
-        const radius = 6.4;
+        const radius = 7.2;
         const rad = (idx * 2 * Math.PI) / 5 - Math.PI / 2;
         grp.position.set(Math.cos(rad) * radius, 0.2, Math.sin(rad) * radius);
-        grp.scale.set(0.48, 0.48, 0.48);
-        grp.rotation.y = -rad + Math.PI / 2;
+        grp.scale.set(0.62, 0.62, 0.62);
+        grp.rotation.y = 0;
       } else {
         // Isolated focus: center the active model, hide others
         const isActive = gate.id === activeGate.id || gate.themeKey === activeGate.themeKey;
@@ -208,10 +216,10 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     const isChakravyuh = currentMode === 'chakravyuh';
     const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
     if (isChakravyuh) {
-      camera.position.set(0, 20, 27);
+      camera.position.set(0, 17.5, 23.5);
       camera.lookAt(0, 0, 0);
     } else {
-      camera.position.set(6.5, 4.5, 22);
+      camera.position.set(4.8, 3.4, 15.5);
       camera.lookAt(0, 0.9, 0);
     }
     cameraRef.current = camera;
@@ -236,8 +244,14 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.3;
+    renderer.toneMappingExposure = 1.0;
     container.appendChild(renderer.domElement);
+
+    // Image-based lighting so metals and clearcoats reflect something
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const envMap = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environment = envMap;
+    scene.environmentIntensity = 0.65;
 
     // 4. ORBIT CONTROLS (STATIC by default, user rotates manually at will)
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -250,11 +264,11 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     controlsRef.current = controls;
 
     // 5. BALANCED HIGH-VISIBILITY STUDIO LIGHTING (NO harsh localized hotspots)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
     scene.add(ambientLight);
 
     // Key Light from top-front-left
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
     keyLight.position.set(12, 16, 14);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.width = 2048;
@@ -263,12 +277,12 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     scene.add(keyLight);
 
     // Soft Fill Light from right-front
-    const fillLight = new THREE.DirectionalLight(0xe2e8f0, 1.6);
+    const fillLight = new THREE.DirectionalLight(0xe2e8f0, 0.8);
     fillLight.position.set(-14, 10, 10);
     scene.add(fillLight);
 
     // Soft Rim Light from behind-above
-    const rimLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    const rimLight = new THREE.DirectionalLight(0xffffff, 1.3);
     rimLight.position.set(0, 10, -16);
     scene.add(rimLight);
 
@@ -284,12 +298,6 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       metalness: 0.82,
     });
 
-    const brushedTitaniumMat = new THREE.MeshStandardMaterial({
-      color: 0xe2e8f0,
-      roughness: 0.14,
-      metalness: 0.94,
-    });
-
     const polishedChromeMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       roughness: 0.04,
@@ -303,47 +311,6 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       metalness: 0.95,
     });
 
-    const crimsonMat = new THREE.MeshStandardMaterial({
-      color: 0xff2a55,
-      emissive: 0x590014,
-      roughness: 0.14,
-      metalness: 0.92,
-    });
-
-    const cyanMat = new THREE.MeshStandardMaterial({
-      color: 0x00d2ff,
-      emissive: 0x003d52,
-      roughness: 0.12,
-      metalness: 0.92,
-    });
-
-    const violetMat = new THREE.MeshStandardMaterial({
-      color: 0xb388ff,
-      emissive: 0x3e176b,
-      roughness: 0.14,
-      metalness: 0.92,
-    });
-
-    const amberMat = new THREE.MeshStandardMaterial({
-      color: 0xffb703,
-      emissive: 0x593d00,
-      roughness: 0.12,
-      metalness: 0.95,
-    });
-
-    const emeraldMat = new THREE.MeshStandardMaterial({
-      color: 0x00e676,
-      emissive: 0x00471f,
-      roughness: 0.14,
-      metalness: 0.92,
-    });
-
-    const solarCellMat = new THREE.MeshStandardMaterial({
-      color: 0x0b2545,
-      roughness: 0.16,
-      metalness: 0.88,
-    });
-
     // 7. ROOT STAGE GROUP
     const stageGroup = new THREE.Group();
     stageGroupRef.current = stageGroup;
@@ -355,6 +322,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     // =========================================================================
     const ringsGroup = new THREE.Group();
     ringsGroupRef.current = ringsGroup;
+    ringsGroup.visible = currentMode === 'chakravyuh';
     stageGroup.add(ringsGroup);
 
     // Central Citadel Nexus (The Core of Chakravyuh)
@@ -374,8 +342,8 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     // 5 Radial Strategic Gate Conduits connecting Citadel to the 5 Themes
     for (let i = 0; i < 5; i++) {
       const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
-      const xEnd = Math.cos(angle) * 6.4;
-      const zEnd = Math.sin(angle) * 6.4;
+      const xEnd = Math.cos(angle) * 7.2;
+      const zEnd = Math.sin(angle) * 7.2;
       const conduitGeo = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0.04, 0),
         new THREE.Vector3(xEnd, 0.04, zEnd),
@@ -388,309 +356,23 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     }
 
     // =========================================================================
-    // THEME 1: CYBERSECURITY & BLOCKCHAIN (Pure Vivid Crimson #FF2A55)
+    // FIVE GATE MODELS (see gateModels.ts)
     // =========================================================================
-    const cyberGroup = new THREE.Group();
-    cyberGroup.name = 'cybersecurity';
-    themeModelsRef.current['track-cybersecurity-blockchain'] = cyberGroup;
-    themeModelsRef.current['agni'] = cyberGroup;
-    stageGroup.add(cyberGroup);
-
-    // Cryptographic Vault Bastion Door
-    const vaultPlateGeo = new THREE.CylinderGeometry(2.4, 2.7, 0.55, 6);
-    const vaultPlate = new THREE.Mesh(vaultPlateGeo, slateArmorMat);
-    vaultPlate.rotation.x = Math.PI / 2;
-    vaultPlate.position.set(0, 0.8, 0);
-    vaultPlate.castShadow = true;
-    cyberGroup.add(vaultPlate);
-
-    const vaultBezel = new THREE.LineSegments(
-      new THREE.EdgesGeometry(vaultPlateGeo),
-      new THREE.LineBasicMaterial({ color: 0xff2a55 })
-    );
-    vaultBezel.rotation.x = Math.PI / 2;
-    vaultBezel.position.set(0, 0.8, 0);
-    cyberGroup.add(vaultBezel);
-
-    // Polished Chrome Cipher Drum Core
-    const cipherDrum = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 1.2, 32), polishedChromeMat);
-    cipherDrum.rotation.x = Math.PI / 2;
-    cipherDrum.position.set(0, 0.8, 0.35);
-    cyberGroup.add(cipherDrum);
-
-
-    // Hardened Titanium Shackle
-    const shackle = new THREE.Mesh(
-      new THREE.TorusGeometry(1.05, 0.18, 16, 32, Math.PI),
-      brushedTitaniumMat
-    );
-    shackle.position.set(0, 2.1, 0.1);
-    cyberGroup.add(shackle);
-
-    // 4 Distributed Blockchain Cube Nodes
-    const cyberNodes = [
-      [-3.2, 1.8, -1.6],
-      [3.2, 1.8, -1.6],
-      [-3.2, -0.4, 1.6],
-      [3.2, -0.4, 1.6],
+    const aniso = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+    const gateModels: [string[], string, THREE.Group][] = [
+      [['track-cybersecurity-blockchain', 'agni'], 'cybersecurity', buildCyberGate()],
+      [['track-space-technology', 'vayu'], 'space', buildSpaceGate(aniso)],
+      [['track-quantum-computing', 'vajra'], 'quantum', buildQuantumGate(aniso)],
+      [['track-fintech', 'surya'], 'fintech', buildFintechGate(aniso)],
+      [['track-energy-sustainability', 'vanam'], 'energy', buildEnergyGate(aniso)],
     ];
-    cyberNodes.forEach(([nx, ny, nz]) => {
-      const bGeo = new THREE.BoxGeometry(1.1, 1.1, 1.1);
-      const bMesh = new THREE.Mesh(bGeo, slateArmorMat);
-      bMesh.position.set(nx, ny, nz);
-      bMesh.castShadow = true;
-      cyberGroup.add(bMesh);
-
-      const bEdge = new THREE.LineSegments(new THREE.EdgesGeometry(bGeo), new THREE.LineBasicMaterial({ color: 0xff2a55 }));
-      bEdge.position.set(nx, ny, nz);
-      cyberGroup.add(bEdge);
-
-      const coreOrb = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), crimsonMat);
-      coreOrb.position.set(nx, ny, nz);
-      cyberGroup.add(coreOrb);
-
-      const laserLine = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(nx, ny, nz),
-          new THREE.Vector3(0, 0.8, 0),
-        ]),
-        new THREE.LineBasicMaterial({ color: 0xff2a55, transparent: true, opacity: 0.8 })
-      );
-      cyberGroup.add(laserLine);
-    });
-
-    // =========================================================================
-    // THEME 2: SPACE TECHNOLOGY (Electric Cyan #00D2FF)
-    // =========================================================================
-    const spaceGroup = new THREE.Group();
-    spaceGroup.name = 'spacetech';
-    themeModelsRef.current['track-space-technology'] = spaceGroup;
-    themeModelsRef.current['vayu'] = spaceGroup;
-    stageGroup.add(spaceGroup);
-
-    // Deep Space Satellite Main Chassis
-    const satBusGeo = new THREE.BoxGeometry(2.0, 2.4, 2.0);
-    const satBus = new THREE.Mesh(satBusGeo, slateArmorMat);
-    satBus.position.set(0, 0.8, 0);
-    satBus.castShadow = true;
-    spaceGroup.add(satBus);
-
-    const satBusTrim = new THREE.LineSegments(new THREE.EdgesGeometry(satBusGeo), new THREE.LineBasicMaterial({ color: 0x00d2ff }));
-    satBusTrim.position.set(0, 0.8, 0);
-    spaceGroup.add(satBusTrim);
-
-    // Radiant Gold MLI Thermal Foil Shielding
-    const mliPatch = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.7, 0.06), goldPlatedMat);
-    mliPatch.position.set(0, 0.8, 1.03);
-    spaceGroup.add(mliPatch);
-
-    // Left Deployable Solar Wing Array
-    const leftWingGroup = new THREE.Group();
-    leftWingGroup.position.set(-1.0, 0.8, 0);
-    spaceGroup.add(leftWingGroup);
-
-    const leftBoom = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 12), brushedTitaniumMat);
-    leftBoom.rotation.z = Math.PI / 2;
-    leftBoom.position.set(-0.7, 0, 0);
-    leftWingGroup.add(leftBoom);
-
-    const leftPanel = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.8, 0.08), solarCellMat);
-    leftPanel.position.set(-3.6, 0, 0);
-    leftPanel.castShadow = true;
-    leftWingGroup.add(leftPanel);
-
-    const leftPanelEdge = new THREE.LineSegments(new THREE.EdgesGeometry(leftPanel.geometry), new THREE.LineBasicMaterial({ color: 0x00d2ff }));
-    leftPanelEdge.position.set(-3.6, 0, 0);
-    leftWingGroup.add(leftPanelEdge);
-
-    // Right Deployable Solar Wing Array
-    const rightWingGroup = new THREE.Group();
-    rightWingGroup.position.set(1.0, 0.8, 0);
-    spaceGroup.add(rightWingGroup);
-
-    const rightBoom = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 12), brushedTitaniumMat);
-    rightBoom.rotation.z = Math.PI / 2;
-    rightBoom.position.set(0.7, 0, 0);
-    rightWingGroup.add(rightBoom);
-
-    const rightPanel = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.8, 0.08), solarCellMat);
-    rightPanel.position.set(3.6, 0, 0);
-    rightPanel.castShadow = true;
-    rightWingGroup.add(rightPanel);
-
-    const rightPanelEdge = new THREE.LineSegments(new THREE.EdgesGeometry(rightPanel.geometry), new THREE.LineBasicMaterial({ color: 0x00d2ff }));
-    rightPanelEdge.position.set(3.6, 0, 0);
-    rightWingGroup.add(rightPanelEdge);
-
-    // Chrome High-Gain Parabolic Telemetry Dish
-    const satDish = new THREE.Mesh(new THREE.ConeGeometry(1.6, 0.75, 36, 1, true), polishedChromeMat);
-    satDish.position.set(0, 2.5, 0.2);
-    satDish.rotation.x = -Math.PI / 4;
-    satDish.castShadow = true;
-    spaceGroup.add(satDish);
-
-    const satFeed = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.1, 8), cyanMat);
-    satFeed.position.set(0, 2.9, 0.7);
-    satFeed.rotation.x = -Math.PI / 4;
-    spaceGroup.add(satFeed);
-
-    // 4 Quad RCS Aerospace Thruster Cones
-    [-0.75, 0.75].forEach(tx => {
-      [-0.75, 0.75].forEach(tz => {
-        const thruster = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.45, 12), brushedTitaniumMat);
-        thruster.position.set(tx, -0.6, tz);
-        thruster.rotation.x = Math.PI;
-        spaceGroup.add(thruster);
+    gateModels.forEach(([keys, name, group]) => {
+      group.name = name;
+      keys.forEach(k => {
+        themeModelsRef.current[k] = group;
       });
+      stageGroup.add(group);
     });
-
-    // =========================================================================
-    // THEME 3: QUANTUM COMPUTING (Royal Violet #B388FF)
-    // =========================================================================
-    const quantumGroup = new THREE.Group();
-    quantumGroup.name = 'quantum';
-    themeModelsRef.current['track-quantum-computing'] = quantumGroup;
-    themeModelsRef.current['vajra'] = quantumGroup;
-    stageGroup.add(quantumGroup);
-
-    // Tiered Golden Cryostat Flanges
-    const cryoTiers = [
-      { y: 3.2, r: 2.6, h: 0.22 },
-      { y: 1.9, r: 2.1, h: 0.20 },
-      { y: 0.7, r: 1.6, h: 0.18 },
-      { y: -0.5, r: 1.1, h: 0.16 },
-    ];
-    cryoTiers.forEach(t => {
-      const flange = new THREE.Mesh(new THREE.CylinderGeometry(t.r, t.r, t.h, 48), goldPlatedMat);
-      flange.position.y = t.y;
-      flange.castShadow = true;
-      quantumGroup.add(flange);
-    });
-
-    // Chrome Coaxial Waveguide Cryo-Lines
-    for (let c = 0; c < 8; c++) {
-      const angle = (c / 8) * Math.PI * 2;
-      const pipeRadius = 1.35;
-      const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 3.6, 8), polishedChromeMat);
-      pipe.position.set(Math.sin(angle) * pipeRadius, 1.35, Math.cos(angle) * pipeRadius);
-      quantumGroup.add(pipe);
-    }
-
-    // Superconducting Qubit Package Canister
-    const chipCanister = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.85, 24), slateArmorMat);
-    chipCanister.position.set(0, -1.2, 0);
-    chipCanister.castShadow = true;
-    quantumGroup.add(chipCanister);
-
-    // Quantum Bloch Sphere
-    const qOrb = new THREE.Mesh(new THREE.SphereGeometry(0.45, 24, 24), violetMat);
-    qOrb.position.set(0, 0.7, 0);
-    quantumGroup.add(qOrb);
-
-    // =========================================================================
-    // THEME 4: FINTECH (Imperial Amber Gold #FFB703)
-    // =========================================================================
-    const fintechGroup = new THREE.Group();
-    fintechGroup.name = 'fintech';
-    themeModelsRef.current['track-fintech'] = fintechGroup;
-    themeModelsRef.current['surya'] = fintechGroup;
-    stageGroup.add(fintechGroup);
-
-    // Heavy FinTech Sovereign Currency Token Disc
-    const coinGeo = new THREE.CylinderGeometry(2.3, 2.3, 0.45, 48);
-    const coin = new THREE.Mesh(coinGeo, amberMat);
-    coin.rotation.x = Math.PI / 2;
-    coin.position.set(0, 0.9, 0);
-    coin.castShadow = true;
-    fintechGroup.add(coin);
-
-    // Currency Inscription Symbol
-    const cStem = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.6, 0.5), brushedTitaniumMat);
-    cStem.position.set(0, 0.9, 0.05);
-    fintechGroup.add(cStem);
-
-    const cCross1 = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.28, 0.5), brushedTitaniumMat);
-    cCross1.position.set(0, 1.35, 0.05);
-    fintechGroup.add(cCross1);
-
-    const cCross2 = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.28, 0.5), brushedTitaniumMat);
-    cCross2.position.set(0, 0.45, 0.05);
-    fintechGroup.add(cCross2);
-
-    // Stepped Algorithmic Trading Steles
-    const fintechBars = [
-      { x: -3.4, z: 0.8, h: 2.2 },
-      { x: -1.8, z: 1.4, h: 3.2 },
-      { x: 1.8,  z: 1.4, h: 4.0 },
-      { x: 3.4,  z: 0.8, h: 5.0 },
-    ];
-    fintechBars.forEach(b => {
-      const col = new THREE.Mesh(new THREE.BoxGeometry(0.85, b.h, 0.85), slateArmorMat);
-      col.position.set(b.x, b.h / 2 - 1.4, b.z);
-      col.castShadow = true;
-      fintechGroup.add(col);
-
-      const cap = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.12, 0.88), amberMat);
-      cap.position.set(b.x, b.h - 1.4 + 0.06, b.z);
-      fintechGroup.add(cap);
-
-      const colEdge = new THREE.LineSegments(new THREE.EdgesGeometry(col.geometry), new THREE.LineBasicMaterial({ color: 0xffb703 }));
-      colEdge.position.set(b.x, b.h / 2 - 1.4, b.z);
-      fintechGroup.add(colEdge);
-    });
-
-    // =========================================================================
-    // THEME 5: ENERGY & SUSTAINABILITY (Vivid Emerald #00E676)
-    // =========================================================================
-    const energyGroup = new THREE.Group();
-    energyGroup.name = 'sustainability';
-    themeModelsRef.current['track-energy-sustainability'] = energyGroup;
-    themeModelsRef.current['vanam'] = energyGroup;
-    stageGroup.add(energyGroup);
-
-    // Aerodynamic Wind Turbine Mast
-    const towerMast = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.75, 5.0, 24), brushedTitaniumMat);
-    towerMast.position.set(0, 0.3, 0);
-    towerMast.castShadow = true;
-    energyGroup.add(towerMast);
-
-    // Aerodynamic Nacelle
-    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.68, 1.9, 24), slateArmorMat);
-    nacelle.rotation.x = Math.PI / 2;
-    nacelle.position.set(0, 2.8, 0);
-    energyGroup.add(nacelle);
-
-    // Clean Energy Kinetic Rotor Hub
-    const rotorHub = new THREE.Group();
-    rotorHub.position.set(0, 2.8, 1.05);
-    energyGroup.add(rotorHub);
-
-    const noseCone = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.8, 24), polishedChromeMat);
-    noseCone.rotation.x = Math.PI / 2;
-    rotorHub.add(noseCone);
-
-    for (let b = 0; b < 3; b++) {
-      const bAngle = (b / 3) * Math.PI * 2;
-      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.32, 4.2, 0.08), emeraldMat);
-      blade.position.set(Math.sin(bAngle) * 2.1, Math.cos(bAngle) * 2.1, 0);
-      blade.rotation.z = -bAngle;
-      blade.castShadow = true;
-      rotorHub.add(blade);
-    }
-
-    // Solar PV Ground Canopies
-    [-2.6, 2.6].forEach(px => {
-      const pv = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.08, 1.5), solarCellMat);
-      pv.position.set(px, -1.6, 1.2);
-      pv.rotation.x = -Math.PI / 5;
-      energyGroup.add(pv);
-
-      const pvEdge = new THREE.LineSegments(new THREE.EdgesGeometry(pv.geometry), new THREE.LineBasicMaterial({ color: 0x00e676 }));
-      pvEdge.position.set(px, -1.6, 1.2);
-      pvEdge.rotation.x = -Math.PI / 5;
-      energyGroup.add(pvEdge);
-    });
-
 
     // Initial Layout Setup based on viewMode
     FIVE_GATES_CONFIG.forEach((gate, idx) => {
@@ -699,11 +381,11 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
 
       if (isChakravyuh) {
         grp.visible = true;
-        const radius = 7.6;
+        const radius = 7.2;
         const rad = (idx * 2 * Math.PI) / 5 - Math.PI / 2;
         grp.position.set(Math.cos(rad) * radius, 0.2, Math.sin(rad) * radius);
-        grp.scale.set(0.68, 0.68, 0.68);
-        grp.rotation.y = -rad + Math.PI / 2;
+        grp.scale.set(0.62, 0.62, 0.62);
+        grp.rotation.y = 0;
       } else {
         const isActive = gate.id === activeGate.id || gate.themeKey === activeGate.themeKey;
         grp.visible = isActive;
@@ -754,6 +436,8 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       cancelAnimationFrame(animationFrameId);
       resizeObserver.disconnect();
       controls.dispose();
+      envMap.dispose();
+      pmrem.dispose();
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
