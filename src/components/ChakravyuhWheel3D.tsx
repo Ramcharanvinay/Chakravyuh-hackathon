@@ -1,68 +1,36 @@
-/**
- * ============================================================================
- * CHAKRAVYUHA 3D ANCIENT GATE FORMATION (FULL VIEW & HIGH FIDELITY)
- * ============================================================================
- * 
- * Features:
- *  - Elevated cinematic full view showing the entire circular Chakravyuh wheel
- *  - High-fidelity ACES Filmic tone mapping, soft shadows & metallic materials
- *  - 7 Concentric Battle Rampart Tiers (Saptavyuha) with stepped ziggurat walls
- *  - Active gate entrance breach opening into Abhimanyu's labyrinth
- *  - Carved Vedic Torana stone pillars, ornamental architraves & temple finials
- *  - Ceremonial bronze braziers with active elemental flame lighting & embers
- *  - 5 Distinct Floating Elemental 3D Totems (Agni, Vayu, Vajra, Surya, Vanam)
- *  - Central Sanctum with rotating 12-blade Sudarshana disc & levitating crystal core
- *  - Kurukshetra twilight ambient particle system (golden fireflies & dust)
- *  - Smooth shortest-path inertial rotation aligning selected theme to front gate
- *  - Full mobile touch & desktop pointer raycasting with OrbitControls
- *  - Comprehensive GPU memory cleanup (geometry & material disposal)
- * ============================================================================
- */
-
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { Track } from '../types';
+import { RotateCw, Eye } from 'lucide-react';
 
-export interface ChakravyuhTrack {
+export interface Gate3DConfig {
   id: string;
+  aliasId?: string;
+  themeKey: string;
   name: string;
-  officialTitle?: string;
-  slug?: string;
-  themeKey?: string;
-  accentColor?: string;
-  secondaryColor?: string;
-  glowColor?: string;
-  description?: string;
-  motto?: string;
-  iconName?: string;
-  displayOrder?: number;
-  [key: string]: any;
+  title: string;
+  subtitle: string;
+  accent: string;
+  colorHex: number;
+  emissiveHex: number;
+  angle: number;
+  motto: string;
 }
 
-export interface ChakravyuhWheel3DProps {
-  tracks?: ChakravyuhTrack[];
-  selectedTrackId: string | null;
-  onSelectTrack: (trackId: string) => void;
-  className?: string;
-  height?: number | string;
-  isLocked?: boolean;
-}
-
-// 5 Sacred Gate Configurations mapped 1-to-1 to the 5 official hackathon themes
-const FIVE_GATES_CONFIG = [
+export const FIVE_GATES_CONFIG: Gate3DConfig[] = [
   {
     id: 'track-cybersecurity-blockchain',
     aliasId: 'track-agni',
     themeKey: 'agni',
     name: 'CYBERSECURITY',
     title: 'CYBERSECURITY & BLOCKCHAIN',
-    subtitle: 'Cybersecurity and Blockchain',
-    accent: '#E05A47',
-    glow: '#FF7A59',
-    pointLightColor: 0xff4500,
-    angle: 0, // Top / 12 o'clock entrance
-    slogan: 'Secure digital systems and build trust through decentralized technology.',
-    motto: 'Defending Digital Frontiers with Cryptographic Security and Decentralized Trust',
+    subtitle: 'Cryptographic Bastion & Distributed Ledger',
+    accent: '#FF2A55',
+    colorHex: 0xff2a55,
+    emissiveHex: 0x660018,
+    angle: 0,
+    motto: 'Zero-Trust Defenses, Cryptographic Proofs and Resilient Chains',
   },
   {
     id: 'track-space-technology',
@@ -70,13 +38,12 @@ const FIVE_GATES_CONFIG = [
     themeKey: 'vayu',
     name: 'SPACE TECH',
     title: 'SPACE TECHNOLOGY',
-    subtitle: 'Space Technology',
-    accent: '#38BDF8',
-    glow: '#0284C7',
-    pointLightColor: 0x00e5ff,
-    angle: (2 * Math.PI) / 5, // 72°
-    slogan: 'Innovate in satellites, space exploration, and aerospace systems.',
-    motto: 'Advancing Satellite Intelligence, Orbital Telemetry and Aerospace Systems',
+    subtitle: 'Deep-Space Satellite & Aerospace Payload',
+    accent: '#00D2FF',
+    colorHex: 0x00d2ff,
+    emissiveHex: 0x004c66,
+    angle: (2 * Math.PI) / 5,
+    motto: 'Satellite Intelligence, Orbital Telemetry and Aerospace Systems',
   },
   {
     id: 'track-quantum-computing',
@@ -84,13 +51,12 @@ const FIVE_GATES_CONFIG = [
     themeKey: 'vajra',
     name: 'QUANTUM',
     title: 'QUANTUM COMPUTING',
-    subtitle: 'Quantum Computing',
-    accent: '#8B5CF6',
-    glow: '#A855F7',
-    pointLightColor: 0x8b5cf6,
-    angle: (4 * Math.PI) / 5, // 144°
-    slogan: 'Explore quantum algorithms, simulations, and next-generation computing.',
-    motto: 'Unlocking Quantum Coherence, Superposition and Next-Gen Algorithms',
+    subtitle: 'Superconducting Qubit & Dilution Refrigerator',
+    accent: '#B388FF',
+    colorHex: 0xb388ff,
+    emissiveHex: 0x4a148c,
+    angle: (4 * Math.PI) / 5,
+    motto: 'Quantum Coherence, Superposition and Next-Gen Algorithms',
   },
   {
     id: 'track-fintech',
@@ -98,13 +64,12 @@ const FIVE_GATES_CONFIG = [
     themeKey: 'surya',
     name: 'FINTECH',
     title: 'FINTECH',
-    subtitle: 'FinTech',
-    accent: '#D8B46A',
-    glow: '#F59E0B',
-    pointLightColor: 0xffd54f,
-    angle: (6 * Math.PI) / 5, // 216°
-    slogan: 'Rethink digital payments, financial access, and intelligent financial services.',
-    motto: 'Revolutionizing Digital Payments, Smart Ledgers and Intelligent Finance',
+    subtitle: 'Algorithmic Matrix & Decentralized Ledger',
+    accent: '#FFB703',
+    colorHex: 0xffb703,
+    emissiveHex: 0x664400,
+    angle: (6 * Math.PI) / 5,
+    motto: 'Digital Payments, Smart Ledgers and Intelligent Finance',
   },
   {
     id: 'track-energy-sustainability',
@@ -112,39 +77,22 @@ const FIVE_GATES_CONFIG = [
     themeKey: 'vanam',
     name: 'SUSTAINABILITY',
     title: 'ENERGY & SUSTAINABILITY',
-    subtitle: 'Energy and Sustainability',
-    accent: '#10B981',
-    glow: '#34D399',
-    pointLightColor: 0x10b981,
-    angle: (8 * Math.PI) / 5, // 288°
-    slogan: 'Develop clean energy solutions and technologies for a sustainable future.',
-    motto: 'Powering Clean Energy Grids and Climate-Resilient Technologies',
+    subtitle: 'Clean Power Grid & Renewable Turbine Reactor',
+    accent: '#00E676',
+    colorHex: 0x00e676,
+    emissiveHex: 0x004d20,
+    angle: (8 * Math.PI) / 5,
+    motto: 'Clean Energy Grids and Climate-Resilient Technologies',
   },
 ];
 
-// Helper to render crisp 3D gate lintel labels matching the theme domains
-function createGateSignTexture(numberStr: string, nameStr: string, accentColor: string): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 128;
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    ctx.fillStyle = '#0E1118';
-    ctx.fillRect(0, 0, 512, 128);
-
-    ctx.strokeStyle = accentColor;
-    ctx.lineWidth = 6;
-    ctx.strokeRect(6, 6, 500, 116);
-
-    ctx.fillStyle = '#F3E8CF';
-    ctx.font = 'bold 36px "Cinzel", Georgia, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`${numberStr} • ${nameStr}`, 256, 64);
-  }
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.minFilter = THREE.LinearFilter;
-  return texture;
+export interface ChakravyuhWheel3DProps {
+  tracks?: Track[];
+  selectedTrackId?: string;
+  onSelectTrack: (trackId: string) => void;
+  className?: string;
+  isLocked?: boolean;
+  viewMode?: 'chakravyuh' | 'isolated';
 }
 
 export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
@@ -152,27 +100,30 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
   selectedTrackId,
   onSelectTrack,
   className = '',
-  height = 540,
   isLocked = false,
+  viewMode: propViewMode,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
-  const [hoveredGateId, setHoveredGateId] = useState<string | null>(null);
 
-  // References to mutable 3D objects for real-time interaction
-  const wheelGroupRef = useRef<THREE.Group | null>(null);
+  // Controlled or internal viewMode ('chakravyuh' shows all 5 models on concentric rings; 'isolated' focuses on one)
+  const [internalViewMode, setInternalViewMode] = useState<'chakravyuh' | 'isolated'>(
+    propViewMode || 'isolated'
+  );
+
+  useEffect(() => {
+    if (propViewMode) {
+      setInternalViewMode(propViewMode);
+    }
+  }, [propViewMode]);
+
+  const currentMode = propViewMode || internalViewMode;
+
+  const stageGroupRef = useRef<THREE.Group | null>(null);
+  const ringsGroupRef = useRef<THREE.Group | null>(null);
+  const themeModelsRef = useRef<Record<string, THREE.Group>>({});
   const controlsRef = useRef<OrbitControls | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const targetRotationY = useRef<number>(0);
-  const currentRotationY = useRef<number>(0);
-  const interactiveGatesRef = useRef<{ mesh: THREE.Object3D; gateId: string }[]>([]);
-  const gateLightsRef = useRef<Record<string, THREE.PointLight>>({});
-  const particlesRef = useRef<THREE.Points[]>([]);
-  const sanctumSpokesRef = useRef<THREE.Group | null>(null);
-  const sanctumCoreRef = useRef<THREE.Mesh | null>(null);
-  const diamondsGroupRef = useRef<THREE.Group | null>(null);
-  const elementalTotemsRef = useRef<Record<string, THREE.Group>>({});
 
-  // Active gate helper: flawlessly resolves track ID, alias, or themeKey
   const activeGate = useMemo(() => {
     if (!selectedTrackId) return FIVE_GATES_CONFIG[0];
     const lower = selectedTrackId.toLowerCase();
@@ -195,41 +146,74 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     onSelectTrackRef.current = onSelectTrack;
   }, [onSelectTrack]);
 
-  const activeGateRef = useRef(activeGate);
+  // Layout positions: Chakravyuh concentric rings vs Isolated center
   useEffect(() => {
-    activeGateRef.current = activeGate;
-  }, [activeGate]);
+    const isChakravyuh = currentMode === 'chakravyuh';
 
-  // Handle target rotation when selected track changes:
-  // Smoothly rotates the wheelGroup so the selected gate faces the front entrance (12 o'clock)
-  useEffect(() => {
-    if (!activeGate) return;
-    const target = -activeGate.angle;
+    // Toggle rings visibility
+    if (ringsGroupRef.current) {
+      ringsGroupRef.current.visible = isChakravyuh;
+    }
 
-    // Calculate shortest angular path around circle
-    const current = currentRotationY.current;
-    let diff = (target - current) % (Math.PI * 2);
-    if (diff > Math.PI) diff -= Math.PI * 2;
-    if (diff < -Math.PI) diff += Math.PI * 2;
-    targetRotationY.current = current + diff;
-  }, [activeGate]);
+    // Camera target and position adjustment
+    if (cameraRef.current && controlsRef.current) {
+      if (isChakravyuh) {
+        cameraRef.current.position.set(0, 18, 24);
+        cameraRef.current.lookAt(0, 0, 0);
+        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.maxDistance = 38;
+        controlsRef.current.minDistance = 12;
+      } else {
+        cameraRef.current.position.set(4.5, 3.2, 12.0);
+        cameraRef.current.lookAt(0, 0.5, 0);
+        controlsRef.current.target.set(0, 0.5, 0);
+        controlsRef.current.maxDistance = 24;
+        controlsRef.current.minDistance = 7;
+      }
+      controlsRef.current.update();
+    }
 
-  // Main Three.js Scene Setup & Lifecycle
+    // Position and visibility of the 5 theme models
+    FIVE_GATES_CONFIG.forEach((gate, idx) => {
+      const grp = themeModelsRef.current[gate.id];
+      if (!grp) return;
+
+      if (isChakravyuh) {
+        // Positioned radially at the 5 gates of the concentric Chakravyuh formation
+        grp.visible = true;
+        const radius = 6.4;
+        const rad = (idx * 2 * Math.PI) / 5 - Math.PI / 2;
+        grp.position.set(Math.cos(rad) * radius, 0.2, Math.sin(rad) * radius);
+        grp.scale.set(0.48, 0.48, 0.48);
+        grp.rotation.y = -rad + Math.PI / 2;
+      } else {
+        // Isolated focus: center the active model, hide others
+        const isActive = gate.id === activeGate.id || gate.themeKey === activeGate.themeKey;
+        grp.visible = isActive;
+        grp.position.set(0, 0.4, 0);
+        grp.scale.set(1.0, 1.0, 1.0);
+        grp.rotation.y = 0;
+      }
+    });
+  }, [currentMode, activeGate]);
+
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
 
-    const width = container.clientWidth || 540;
-    const heightPx = typeof height === 'number' ? height : container.clientHeight || 540;
-
-    // 1. SCENE & ATMOSPHERIC FOG
+    // 1. SCENE
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x08090d, 0.02);
 
-    // 2. CAMERA (Elevated Full View showing the entire wheel formation without clipping)
-    const camera = new THREE.PerspectiveCamera(42, width / heightPx, 0.1, 160);
-    camera.position.set(0, 18, 25);
-    camera.lookAt(0, 0, 0);
+    // 2. CAMERA
+    const isChakravyuh = currentMode === 'chakravyuh';
+    const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+    if (isChakravyuh) {
+      camera.position.set(0, 18, 24);
+      camera.lookAt(0, 0, 0);
+    } else {
+      camera.position.set(4.5, 3.2, 12.0);
+      camera.lookAt(0, 0.5, 0);
+    }
     cameraRef.current = camera;
 
     // 3. RENDERER
@@ -237,718 +221,666 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       antialias: true,
       alpha: true,
       powerPreference: 'high-performance',
+      stencil: false,
+      depth: true,
     });
-    renderer.setSize(width, heightPx);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    renderer.setPixelRatio(dpr);
+
+    const initialRect = container.getBoundingClientRect();
+    const initialSize = Math.max(Math.round(initialRect.width || container.clientWidth || 640), 320);
+    renderer.setSize(initialSize, initialSize, false);
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.display = 'block';
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.35;
+    renderer.toneMappingExposure = 1.3;
     container.appendChild(renderer.domElement);
 
-    // 4. ORBIT CONTROLS (Full touch and mouse support)
+    // 4. ORBIT CONTROLS (STATIC by default, user rotates manually at will)
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.06;
-    controls.maxPolarAngle = Math.PI / 2 - 0.05;
-    controls.minPolarAngle = 0.08;
-    controls.minDistance = 9;
-    controls.maxDistance = 42;
-    controls.target.set(0, 0, 0);
+    controls.dampingFactor = 0.08;
+    controls.autoRotate = false; // STATIC! No self rotation
+    controls.maxPolarAngle = Math.PI / 2 + 0.05;
+    controls.minPolarAngle = Math.PI / 8;
+    controls.target.set(0, isChakravyuh ? 0 : 0.5, 0);
     controlsRef.current = controls;
 
-    // 5. LIGHTING SYSTEM (Kurukshetra Sunset + Sacred Vedic Gold)
-    const ambientLight = new THREE.AmbientLight(0xd8b46a, 0.7);
+    // 5. BALANCED HIGH-VISIBILITY STUDIO LIGHTING (NO harsh localized hotspots)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.6);
     scene.add(ambientLight);
 
-    // Key Directional Sun Light
-    const sunLight = new THREE.DirectionalLight(0xfff2d4, 2.8);
-    sunLight.position.set(12, 22, 10);
-    sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 2048;
-    sunLight.shadow.mapSize.height = 2048;
-    sunLight.shadow.bias = -0.0003;
-    scene.add(sunLight);
+    // Key Light from top-front-left
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    keyLight.position.set(12, 16, 14);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 2048;
+    keyLight.shadow.mapSize.height = 2048;
+    keyLight.shadow.bias = -0.0001;
+    scene.add(keyLight);
 
-    // Cool rim light to highlight stone crenellations
-    const rimLight = new THREE.DirectionalLight(0x406085, 1.2);
-    rimLight.position.set(-14, 10, -14);
+    // Soft Fill Light from right-front
+    const fillLight = new THREE.DirectionalLight(0xe2e8f0, 1.6);
+    fillLight.position.set(-14, 10, 10);
+    scene.add(fillLight);
+
+    // Soft Rim Light from behind-above
+    const rimLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    rimLight.position.set(0, 10, -16);
     scene.add(rimLight);
 
-    // Central Sanctum Divine Beam Light
-    const sanctumPointLight = new THREE.PointLight(0xfff5d0, 3.2, 18);
-    sanctumPointLight.position.set(0, 3.5, 0);
-    scene.add(sanctumPointLight);
+    // Under-bounce Fill Light so bottom features are clearly visible
+    const underFill = new THREE.DirectionalLight(0x94a3b8, 0.8);
+    underFill.position.set(0, -10, 0);
+    scene.add(underFill);
 
-    // 6. SHARED HIGH-END MATERIALS
-    const darkBasaltMaterial = new THREE.MeshStandardMaterial({
-      color: 0x12141c,
-      roughness: 0.72,
-      metalness: 0.28,
+    // 6. RICH VIBRANT MATERIALS
+    const slateArmorMat = new THREE.MeshStandardMaterial({
+      color: 0x242b38,
+      roughness: 0.25,
+      metalness: 0.82,
     });
 
-    const innerStoneMaterial = new THREE.MeshStandardMaterial({
-      color: 0x1a1e2a,
-      roughness: 0.65,
-      metalness: 0.35,
+    const brushedTitaniumMat = new THREE.MeshStandardMaterial({
+      color: 0xe2e8f0,
+      roughness: 0.14,
+      metalness: 0.94,
     });
 
-    const goldTrimMaterial = new THREE.MeshStandardMaterial({
-      color: 0xd8b46a,
-      roughness: 0.26,
-      metalness: 0.88,
-      emissive: 0x4a3b1c,
-      emissiveIntensity: 0.15,
-    });
-
-    const ceremonialGoldMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf3e8cf,
-      roughness: 0.2,
-      metalness: 0.92,
-      emissive: 0xd8b46a,
-      emissiveIntensity: 0.3,
-    });
-
-    const bronzeMaterial = new THREE.MeshStandardMaterial({
-      color: 0x8a6328,
-      roughness: 0.42,
-      metalness: 0.8,
-    });
-
-    // 7. BUILD THE ROTATABLE CHAKRAVYUHA BATTLE FORMATION
-    const wheelGroup = new THREE.Group();
-    wheelGroupRef.current = wheelGroup;
-    scene.add(wheelGroup);
-
-    // --- A. Base Circular Foundation Plinth ---
-    const plinthGeo = new THREE.CylinderGeometry(13.4, 13.8, 0.4, 64);
-    const plinthMesh = new THREE.Mesh(plinthGeo, darkBasaltMaterial);
-    plinthMesh.position.y = -0.2;
-    plinthMesh.receiveShadow = true;
-    wheelGroup.add(plinthMesh);
-
-    // Outer Plinth Gold Chamfer Ring
-    const plinthRingGeo = new THREE.TorusGeometry(13.6, 0.08, 12, 64);
-    const plinthRing = new THREE.Mesh(plinthRingGeo, goldTrimMaterial);
-    plinthRing.rotation.x = Math.PI / 2;
-    wheelGroup.add(plinthRing);
-
-    // --- B. 7 Concentric Battle Rampart Tiers (Saptavyuha) ---
-    const tierRadii = [11.8, 10.2, 8.6, 7.0, 5.4, 3.8, 2.3];
-    const tierHeights = [0.45, 0.6, 0.8, 1.05, 1.35, 1.7, 2.1];
-
-    tierRadii.forEach((radius, i) => {
-      const wallHeight = tierHeights[i];
-      const wallThick = 0.32;
-
-      // Outer crenellated battle wall
-      const wallGeo = new THREE.CylinderGeometry(radius, radius, wallHeight, 64, 1, true);
-      const wallMesh = new THREE.Mesh(wallGeo, i > 3 ? innerStoneMaterial : darkBasaltMaterial);
-      wallMesh.position.y = wallHeight / 2;
-      wallMesh.castShadow = true;
-      wallMesh.receiveShadow = true;
-      wheelGroup.add(wallMesh);
-
-      // Gold cap on rampart top edge
-      const capGeo = new THREE.TorusGeometry(radius, wallThick / 3, 8, 64);
-      const capMesh = new THREE.Mesh(capGeo, goldTrimMaterial);
-      capMesh.rotation.x = Math.PI / 2;
-      capMesh.position.y = wallHeight;
-      wheelGroup.add(capMesh);
-
-      // Crenellation Battlements (Merlons along the wall)
-      const numMerlons = 24 + i * 4;
-      const merlonGeo = new THREE.BoxGeometry(0.22, 0.18, 0.28);
-      for (let m = 0; m < numMerlons; m++) {
-        const mAngle = (m / numMerlons) * Math.PI * 2;
-        // Leave gaps for the entrance channel at 12 o'clock
-        if (Math.abs(mAngle) < 0.22 || Math.abs(mAngle - Math.PI * 2) < 0.22) continue;
-
-        const merlon = new THREE.Mesh(merlonGeo, bronzeMaterial);
-        merlon.position.set(
-          Math.sin(mAngle) * radius,
-          wallHeight + 0.09,
-          -Math.cos(mAngle) * radius
-        );
-        merlon.rotation.y = -mAngle;
-        wheelGroup.add(merlon);
-      }
-    });
-
-    // --- C. Celestial Outer Rim (Tick Teeth & Diamond Markers) ---
-    const numTicks = 78;
-    const tickGeo = new THREE.BoxGeometry(0.12, 0.08, 0.42);
-    for (let t = 0; t < numTicks; t++) {
-      const tAngle = (t / numTicks) * Math.PI * 2;
-      const tick = new THREE.Mesh(tickGeo, goldTrimMaterial);
-      tick.position.set(Math.sin(tAngle) * 12.8, 0.05, -Math.cos(tAngle) * 12.8);
-      tick.rotation.y = -tAngle;
-      wheelGroup.add(tick);
-    }
-
-    // 20 Floating Celestial Diamond Inlays
-    const diamondsGroup = new THREE.Group();
-    diamondsGroupRef.current = diamondsGroup;
-    wheelGroup.add(diamondsGroup);
-
-    const diamondGeo = new THREE.OctahedronGeometry(0.18, 0);
-    for (let d = 0; d < 20; d++) {
-      const dAngle = (d / 20) * Math.PI * 2;
-      const diamond = new THREE.Mesh(diamondGeo, ceremonialGoldMaterial);
-      diamond.position.set(Math.sin(dAngle) * 12.8, 0.45, -Math.cos(dAngle) * 12.8);
-      diamond.rotation.y = dAngle;
-      diamondsGroup.add(diamond);
-    }
-
-    // --- D. Drona's Central Sanctum (Padmavyuha Citadel) ---
-    const sanctumGroup = new THREE.Group();
-    wheelGroup.add(sanctumGroup);
-
-    // Stepped Circular Altar
-    const altarBase = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.6, 1.8, 0.6, 32),
-      goldTrimMaterial
-    );
-    altarBase.position.y = 2.4;
-    altarBase.receiveShadow = true;
-    sanctumGroup.add(altarBase);
-
-    // Rotating 12-Blade Golden Sudarshana Disc
-    const spokesGroup = new THREE.Group();
-    sanctumSpokesRef.current = spokesGroup;
-    spokesGroup.position.y = 2.75;
-    sanctumGroup.add(spokesGroup);
-
-    const spokeGeo = new THREE.BoxGeometry(0.12, 0.06, 1.4);
-    for (let s = 0; s < 12; s++) {
-      const sAngle = (s / 12) * Math.PI * 2;
-      const spoke = new THREE.Mesh(spokeGeo, ceremonialGoldMaterial);
-      spoke.rotation.y = sAngle;
-      spokesGroup.add(spoke);
-    }
-
-    // Floating Levitating Brahmashira Crystal Core
-    const crystalGeo = new THREE.OctahedronGeometry(0.48, 1);
-    const crystalMat = new THREE.MeshPhysicalMaterial({
+    const polishedChromeMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
-      emissive: 0xd8b46a,
-      emissiveIntensity: 0.95,
-      roughness: 0.1,
-      metalness: 0.1,
-      transmission: 0.85,
-      ior: 2.2,
-      thickness: 1.2,
+      roughness: 0.04,
+      metalness: 0.98,
     });
-    const crystalCore = new THREE.Mesh(crystalGeo, crystalMat);
-    crystalCore.position.y = 3.65;
-    sanctumCoreRef.current = crystalCore;
-    sanctumGroup.add(crystalCore);
 
-    // Divine Vertical Light Beam
-    const beamGeo = new THREE.CylinderGeometry(0.08, 0.45, 12, 16, 1, true);
-    const beamMat = new THREE.MeshBasicMaterial({
-      color: 0xd8b46a,
-      transparent: true,
-      opacity: 0.22,
-      side: THREE.DoubleSide,
-      blending: THREE.AdditiveBlending,
+    const goldPlatedMat = new THREE.MeshStandardMaterial({
+      color: 0xffb703,
+      emissive: 0x4a3200,
+      roughness: 0.12,
+      metalness: 0.95,
     });
-    const beamMesh = new THREE.Mesh(beamGeo, beamMat);
-    beamMesh.position.y = 7.5;
-    sanctumGroup.add(beamMesh);
 
-    // --- E. 5 SACRED ELEMENTAL GATES (1-to-1 matching official themes) ---
-    interactiveGatesRef.current = [];
-    gateLightsRef.current = {};
-    elementalTotemsRef.current = {};
+    const crimsonMat = new THREE.MeshStandardMaterial({
+      color: 0xff2a55,
+      emissive: 0x590014,
+      roughness: 0.14,
+      metalness: 0.92,
+    });
 
-    FIVE_GATES_CONFIG.forEach((gate, idx) => {
-      const gateGroup = new THREE.Group();
-      const radius = 9.45;
-      // Position Gate 0 at 12 o'clock (x=0, z=-radius) and other gates clockwise around circle
-      const gx = Math.sin(gate.angle) * radius;
-      const gz = -Math.cos(gate.angle) * radius;
-      gateGroup.position.set(gx, 0, gz);
-      // Face inward towards the central altar
-      gateGroup.lookAt(0, 0, 0);
+    const cyanMat = new THREE.MeshStandardMaterial({
+      color: 0x00d2ff,
+      emissive: 0x003d52,
+      roughness: 0.12,
+      metalness: 0.92,
+    });
 
-      // 1. Bastion Terrace Platform
-      const bastionPlatform = new THREE.Mesh(
-        new THREE.BoxGeometry(2.4, 0.4, 1.6),
-        darkBasaltMaterial
-      );
-      bastionPlatform.position.y = 0.2;
-      bastionPlatform.receiveShadow = true;
-      gateGroup.add(bastionPlatform);
+    const violetMat = new THREE.MeshStandardMaterial({
+      color: 0xb388ff,
+      emissive: 0x3e176b,
+      roughness: 0.14,
+      metalness: 0.92,
+    });
 
-      // Gold steps
-      const stepsGeo = new THREE.BoxGeometry(1.6, 0.15, 0.6);
-      const stepsMesh = new THREE.Mesh(stepsGeo, goldTrimMaterial);
-      stepsMesh.position.set(0, 0.08, 0.9);
-      gateGroup.add(stepsMesh);
+    const amberMat = new THREE.MeshStandardMaterial({
+      color: 0xffb703,
+      emissive: 0x593d00,
+      roughness: 0.12,
+      metalness: 0.95,
+    });
 
-      // 2. Twin Carved Vedic Torana Pillars
-      const pillarGeo = new THREE.CylinderGeometry(0.18, 0.24, 2.4, 12);
-      const leftPillar = new THREE.Mesh(pillarGeo, bronzeMaterial);
-      leftPillar.position.set(-0.85, 1.4, 0);
-      leftPillar.castShadow = true;
-      gateGroup.add(leftPillar);
+    const emeraldMat = new THREE.MeshStandardMaterial({
+      color: 0x00e676,
+      emissive: 0x00471f,
+      roughness: 0.14,
+      metalness: 0.92,
+    });
 
-      const rightPillar = new THREE.Mesh(pillarGeo, bronzeMaterial);
-      rightPillar.position.set(0.85, 1.4, 0);
-      rightPillar.castShadow = true;
-      gateGroup.add(rightPillar);
+    const solarCellMat = new THREE.MeshStandardMaterial({
+      color: 0x0b2545,
+      roughness: 0.16,
+      metalness: 0.88,
+    });
 
-      // 3. Ornate Torana Architrave / Lintel Beam
-      const lintelMesh = new THREE.Mesh(
-        new THREE.BoxGeometry(2.2, 0.35, 0.45),
-        goldTrimMaterial
-      );
-      lintelMesh.position.set(0, 2.65, 0);
-      lintelMesh.castShadow = true;
-      gateGroup.add(lintelMesh);
+    // 7. ROOT STAGE GROUP
+    const stageGroup = new THREE.Group();
+    stageGroupRef.current = stageGroup;
+    scene.add(stageGroup);
 
-      // Temple Crown Finial (Kalasha spire atop gate)
-      const finialGeo = new THREE.ConeGeometry(0.24, 0.55, 8);
-      const finial = new THREE.Mesh(finialGeo, ceremonialGoldMaterial);
-      finial.position.set(0, 3.25, 0);
-      gateGroup.add(finial);
+    // =========================================================================
+    // CHAKRAVYUH 5 CONCENTRIC RINGS & CENTRAL CITADEL
+    // (Rendered in 'chakravyuh' mode for the grand landing page formation)
+    // =========================================================================
+    const ringsGroup = new THREE.Group();
+    ringsGroupRef.current = ringsGroup;
+    stageGroup.add(ringsGroup);
 
-      // 3B. Crisp 3D Sign Banner on Lintel with Theme Name
-      const signTexture = createGateSignTexture(`0${idx + 1}`, gate.name, gate.accent);
-      const signGeo = new THREE.PlaneGeometry(1.9, 0.42);
-      const signMat = new THREE.MeshBasicMaterial({
-        map: signTexture,
-        transparent: true,
-        side: THREE.DoubleSide,
-      });
-      const signMesh = new THREE.Mesh(signGeo, signMat);
-      signMesh.position.set(0, 2.65, 0.24);
-      gateGroup.add(signMesh);
+    // Central Citadel Nexus (The Core of Chakravyuh)
+    const citadelBase = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 2.0, 0.6, 8), slateArmorMat);
+    citadelBase.position.y = 0.3;
+    citadelBase.castShadow = true;
+    ringsGroup.add(citadelBase);
 
-      // 4. Ceremonial Braziers with Active Flame Lights
-      const brazierGeo = new THREE.CylinderGeometry(0.22, 0.12, 0.4, 8);
-      const brazierMat = new THREE.MeshStandardMaterial({ color: 0x422a10, metalness: 0.8 });
+    const citadelCap = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.5, 0.4, 8), goldPlatedMat);
+    citadelCap.position.y = 0.8;
+    ringsGroup.add(citadelCap);
 
-      const leftBrazier = new THREE.Mesh(brazierGeo, brazierMat);
-      leftBrazier.position.set(-1.15, 0.65, 0.5);
-      gateGroup.add(leftBrazier);
+    const citadelCrown = new THREE.Mesh(new THREE.OctahedronGeometry(0.55, 0), polishedChromeMat);
+    citadelCrown.position.y = 1.4;
+    ringsGroup.add(citadelCrown);
 
-      const rightBrazier = new THREE.Mesh(brazierGeo, brazierMat);
-      rightBrazier.position.set(1.15, 0.65, 0.5);
-      gateGroup.add(rightBrazier);
-
-      // 5. Unique Floating 3D Elemental Totem in the portal (Accurately matching theme card artwork)
-      const totemGroup = new THREE.Group();
-      totemGroup.position.set(0, 1.65, 0);
-      gateGroup.add(totemGroup);
-      elementalTotemsRef.current[gate.id] = totemGroup;
-
-      const elementMat = new THREE.MeshStandardMaterial({
-        color: gate.pointLightColor,
-        emissive: gate.pointLightColor,
-        emissiveIntensity: 0.9,
-        roughness: 0.2,
-        metalness: 0.7,
-      });
-
-      if (idx === 0 || gate.themeKey === 'agni') {
-        // 01: CYBERSECURITY & BLOCKCHAIN - Cryptographic Shield, Padlock & Connected Ledger Nodes
-        const shieldPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.46, 0.1, 6), elementMat);
-        shieldPlate.rotation.x = Math.PI / 2;
-        const lockBody = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.14), goldTrimMaterial);
-        lockBody.position.set(0, -0.06, 0.08);
-        const lockShackle = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.03, 8, 16, Math.PI), goldTrimMaterial);
-        lockShackle.position.set(0, 0.08, 0.08);
-        // Blockchain node blocks
-        const node1 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), goldTrimMaterial);
-        node1.position.set(-0.55, 0.1, 0);
-        const node2 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), goldTrimMaterial);
-        node2.position.set(0.55, 0.1, 0);
-        const connBar = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.02, 0.02), ceremonialGoldMaterial);
-        connBar.position.set(0, 0.1, 0);
-        totemGroup.add(shieldPlate, lockBody, lockShackle, node1, node2, connBar);
-      } else if (idx === 1 || gate.themeKey === 'vayu') {
-        // 02: SPACE TECHNOLOGY - Satellite Spacecraft with Solar Panels, Orbital Ring & Antenna
-        const satBody = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.32, 0.44), elementMat);
-        const solarWings = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.03, 0.32), goldTrimMaterial);
-        const commDish = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.14, 16, 1, true), goldTrimMaterial);
-        commDish.position.set(0, 0.26, 0);
-        commDish.rotation.x = Math.PI;
-        const orbitRing = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.018, 6, 32), ceremonialGoldMaterial);
-        orbitRing.rotation.x = Math.PI / 3;
-        totemGroup.add(satBody, solarWings, commDish, orbitRing);
-      } else if (idx === 2 || gate.themeKey === 'vajra') {
-        // 03: QUANTUM COMPUTING - Superposition Quantum Core with 3 Golden Qubit Orbital Rings
-        const nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), ceremonialGoldMaterial);
-        const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.025, 8, 32), elementMat);
-        const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.025, 8, 32), elementMat);
-        ring2.rotation.x = Math.PI / 3;
-        const ring3 = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.025, 8, 32), elementMat);
-        ring3.rotation.x = -Math.PI / 3;
-        totemGroup.add(nucleus, ring1, ring2, ring3);
-      } else if (idx === 3 || gate.themeKey === 'surya') {
-        // 04: FINTECH - Digital Currency Token Coin & Ascending Ledger Pillars
-        const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.08, 32), elementMat);
-        coin.rotation.x = Math.PI / 2;
-        const hexRing = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, 0.04, 6, 1, true), goldTrimMaterial);
-        hexRing.rotation.x = Math.PI / 2;
-        const bar1 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.22, 0.1), ceremonialGoldMaterial);
-        bar1.position.set(-0.25, -0.15, 0.06);
-        const bar2 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.36, 0.1), ceremonialGoldMaterial);
-        bar2.position.set(0, -0.08, 0.06);
-        const bar3 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.1), ceremonialGoldMaterial);
-        bar3.position.set(0.25, -0.01, 0.06);
-        totemGroup.add(coin, hexRing, bar1, bar2, bar3);
-      } else {
-        // 05: ENERGY & SUSTAINABILITY - Clean Energy Core & 3 Eco-Turbine Blades with Lightning Surge
-        const sunCore = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), ceremonialGoldMaterial);
-        const bladeGeo = new THREE.ConeGeometry(0.13, 0.48, 6);
-        const blade1 = new THREE.Mesh(bladeGeo, elementMat);
-        blade1.position.set(0, 0.25, 0);
-        const blade2 = new THREE.Mesh(bladeGeo, elementMat);
-        blade2.position.set(0.22, -0.16, 0);
-        blade2.rotation.z = (2 * Math.PI) / 3;
-        const blade3 = new THREE.Mesh(bladeGeo, elementMat);
-        blade3.position.set(-0.22, -0.16, 0);
-        blade3.rotation.z = -(2 * Math.PI) / 3;
-        totemGroup.add(sunCore, blade1, blade2, blade3);
-      }
-
-      // 6. Point Light at Gate Arch
-      const gatePointLight = new THREE.PointLight(gate.pointLightColor, 1.8, 6.5);
-      gatePointLight.position.set(0, 1.8, 0.4);
-      gateGroup.add(gatePointLight);
-      gateLightsRef.current[gate.id] = gatePointLight;
-
-      // 7. Ground Beacon Ring (Activates when gate is selected)
-      const beaconRing = new THREE.Mesh(
-        new THREE.RingGeometry(0.8, 1.15, 32),
-        new THREE.MeshBasicMaterial({
-          color: gate.pointLightColor,
-          side: THREE.DoubleSide,
-          transparent: true,
-          opacity: 0.85,
+    // 5 Concentric Circular Rings of Chakravyuh
+    const ringRadii = [2.4, 4.4, 6.4, 8.4, 10.2];
+    ringRadii.forEach((r, idx) => {
+      // Ring Tube Floor
+      const ringTube = new THREE.Mesh(
+        new THREE.TorusGeometry(r, 0.05, 12, 64),
+        new THREE.MeshStandardMaterial({
+          color: idx === 2 ? 0xffb703 : 0x475569,
+          roughness: 0.2,
+          metalness: 0.8,
         })
       );
-      beaconRing.rotation.x = -Math.PI / 2;
-      beaconRing.position.y = 0.41;
-      beaconRing.name = `beacon-${gate.id}`;
-      beaconRing.visible = activeGate.id === gate.id;
-      gateGroup.add(beaconRing);
+      ringTube.rotation.x = Math.PI / 2;
+      ringTube.position.y = 0.02;
+      ringsGroup.add(ringTube);
 
-      // 8. High-Precision Invisible Hit Target for Clicking
-      const hitBox = new THREE.Mesh(
-        new THREE.BoxGeometry(2.6, 3.8, 2.2),
-        new THREE.MeshBasicMaterial({ visible: false })
+      // Delicate Hairline Guide Ring
+      const ringFlat = new THREE.Mesh(
+        new THREE.RingGeometry(r - 0.015, r + 0.015, 64),
+        new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          opacity: 0.35,
+          transparent: true,
+          side: THREE.DoubleSide,
+        })
       );
-      hitBox.position.y = 1.8;
-      gateGroup.add(hitBox);
-      interactiveGatesRef.current.push({ mesh: hitBox, gateId: gate.id });
-
-      wheelGroup.add(gateGroup);
+      ringFlat.rotation.x = -Math.PI / 2;
+      ringFlat.position.y = 0.03;
+      ringsGroup.add(ringFlat);
     });
 
-    // --- F. Atmospheric Kurukshetra Twilight Particle Fireflies ---
-    const particleCount = 180;
-    const particleGeo = new THREE.BufferGeometry();
-    const particlePositions = new Float32Array(particleCount * 3);
-
-    for (let p = 0; p < particleCount; p++) {
-      const pRad = 2 + Math.random() * 14;
-      const pAng = Math.random() * Math.PI * 2;
-      particlePositions[p * 3] = Math.cos(pAng) * pRad;
-      particlePositions[p * 3 + 1] = 0.5 + Math.random() * 5.5;
-      particlePositions[p * 3 + 2] = Math.sin(pAng) * pRad;
+    // 5 Radial Strategic Gate Conduits connecting Citadel to the 5 Themes
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+      const xEnd = Math.cos(angle) * 10.2;
+      const zEnd = Math.sin(angle) * 10.2;
+      const conduitGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0.04, 0),
+        new THREE.Vector3(xEnd, 0.04, zEnd),
+      ]);
+      const conduit = new THREE.Line(
+        conduitGeo,
+        new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true })
+      );
+      ringsGroup.add(conduit);
     }
 
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-    const particleMat = new THREE.PointsMaterial({
-      color: 0xf5d794,
-      size: 0.12,
-      transparent: true,
-      opacity: 0.65,
-      blending: THREE.AdditiveBlending,
+    // =========================================================================
+    // THEME 1: CYBERSECURITY & BLOCKCHAIN (Pure Vivid Crimson #FF2A55)
+    // =========================================================================
+    const cyberGroup = new THREE.Group();
+    cyberGroup.name = 'cybersecurity';
+    themeModelsRef.current['track-cybersecurity-blockchain'] = cyberGroup;
+    themeModelsRef.current['agni'] = cyberGroup;
+    stageGroup.add(cyberGroup);
+
+    // Cryptographic Vault Bastion Door
+    const vaultPlateGeo = new THREE.CylinderGeometry(2.4, 2.7, 0.55, 6);
+    const vaultPlate = new THREE.Mesh(vaultPlateGeo, slateArmorMat);
+    vaultPlate.rotation.x = Math.PI / 2;
+    vaultPlate.position.set(0, 0.8, 0);
+    vaultPlate.castShadow = true;
+    cyberGroup.add(vaultPlate);
+
+    const vaultBezel = new THREE.LineSegments(
+      new THREE.EdgesGeometry(vaultPlateGeo),
+      new THREE.LineBasicMaterial({ color: 0xff2a55 })
+    );
+    vaultBezel.rotation.x = Math.PI / 2;
+    vaultBezel.position.set(0, 0.8, 0);
+    cyberGroup.add(vaultBezel);
+
+    // Polished Chrome Cipher Drum Core
+    const cipherDrum = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 1.2, 32), polishedChromeMat);
+    cipherDrum.rotation.x = Math.PI / 2;
+    cipherDrum.position.set(0, 0.8, 0.35);
+    cyberGroup.add(cipherDrum);
+
+    // Vivid Crimson Cipher Dial Ring
+    const cipherRing = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.09, 16, 48), crimsonMat);
+    cipherRing.position.set(0, 0.8, 0.4);
+    cyberGroup.add(cipherRing);
+
+    // Hardened Titanium Shackle
+    const shackle = new THREE.Mesh(
+      new THREE.TorusGeometry(1.05, 0.18, 16, 32, Math.PI),
+      brushedTitaniumMat
+    );
+    shackle.position.set(0, 2.1, 0.1);
+    cyberGroup.add(shackle);
+
+    // 4 Distributed Blockchain Cube Nodes
+    const cyberNodes = [
+      [-3.2, 1.8, -1.6],
+      [3.2, 1.8, -1.6],
+      [-3.2, -0.4, 1.6],
+      [3.2, -0.4, 1.6],
+    ];
+    cyberNodes.forEach(([nx, ny, nz]) => {
+      const bGeo = new THREE.BoxGeometry(1.1, 1.1, 1.1);
+      const bMesh = new THREE.Mesh(bGeo, slateArmorMat);
+      bMesh.position.set(nx, ny, nz);
+      bMesh.castShadow = true;
+      cyberGroup.add(bMesh);
+
+      const bEdge = new THREE.LineSegments(new THREE.EdgesGeometry(bGeo), new THREE.LineBasicMaterial({ color: 0xff2a55 }));
+      bEdge.position.set(nx, ny, nz);
+      cyberGroup.add(bEdge);
+
+      const coreOrb = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), crimsonMat);
+      coreOrb.position.set(nx, ny, nz);
+      cyberGroup.add(coreOrb);
+
+      const laserLine = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(nx, ny, nz),
+          new THREE.Vector3(0, 0.8, 0),
+        ]),
+        new THREE.LineBasicMaterial({ color: 0xff2a55, transparent: true, opacity: 0.8 })
+      );
+      cyberGroup.add(laserLine);
     });
-    const particles = new THREE.Points(particleGeo, particleMat);
-    scene.add(particles);
-    particlesRef.current = [particles];
 
-    // 8. RAYCASTING INTERACTION (Hover & Click Selection on Desktop & Mobile)
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    let pointerDownPos = { x: 0, y: 0 };
-    let pointerDownTime = 0;
+    // =========================================================================
+    // THEME 2: SPACE TECHNOLOGY (Electric Cyan #00D2FF)
+    // =========================================================================
+    const spaceGroup = new THREE.Group();
+    spaceGroup.name = 'spacetech';
+    themeModelsRef.current['track-space-technology'] = spaceGroup;
+    themeModelsRef.current['vayu'] = spaceGroup;
+    stageGroup.add(spaceGroup);
 
-    const handlePointerMove = (e: MouseEvent) => {
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    // Deep Space Satellite Main Chassis
+    const satBusGeo = new THREE.BoxGeometry(2.0, 2.4, 2.0);
+    const satBus = new THREE.Mesh(satBusGeo, slateArmorMat);
+    satBus.position.set(0, 0.8, 0);
+    satBus.castShadow = true;
+    spaceGroup.add(satBus);
 
-      raycaster.setFromCamera(mouse, camera);
-      const meshes = interactiveGatesRef.current.map(item => item.mesh);
-      const intersects = raycaster.intersectObjects(meshes, false);
+    const satBusTrim = new THREE.LineSegments(new THREE.EdgesGeometry(satBusGeo), new THREE.LineBasicMaterial({ color: 0x00d2ff }));
+    satBusTrim.position.set(0, 0.8, 0);
+    spaceGroup.add(satBusTrim);
 
-      if (intersects.length > 0) {
-        const hit = interactiveGatesRef.current.find(item => item.mesh === intersects[0].object);
-        if (hit) {
-          setHoveredGateId(hit.gateId);
-          renderer.domElement.style.cursor = 'pointer';
-          return;
-        }
+    // Radiant Gold MLI Thermal Foil Shielding
+    const mliPatch = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.7, 0.06), goldPlatedMat);
+    mliPatch.position.set(0, 0.8, 1.03);
+    spaceGroup.add(mliPatch);
+
+    // Left Deployable Solar Wing Array
+    const leftWingGroup = new THREE.Group();
+    leftWingGroup.position.set(-1.0, 0.8, 0);
+    spaceGroup.add(leftWingGroup);
+
+    const leftBoom = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 12), brushedTitaniumMat);
+    leftBoom.rotation.z = Math.PI / 2;
+    leftBoom.position.set(-0.7, 0, 0);
+    leftWingGroup.add(leftBoom);
+
+    const leftPanel = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.8, 0.08), solarCellMat);
+    leftPanel.position.set(-3.6, 0, 0);
+    leftPanel.castShadow = true;
+    leftWingGroup.add(leftPanel);
+
+    const leftPanelEdge = new THREE.LineSegments(new THREE.EdgesGeometry(leftPanel.geometry), new THREE.LineBasicMaterial({ color: 0x00d2ff }));
+    leftPanelEdge.position.set(-3.6, 0, 0);
+    leftWingGroup.add(leftPanelEdge);
+
+    // Right Deployable Solar Wing Array
+    const rightWingGroup = new THREE.Group();
+    rightWingGroup.position.set(1.0, 0.8, 0);
+    spaceGroup.add(rightWingGroup);
+
+    const rightBoom = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 12), brushedTitaniumMat);
+    rightBoom.rotation.z = Math.PI / 2;
+    rightBoom.position.set(0.7, 0, 0);
+    rightWingGroup.add(rightBoom);
+
+    const rightPanel = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.8, 0.08), solarCellMat);
+    rightPanel.position.set(3.6, 0, 0);
+    rightPanel.castShadow = true;
+    rightWingGroup.add(rightPanel);
+
+    const rightPanelEdge = new THREE.LineSegments(new THREE.EdgesGeometry(rightPanel.geometry), new THREE.LineBasicMaterial({ color: 0x00d2ff }));
+    rightPanelEdge.position.set(3.6, 0, 0);
+    rightWingGroup.add(rightPanelEdge);
+
+    // Chrome High-Gain Parabolic Telemetry Dish
+    const satDish = new THREE.Mesh(new THREE.ConeGeometry(1.6, 0.75, 36, 1, true), polishedChromeMat);
+    satDish.position.set(0, 2.5, 0.2);
+    satDish.rotation.x = -Math.PI / 4;
+    satDish.castShadow = true;
+    spaceGroup.add(satDish);
+
+    const satFeed = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.1, 8), cyanMat);
+    satFeed.position.set(0, 2.9, 0.7);
+    satFeed.rotation.x = -Math.PI / 4;
+    spaceGroup.add(satFeed);
+
+    // 4 Quad RCS Aerospace Thruster Cones
+    [-0.75, 0.75].forEach(tx => {
+      [-0.75, 0.75].forEach(tz => {
+        const thruster = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.45, 12), brushedTitaniumMat);
+        thruster.position.set(tx, -0.6, tz);
+        thruster.rotation.x = Math.PI;
+        spaceGroup.add(thruster);
+      });
+    });
+
+    // =========================================================================
+    // THEME 3: QUANTUM COMPUTING (Royal Violet #B388FF)
+    // =========================================================================
+    const quantumGroup = new THREE.Group();
+    quantumGroup.name = 'quantum';
+    themeModelsRef.current['track-quantum-computing'] = quantumGroup;
+    themeModelsRef.current['vajra'] = quantumGroup;
+    stageGroup.add(quantumGroup);
+
+    // Tiered Golden Cryostat Flanges
+    const cryoTiers = [
+      { y: 3.2, r: 2.6, h: 0.22 },
+      { y: 1.9, r: 2.1, h: 0.20 },
+      { y: 0.7, r: 1.6, h: 0.18 },
+      { y: -0.5, r: 1.1, h: 0.16 },
+    ];
+    cryoTiers.forEach(t => {
+      const flange = new THREE.Mesh(new THREE.CylinderGeometry(t.r, t.r, t.h, 48), goldPlatedMat);
+      flange.position.y = t.y;
+      flange.castShadow = true;
+      quantumGroup.add(flange);
+
+      const flangeRing = new THREE.Mesh(new THREE.TorusGeometry(t.r, 0.05, 12, 48), violetMat);
+      flangeRing.rotation.x = Math.PI / 2;
+      flangeRing.position.y = t.y;
+      quantumGroup.add(flangeRing);
+    });
+
+    // Chrome Coaxial Waveguide Cryo-Lines
+    for (let c = 0; c < 8; c++) {
+      const angle = (c / 8) * Math.PI * 2;
+      const pipeRadius = 1.35;
+      const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 3.6, 8), polishedChromeMat);
+      pipe.position.set(Math.sin(angle) * pipeRadius, 1.35, Math.cos(angle) * pipeRadius);
+      quantumGroup.add(pipe);
+    }
+
+    // Superconducting Qubit Package Canister
+    const chipCanister = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.85, 24), slateArmorMat);
+    chipCanister.position.set(0, -1.2, 0);
+    chipCanister.castShadow = true;
+    quantumGroup.add(chipCanister);
+
+    // Quantum Bloch Sphere & Superposition State Ring
+    const qOrb = new THREE.Mesh(new THREE.SphereGeometry(0.45, 24, 24), violetMat);
+    qOrb.position.set(0, 0.7, 0);
+    quantumGroup.add(qOrb);
+
+    const qRing1 = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.045, 16, 48), violetMat);
+    qRing1.position.set(0, 0.7, 0);
+    quantumGroup.add(qRing1);
+
+    const qRing2 = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.045, 16, 48), violetMat);
+    qRing2.position.set(0, 0.7, 0);
+    qRing2.rotation.x = Math.PI / 2;
+    quantumGroup.add(qRing2);
+
+    // =========================================================================
+    // THEME 4: FINTECH (Imperial Amber Gold #FFB703)
+    // =========================================================================
+    const fintechGroup = new THREE.Group();
+    fintechGroup.name = 'fintech';
+    themeModelsRef.current['track-fintech'] = fintechGroup;
+    themeModelsRef.current['surya'] = fintechGroup;
+    stageGroup.add(fintechGroup);
+
+    // Heavy FinTech Sovereign Currency Token Disc
+    const coinGeo = new THREE.CylinderGeometry(2.3, 2.3, 0.45, 48);
+    const coin = new THREE.Mesh(coinGeo, amberMat);
+    coin.rotation.x = Math.PI / 2;
+    coin.position.set(0, 0.9, 0);
+    coin.castShadow = true;
+    fintechGroup.add(coin);
+
+    const coinChromeRim = new THREE.Mesh(new THREE.TorusGeometry(2.3, 0.08, 16, 48), polishedChromeMat);
+    coinChromeRim.rotation.x = Math.PI / 2;
+    coinChromeRim.position.set(0, 0.9, 0);
+    fintechGroup.add(coinChromeRim);
+
+    // Currency Inscription Symbol
+    const cStem = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.6, 0.5), brushedTitaniumMat);
+    cStem.position.set(0, 0.9, 0.05);
+    fintechGroup.add(cStem);
+
+    const cCross1 = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.28, 0.5), brushedTitaniumMat);
+    cCross1.position.set(0, 1.35, 0.05);
+    fintechGroup.add(cCross1);
+
+    const cCross2 = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.28, 0.5), brushedTitaniumMat);
+    cCross2.position.set(0, 0.45, 0.05);
+    fintechGroup.add(cCross2);
+
+    // Stepped Algorithmic Trading Steles
+    const fintechBars = [
+      { x: -3.4, z: 0.8, h: 2.2 },
+      { x: -1.8, z: 1.4, h: 3.2 },
+      { x: 1.8,  z: 1.4, h: 4.0 },
+      { x: 3.4,  z: 0.8, h: 5.0 },
+    ];
+    fintechBars.forEach(b => {
+      const col = new THREE.Mesh(new THREE.BoxGeometry(0.85, b.h, 0.85), slateArmorMat);
+      col.position.set(b.x, b.h / 2 - 1.4, b.z);
+      col.castShadow = true;
+      fintechGroup.add(col);
+
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.12, 0.88), amberMat);
+      cap.position.set(b.x, b.h - 1.4 + 0.06, b.z);
+      fintechGroup.add(cap);
+
+      const colEdge = new THREE.LineSegments(new THREE.EdgesGeometry(col.geometry), new THREE.LineBasicMaterial({ color: 0xffb703 }));
+      colEdge.position.set(b.x, b.h / 2 - 1.4, b.z);
+      fintechGroup.add(colEdge);
+    });
+
+    // =========================================================================
+    // THEME 5: ENERGY & SUSTAINABILITY (Vivid Emerald #00E676)
+    // =========================================================================
+    const energyGroup = new THREE.Group();
+    energyGroup.name = 'sustainability';
+    themeModelsRef.current['track-energy-sustainability'] = energyGroup;
+    themeModelsRef.current['vanam'] = energyGroup;
+    stageGroup.add(energyGroup);
+
+    // Aerodynamic Wind Turbine Mast
+    const towerMast = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.75, 5.0, 24), brushedTitaniumMat);
+    towerMast.position.set(0, 0.3, 0);
+    towerMast.castShadow = true;
+    energyGroup.add(towerMast);
+
+    // Aerodynamic Nacelle
+    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.68, 1.9, 24), slateArmorMat);
+    nacelle.rotation.x = Math.PI / 2;
+    nacelle.position.set(0, 2.8, 0);
+    energyGroup.add(nacelle);
+
+    // Clean Energy Kinetic Rotor Hub
+    const rotorHub = new THREE.Group();
+    rotorHub.position.set(0, 2.8, 1.05);
+    energyGroup.add(rotorHub);
+
+    const noseCone = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.8, 24), polishedChromeMat);
+    noseCone.rotation.x = Math.PI / 2;
+    rotorHub.add(noseCone);
+
+    for (let b = 0; b < 3; b++) {
+      const bAngle = (b / 3) * Math.PI * 2;
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.32, 4.2, 0.08), emeraldMat);
+      blade.position.set(Math.sin(bAngle) * 2.1, Math.cos(bAngle) * 2.1, 0);
+      blade.rotation.z = -bAngle;
+      blade.castShadow = true;
+      rotorHub.add(blade);
+    }
+
+    // Solar PV Ground Canopies
+    [-2.6, 2.6].forEach(px => {
+      const pv = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.08, 1.5), solarCellMat);
+      pv.position.set(px, -1.6, 1.2);
+      pv.rotation.x = -Math.PI / 5;
+      energyGroup.add(pv);
+
+      const pvEdge = new THREE.LineSegments(new THREE.EdgesGeometry(pv.geometry), new THREE.LineBasicMaterial({ color: 0x00e676 }));
+      pvEdge.position.set(px, -1.6, 1.2);
+      pvEdge.rotation.x = -Math.PI / 5;
+      energyGroup.add(pvEdge);
+    });
+
+    // Bio-Energy Torus Catalyst
+    const helixBase = new THREE.Mesh(new THREE.TorusGeometry(2.1, 0.08, 16, 48), emeraldMat);
+    helixBase.rotation.x = Math.PI / 2;
+    helixBase.position.set(0, -1.9, 0);
+    energyGroup.add(helixBase);
+
+    // Initial Layout Setup based on viewMode
+    FIVE_GATES_CONFIG.forEach((gate, idx) => {
+      const grp = themeModelsRef.current[gate.id];
+      if (!grp) return;
+
+      if (isChakravyuh) {
+        grp.visible = true;
+        const radius = 7.6;
+        const rad = (idx * 2 * Math.PI) / 5 - Math.PI / 2;
+        grp.position.set(Math.cos(rad) * radius, 0.2, Math.sin(rad) * radius);
+        grp.scale.set(0.68, 0.68, 0.68);
+        grp.rotation.y = -rad + Math.PI / 2;
+      } else {
+        const isActive = gate.id === activeGate.id || gate.themeKey === activeGate.themeKey;
+        grp.visible = isActive;
+        grp.position.set(0, 0.4, 0);
+        grp.scale.set(1.0, 1.0, 1.0);
+        grp.rotation.y = 0;
       }
-      setHoveredGateId(null);
-      renderer.domElement.style.cursor = 'default';
-    };
+    });
 
-    const handlePointerDown = (e: MouseEvent) => {
-      pointerDownPos = { x: e.clientX, y: e.clientY };
-      pointerDownTime = Date.now();
-    };
-
-    const handlePointerUp = (e: MouseEvent) => {
-      const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
-      const duration = Date.now() - pointerDownTime;
-      // If user was dragging to orbit the camera, ignore click
-      if (dist > 7 || duration > 450) return;
-
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera);
-      const meshes = interactiveGatesRef.current.map(item => item.mesh);
-      const intersects = raycaster.intersectObjects(meshes, false);
-
-      if (intersects.length > 0) {
-        const hit = interactiveGatesRef.current.find(item => item.mesh === intersects[0].object);
-        if (hit) {
-          onSelectTrackRef.current(hit.gateId);
-        }
-      }
-    };
-
-    // Mobile touch interaction
-    let touchDownPos = { x: 0, y: 0 };
-    let touchDownTime = 0;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 0) return;
-      touchDownPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      touchDownTime = Date.now();
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (e.changedTouches.length === 0) return;
-      const touch = e.changedTouches[0];
-      const dist = Math.hypot(touch.clientX - touchDownPos.x, touch.clientY - touchDownPos.y);
-      const duration = Date.now() - touchDownTime;
-      if (dist > 10 || duration > 500) return;
-
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera);
-      const meshes = interactiveGatesRef.current.map(item => item.mesh);
-      const intersects = raycaster.intersectObjects(meshes, false);
-
-      if (intersects.length > 0) {
-        const hit = interactiveGatesRef.current.find(item => item.mesh === intersects[0].object);
-        if (hit) {
-          onSelectTrackRef.current(hit.gateId);
-        }
-      }
-    };
-
-    renderer.domElement.addEventListener('mousemove', handlePointerMove);
-    renderer.domElement.addEventListener('mousedown', handlePointerDown);
-    renderer.domElement.addEventListener('mouseup', handlePointerUp);
-    renderer.domElement.addEventListener('touchstart', handleTouchStart);
-    renderer.domElement.addEventListener('touchend', handleTouchEnd);
-
-    // 9. WINDOW RESIZE HANDLER
-    const handleResize = () => {
-      if (!container || !camera || !renderer) return;
-      const newW = container.clientWidth;
-      const newH = typeof height === 'number' ? height : container.clientHeight;
-      camera.aspect = newW / newH;
+    // 8. RESIZE OBSERVER
+    const updateDimensions = (width: number) => {
+      if (!camera || !renderer) return;
+      const newSize = Math.max(Math.round(width), 280);
+      camera.aspect = 1;
       camera.updateProjectionMatrix();
-      renderer.setSize(newW, newH);
+      const newDpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      renderer.setPixelRatio(newDpr);
+      renderer.setSize(newSize, newSize, false);
     };
-    window.addEventListener('resize', handleResize);
 
-    // 10. ANIMATION TICK RENDER LOOP
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const w = entry.contentRect.width;
+        if (w > 0) updateDimensions(w);
+      }
+    });
+    resizeObserver.observe(container);
+
+    // 9. RENDER LOOP (STATIC - NO AUTO ROTATION!)
     let animationFrameId: number;
-    let clock = new THREE.Clock();
 
     const renderLoop = () => {
       animationFrameId = requestAnimationFrame(renderLoop);
-      const delta = clock.getDelta();
-      const elapsedTime = clock.getElapsedTime();
 
-      // Smooth Inertial Wheel Rotation toward target gate + continuous cosmic rotation movement
-      if (wheelGroup) {
-        const diff = targetRotationY.current - currentRotationY.current;
-        if (Math.abs(diff) > 0.0008) {
-          currentRotationY.current += diff * 0.082;
-        } else {
-          // Dynamic continuous cosmic movement of the wheel
-          targetRotationY.current += 0.0022;
-          currentRotationY.current += 0.0022;
-        }
-        wheelGroup.rotation.y = currentRotationY.current;
-      }
-
-      // Gentle counter-rotation of Sanctum Sudarshana spokes
-      if (sanctumSpokesRef.current) {
-        sanctumSpokesRef.current.rotation.y = -elapsedTime * 0.35;
-      }
-
-      // Floating crystal core bobbing and rotation
-      if (sanctumCoreRef.current) {
-        sanctumCoreRef.current.rotation.y = elapsedTime * 0.55;
-        sanctumCoreRef.current.position.y = 3.65 + Math.sin(elapsedTime * 2.4) * 0.12;
-      }
-
-      // Celestial diamonds gentle float and cosmic orbit
-      if (diamondsGroupRef.current) {
-        diamondsGroupRef.current.rotation.y = -elapsedTime * 0.04;
-        diamondsGroupRef.current.children.forEach((dia, idx) => {
-          dia.position.y = 0.45 + Math.sin(elapsedTime * 2.5 + idx * 0.5) * 0.08;
-          dia.rotation.x = Math.sin(elapsedTime + idx) * 0.3;
-        });
-      }
-
-      // Elemental totems dynamic rotation & bobbing & gate beacon pulses
-      FIVE_GATES_CONFIG.forEach(gate => {
-        const totem = elementalTotemsRef.current[gate.id];
-        if (totem) {
-          totem.rotation.y = elapsedTime * 1.5;
-          totem.position.y = 1.65 + Math.sin(elapsedTime * 2.8 + gate.angle) * 0.1;
-        }
-
-        // Pulse selected gate beacon
-        const beacon = wheelGroup.getObjectByName(`beacon-${gate.id}`) as THREE.Mesh | undefined;
-        if (beacon) {
-          const isSelected = activeGateRef.current.id === gate.id;
-          beacon.visible = isSelected;
-          if (isSelected && beacon.material) {
-            (beacon.material as THREE.MeshBasicMaterial).opacity =
-              0.55 + Math.sin(elapsedTime * 4.5) * 0.35;
-          }
-        }
-
-        // Flicker fire light on Agni
-        if (gate.themeKey === 'agni' && gateLightsRef.current[gate.id]) {
-          gateLightsRef.current[gate.id].intensity = 1.8 + Math.sin(elapsedTime * 8) * 0.4 + (Math.random() - 0.5) * 0.3;
-        }
-      });
-
-      // Drifting dust particles
-      if (particlesRef.current.length > 0) {
-        particlesRef.current.forEach(pts => {
-          pts.rotation.y = elapsedTime * 0.03;
-          const positions = pts.geometry.attributes.position.array as Float32Array;
-          for (let p = 0; p < positions.length; p += 3) {
-            positions[p + 1] += Math.sin(elapsedTime * 1.8 + p) * 0.003;
-          }
-          pts.geometry.attributes.position.needsUpdate = true;
-        });
-      }
-
+      // OrbitControls allows manual user dragging/rotation without auto-spin
       controls.update();
+
       try {
         renderer.render(scene, camera);
       } catch (e) {
-        // Gracefully recover if WebGL context was paused or interrupted
+        // Recover gracefully
       }
     };
 
-    const handleContextLost = (e: Event) => {
-      e.preventDefault();
-      cancelAnimationFrame(animationFrameId);
-    };
-    const handleContextRestored = () => {
-      renderLoop();
-    };
-    renderer.domElement.addEventListener('webglcontextlost', handleContextLost, false);
-    renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored, false);
-
     renderLoop();
 
-    // CLEANUP ON UNMOUNT
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', handleResize);
-      renderer.domElement.removeEventListener('mousemove', handlePointerMove);
-      renderer.domElement.removeEventListener('mousedown', handlePointerDown);
-      renderer.domElement.removeEventListener('mouseup', handlePointerUp);
-      renderer.domElement.removeEventListener('touchstart', handleTouchStart);
-      renderer.domElement.removeEventListener('touchend', handleTouchEnd);
-      renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
-      renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
-
+      resizeObserver.disconnect();
       controls.dispose();
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
     };
-  }, [height]);
+  }, []);
 
   return (
     <div className={`relative flex flex-col items-center justify-center select-none w-full ${className}`}>
-      {/* Dynamic Ambient Background Glow Keyed to Active Gate */}
-      <div
-        className="absolute rounded-full pointer-events-none transition-all duration-1000 ease-out z-0"
-        style={{
-          width: '72%',
-          height: '72%',
-          maxWidth: '520px',
-          maxHeight: '520px',
-          backgroundColor: activeGate.accent,
-          opacity: 0.18,
-          filter: 'blur(95px)',
-        }}
-      />
-
-      {/* Main 3D Canvas Viewport */}
-      <div
-        ref={mountRef}
-        style={{ width: '100%', height: typeof height === 'number' ? `${height}px` : height }}
-        className="relative max-w-full aspect-square flex items-center justify-center rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing"
-      >
-        {/* Stationary Entrance HUD Reticle at Top (12 o'clock Entrance) */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none">
-          <div
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0E1118]/95 border shadow-2xl backdrop-blur-md transition-all duration-500"
+      {/* Top Header & View Mode Switcher */}
+      <div className="w-full flex items-center justify-between px-3 pb-2 z-20">
+        <div className="flex items-center gap-2">
+          <span
+            className="w-2.5 h-2.5 rounded-full ring-2 ring-white/20"
             style={{
-              borderColor: activeGate.accent,
-              boxShadow: `0 0 25px ${activeGate.accent}45`,
-            }}
-          >
-            <span
-              className="w-2.5 h-2.5 rounded-full animate-ping shrink-0"
-              style={{ backgroundColor: activeGate.accent }}
-            />
-            <span className="text-[11px] sm:text-xs tracking-[0.22em] font-cinzel font-black text-[#F3E8CF] uppercase whitespace-nowrap">
-              {isLocked ? `LOCKED THEME GATE • ${activeGate.title}` : `THEME GATE • ${activeGate.title}`}
-            </span>
-          </div>
-          {/* Ancient alignment needle */}
-          <div
-            className="w-0.5 h-3 sm:h-4 transition-colors duration-500"
-            style={{
-              background: `linear-gradient(to bottom, ${activeGate.accent}, transparent)`,
+              backgroundColor: currentMode === 'chakravyuh' ? '#FFFFFF' : activeGate.accent,
             }}
           />
+          <span className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+            {currentMode === 'chakravyuh' ? 'GRAND CHAKRAVYUH FORMATION' : activeGate.title}
+          </span>
         </div>
 
+        {/* View Mode Toggle Pill */}
+        <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-full border border-white/[0.1]">
+          <button
+            type="button"
+            onClick={() => setInternalViewMode('chakravyuh')}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono tracking-wider transition-all cursor-pointer ${
+              currentMode === 'chakravyuh'
+                ? 'bg-white text-black font-bold shadow-sm'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <Eye className="w-3 h-3" />
+            <span>FORMATION</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setInternalViewMode('isolated')}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono tracking-wider transition-all cursor-pointer ${
+              currentMode === 'isolated'
+                ? 'bg-white text-black font-bold shadow-sm'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <RotateCw className="w-3 h-3" />
+            <span>FOCUSED</span>
+          </button>
         </div>
+      </div>
 
-      {/* Five Gate Tactical Badges (Direct Selection underneath 3D Wheel) */}
-      <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2 z-10 w-full px-2">
+      {/* Main 3D Canvas Viewport (100% Interactive, Drag to Rotate 360°) */}
+      <div
+        ref={mountRef}
+        className="relative w-full max-w-[700px] aspect-square flex items-center justify-center overflow-visible cursor-grab active:cursor-grabbing z-10"
+      />
+
+      {/* Floating 360° Drag Interaction Hint */}
+      <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-20 pointer-events-none opacity-60 hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-mono text-zinc-400">
+          <RotateCw className="w-2.5 h-2.5 text-zinc-300" />
+          <span>DRAG TO ROTATE 360°</span>
+        </div>
+      </div>
+
+      {/* Five Theme Switcher Pills */}
+      <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5 z-20 w-full px-2">
         {FIVE_GATES_CONFIG.map((gate, idx) => {
           const isSelected = activeGate.id === gate.id;
 
@@ -956,30 +888,31 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
             <button
               key={gate.id}
               type="button"
-              onClick={() => !isLocked && onSelectTrack(gate.id)}
-              disabled={isLocked && !isSelected}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-sans font-semibold tracking-wider transition-all duration-300 ${
-                isSelected && isLocked
-                  ? 'border-2 scale-105 shadow-[0_0_15px_rgba(201,164,92,0.4)] ring-1 ring-gold/40 cursor-default'
-                  : isSelected
-                  ? 'border-2 scale-105 shadow-[0_0_15px_rgba(201,164,92,0.3)] cursor-pointer'
-                  : isLocked
-                  ? 'bg-[#12141B]/40 border-[#222738]/50 text-[#F3E8CF]/30 opacity-40 cursor-not-allowed'
-                  : 'bg-[#12141B]/80 border-[#222738] text-[#F3E8CF]/70 hover:border-[#D8B46A]/30 hover:text-[#F3E8CF] cursor-pointer'
-              }`}
-              style={{
-                backgroundColor: isSelected ? `${gate.accent}20` : undefined,
-                borderColor: isSelected ? gate.accent : undefined,
-                color: isSelected ? '#F3E8CF' : undefined,
+              onClick={() => {
+                if (!isLocked) {
+                  onSelectTrack(gate.id);
+                  if (currentMode === 'chakravyuh') {
+                    // Clicking theme switches to isolated focused inspection
+                    setInternalViewMode('isolated');
+                  }
+                }
               }}
+              disabled={isLocked && !isSelected}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-mono text-[11px] font-semibold tracking-wider transition-all duration-200 ${
+                isSelected
+                  ? 'bg-white text-black shadow-md scale-105 cursor-pointer ring-1 ring-white/40'
+                  : isLocked
+                  ? 'bg-transparent text-zinc-600 opacity-40 cursor-not-allowed'
+                  : 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white cursor-pointer'
+              }`}
             >
               <span
                 className="w-2 h-2 rounded-full shrink-0"
                 style={{ backgroundColor: gate.accent }}
               />
-              <span className="tracking-wider">
-                {isSelected && isLocked ? `0${idx + 1} • ${gate.name} (LOCKED)` : `0${idx + 1} • ${gate.name}`}
-              </span>
+              <span>{`0${idx + 1}`}</span>
+              <span className="text-zinc-600">//</span>
+              <span>{gate.name}</span>
             </button>
           );
         })}

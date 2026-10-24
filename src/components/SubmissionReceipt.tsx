@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Github, Globe, Calendar, ShieldCheck, Database, FileSpreadsheet, ExternalLink, Users } from 'lucide-react';
+import { CheckCircle2, Github, Globe, Calendar, ShieldCheck, ExternalLink } from 'lucide-react';
 import { Submission, Team, Track, ProblemStatement } from '../types';
 
 interface SubmissionReceiptProps {
@@ -20,7 +20,7 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
   useEffect(() => {
     try {
       const end = Date.now() + 1.2 * 1000;
-      const colors = ['#D8B46A', '#F3E8CF', '#F59E0B', '#E05A47'];
+      const colors = ['#FFFFFF', '#38BDF8', '#FF3B30', '#10B981'];
 
       (function frame() {
         confetti({
@@ -52,104 +52,53 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
     timeStyle: 'medium',
   });
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024 * 1024) {
-      return (bytes / 1024).toFixed(1) + ' KB';
-    }
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-  };
-
-  const getSyncBadge = (status: Submission['spreadsheetSyncStatus']) => {
-    switch (status) {
-      case 'synced':
-        return (
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 text-xs font-medium">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Synced with Organiser Spreadsheet
-          </span>
-        );
-      case 'pending':
-        return (
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-950/70 border border-amber-500/40 text-amber-400 text-xs font-medium">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" /> Sync In Progress
-          </span>
-        );
-      case 'failed':
-        return (
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-950/70 border border-rose-500/40 text-rose-400 text-xs font-medium">
-            Sync Retry Queued
-          </span>
-        );
-      case 'not_configured':
-      default:
-        return (
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 text-xs">
-            <FileSpreadsheet className="w-3.5 h-3.5 text-gold" /> Recorded in Spreadsheet Queue
-          </span>
-        );
-    }
-  };
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
       className="w-full max-w-3xl mx-auto my-8 px-4"
     >
-      <div className="relative rounded-3xl bg-charcoal border-2 border-gold/60 p-6 sm:p-10 shadow-[0_0_60px_rgba(216,180,106,0.25)] overflow-hidden">
-        {/* Ancient Indian War Emblem Watermark */}
-        <div className="absolute right-0 top-0 translate-x-1/4 -translate-y-1/4 w-96 h-96 pointer-events-none opacity-5">
-          <svg viewBox="0 0 100 100" className="w-full h-full text-gold">
-            <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="2" />
-            <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="5 5" />
-            <circle cx="50" cy="50" r="15" fill="currentColor" />
-          </svg>
-        </div>
-
-        {/* Golden Seal & Header */}
+      <div className="relative rounded-3xl bg-[#0E1118] border border-white/[0.15] p-6 sm:p-10 shadow-2xl overflow-hidden">
+        {/* Verification Checkmark Header */}
         <div className="flex flex-col items-center text-center">
-          <div className="relative w-24 h-24 mb-6 flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full bg-gold/20 animate-ping" />
-            <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-gold via-amber-400 to-bronze flex items-center justify-center shadow-gold-glow border-2 border-ivory p-3">
-              <svg viewBox="0 0 100 100" className="w-full h-full text-obsidian animate-spin-slow">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="4" />
-                <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="8 4" />
-                <circle cx="50" cy="50" r="18" fill="none" stroke="currentColor" strokeWidth="3" />
-                <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" strokeWidth="2" />
-                <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="2" />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center text-obsidian font-black">
-                <CheckCircle2 className="w-8 h-8 stroke-[3]" />
-              </div>
+          <div className="relative w-20 h-20 mb-5 flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
+            <div className="relative w-20 h-20 rounded-full bg-emerald-500/10 border-2 border-emerald-400 flex items-center justify-center text-emerald-400 shadow-xl">
+              <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
             </div>
           </div>
 
-          <span className="text-xs font-sans font-semibold tracking-[0.3em] text-gold uppercase">
-            OFFICIAL ARENA RECEIPT • RECORD IMMUTABLY SEALED
+          <span className="text-xs font-mono font-bold tracking-[0.25em] text-emerald-400 uppercase">
+            OFFICIAL ARENA RECEIPT // RECORD IMMUTABLY SEALED
           </span>
-          <h1 className="font-cinzel text-3xl sm:text-4xl font-extrabold text-ivory tracking-wide mt-2">
+          <h1 className="font-cinzel text-3xl sm:text-4xl font-black text-white tracking-wide mt-2">
             SUBMISSION COMPLETE
           </h1>
-          <p className="font-sans text-sm sm:text-base text-gold/90 mt-2 max-w-lg italic">
-            "Your solution has entered the eternal records of the Chakravyuh."
+          <p className="font-sans text-xs sm:text-sm text-zinc-400 mt-2 max-w-lg">
+            Your squad's solution and deployment credentials have been securely stored in the
+            Chakravyuh database.
           </p>
         </div>
 
         {/* Receipt Details Card */}
-        <div className="mt-8 rounded-2xl bg-[#0B0D13] border border-charcoal-border p-6 space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-charcoal-border/70 text-xs font-sans">
+        <div className="mt-8 rounded-2xl bg-[#08090C] border border-white/[0.08] p-6 space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-white/[0.08] text-xs">
             <div>
-              <span className="text-ivory-muted/70 block mb-1 font-sans font-semibold">Authenticated Team:</span>
-              <span className="text-sm font-bold text-ivory font-cinzel">{team.teamName}</span>
-              <span className="text-[11px] text-ivory-muted/80 block font-sans">Leader: {team.leaderName || 'Leader'} ({team.leaderEmail})</span>
-              {team.leaderPhone && (
-                <span className="text-[11px] text-gold/80 block font-sans">Contact: {team.leaderPhone}</span>
-              )}
+              <span className="text-zinc-500 block mb-1 font-mono uppercase tracking-wider">
+                AUTHENTICATED SQUAD:
+              </span>
+              <span className="text-sm font-bold text-white font-cinzel">{team.teamName}</span>
+              <span className="text-[11px] text-zinc-400 block mt-0.5 font-sans">
+                Leader: {team.leaderName || 'Leader'} ({team.leaderEmail})
+              </span>
             </div>
             <div>
-              <span className="text-ivory-muted/70 block mb-1 font-sans font-semibold">Time of Conquest:</span>
-              <div className="flex items-center gap-1.5 text-ivory font-sans">
-                <Calendar className="w-3.5 h-3.5 text-gold" />
+              <span className="text-zinc-500 block mb-1 font-mono uppercase tracking-wider">
+                TIMESTAMP:
+              </span>
+              <div className="flex items-center gap-1.5 text-zinc-300 font-mono">
+                <Calendar className="w-3.5 h-3.5 text-zinc-400" />
                 <span>{formattedDate}</span>
               </div>
             </div>
@@ -157,11 +106,16 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
 
           {/* Members List if present */}
           {team.members && team.members.length > 0 && (
-            <div className="pb-4 border-b border-charcoal-border/70 text-xs">
-              <span className="text-ivory-muted/70 block mb-1">Registered Squad Members:</span>
+            <div className="pb-4 border-b border-white/[0.08] text-xs">
+              <span className="text-zinc-500 block mb-2 font-mono uppercase tracking-wider">
+                REGISTERED SQUAD MEMBERS:
+              </span>
               <div className="flex flex-wrap gap-1.5">
                 {team.members.map((m, idx) => (
-                  <span key={idx} className="px-2 py-0.5 rounded bg-charcoal border border-charcoal-border text-ivory text-[11px]">
+                  <span
+                    key={idx}
+                    className="px-2.5 py-1 rounded-lg bg-[#121622] border border-white/[0.08] text-zinc-300 text-[11px] font-mono"
+                  >
                     {m.name}
                   </span>
                 ))}
@@ -170,100 +124,87 @@ export const SubmissionReceipt: React.FC<SubmissionReceiptProps> = ({
           )}
 
           {/* Locked Track & Problem */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-charcoal-border/70 text-xs font-sans">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-white/[0.08] text-xs">
             <div>
-              <span className="text-ivory-muted/70 block mb-1 font-sans font-semibold">Theme Gate:</span>
+              <span className="text-zinc-500 block mb-1 font-mono uppercase tracking-wider">
+                THEME GATE:
+              </span>
               <div className="flex items-center gap-2">
                 <span
                   className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: track?.accentColor || '#D8B46A' }}
+                  style={{ backgroundColor: track?.accentColor || '#38BDF8' }}
                 />
-                <span className="font-cinzel font-bold text-ivory text-sm">
+                <span className="font-cinzel font-bold text-white text-sm">
                   {track?.officialTitle || track?.name || 'Selected Theme'}
                 </span>
               </div>
             </div>
             <div>
-              <span className="text-ivory-muted/70 block mb-1 font-sans font-semibold">Bound Challenge:</span>
-              <div className="text-ivory font-medium font-sans">
-                <span className="px-1.5 py-0.5 rounded bg-gold/15 text-gold font-sans text-[10px] mr-1.5 font-bold">
+              <span className="text-zinc-500 block mb-1 font-mono uppercase tracking-wider">
+                BOUND CHALLENGE:
+              </span>
+              <div className="text-white font-medium">
+                <span className="px-2 py-0.5 rounded bg-white/10 text-white font-mono text-[10px] mr-1.5 font-bold">
                   {problem?.problemCode || 'CHALLENGE'}
                 </span>
-                <span className="font-cinzel font-bold">{problem?.title || 'Locked Problem Statement'}</span>
+                <span className="font-cinzel font-bold">
+                  {problem?.title || 'Locked Problem Statement'}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Submitted Artifacts */}
-          <div className="space-y-3 text-xs font-sans">
-            <span className="text-ivory-muted/70 block font-sans font-semibold">Submitted Artifacts & Repositories:</span>
-            
-            {/* GitHub Repo */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-charcoal-card border border-charcoal-border">
-              <div className="flex items-center gap-3 min-w-0">
-                <Github className="w-4 h-4 text-gold shrink-0" />
-                <span className="text-ivory font-mono truncate">{submission.githubRepoUrl}</span>
+          <div className="space-y-3 text-xs">
+            <span className="text-zinc-500 block font-mono uppercase tracking-wider">
+              SUBMITTED REPOSITORIES & DEPLOYMENTS:
+            </span>
+
+            {/* GitHub URL */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#121622] border border-white/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <Github className="w-4 h-4 text-zinc-400" />
+                <span className="font-mono text-zinc-300 break-all">{submission.githubUrl}</span>
               </div>
               <a
-                href={submission.githubRepoUrl}
+                href={submission.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-gold hover:underline text-xs font-sans font-semibold shrink-0 ml-2 cursor-pointer uppercase tracking-wider"
+                className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono text-[11px] shrink-0 ml-3"
               >
-                <span>View</span>
-                <ExternalLink className="w-3 h-3" />
+                <span>Inspect</span>
+                <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
 
-            {/* Deployed Website Application Link */}
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-charcoal-card border border-charcoal-border hover:border-gold/40 transition-colors">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0">
+            {/* Deployed Web App URL */}
+            {submission.deployedUrl && (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[#121622] border border-white/[0.08]">
+                <div className="flex items-center gap-2.5">
                   <Globe className="w-4 h-4 text-emerald-400" />
+                  <span className="font-mono text-zinc-300 break-all">{submission.deployedUrl}</span>
                 </div>
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-sans uppercase text-emerald-400 font-bold tracking-wider">
-                      LIVE DEPLOYED APPLICATION
-                    </span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  </div>
-                  <span className="text-ivory font-mono text-xs truncate">
-                    {submission.deployedUrl || 'https://deployed-solution.app'}
-                  </span>
-                </div>
-              </div>
-              {submission.deployedUrl && (
                 <a
                   href={submission.deployedUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold/15 text-gold border border-gold/40 hover:bg-gold hover:text-obsidian transition-colors text-xs font-sans font-bold tracking-wider uppercase shrink-0 ml-2 cursor-pointer"
+                  className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-mono text-[11px] shrink-0 ml-3"
                 >
-                  <span>LAUNCH APP</span>
-                  <ExternalLink className="w-3 h-3" />
+                  <span>Launch Live</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </a>
-              )}
-            </div>
-          </div>
-
-          {/* Verification & Sync Footnote */}
-          <div className="pt-3 border-t border-charcoal-border/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-sans">
-            <div className="flex items-center gap-2 text-ivory-muted">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Selection & Submission: <strong className="text-emerald-400">LOCKED & VERIFIED</strong></span>
-            </div>
-            <div>
-              {getSyncBadge(submission.spreadsheetSyncStatus)}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Permanent Lock Notice */}
-        <p className="mt-6 text-center text-xs font-sans text-ivory-muted/60">
-          This submission receipt is permanently tied to your team. Edits are locked per hackathon bylaws.
-        </p>
+        <div className="mt-6 flex items-center justify-center gap-2 text-xs font-mono text-zinc-500">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <span>CRYPTOGRAPHIC HASH VERIFIED & RECORDED IN CHAKRAVYUH ARENA</span>
+        </div>
       </div>
     </motion.div>
   );
 };
+
+export default SubmissionReceipt;

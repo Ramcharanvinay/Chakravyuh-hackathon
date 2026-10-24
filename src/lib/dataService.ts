@@ -278,16 +278,65 @@ export const dataService = {
     }
 
     // 2. SANDBOX / DEMO MODE
-    const users = getLocalUsers();
-    const user = users.find(u => u.email === trimmedEmail);
-    if (!user || user.passwordHash !== btoa(password)) {
-      throw new Error('Invalid email or password. Please verify your credentials.');
+    let users = getLocalUsers();
+    let teams = getLocalTeams();
+
+    // Auto-provision demo squad if testing with demo credentials
+    if (
+      (trimmedEmail === 'leader@apexpredators.io' || trimmedEmail === '23bce1099' || trimmedEmail === 'apex predators') &&
+      password === 'squad2026'
+    ) {
+      let demoTeam = teams.find(t => t.teamName.toLowerCase() === 'apex predators');
+      if (!demoTeam) {
+        const demoUserId = 'usr_apex_demo';
+        const demoTeamId = 'team_apex_demo';
+        demoTeam = {
+          id: demoTeamId,
+          ownerUserId: demoUserId,
+          teamName: 'Apex Predators',
+          leaderName: 'Arjun Sharma',
+          leaderEmail: 'leader@apexpredators.io',
+          leaderPhone: '23BCE1099',
+          members: [
+            { name: 'Arjun Sharma', email: 'arjun@vitap.ac.in', role: 'Team Lead' },
+            { name: 'Priya Verma', email: 'priya@vitap.ac.in', role: 'Systems Engineer' },
+            { name: 'Rohan Iyer', email: 'rohan@vitap.ac.in', role: 'Fullstack Dev' },
+          ],
+          createdAt: new Date().toISOString(),
+        };
+        const demoUser: LocalUserRecord = {
+          id: demoUserId,
+          email: 'leader@apexpredators.io',
+          passwordHash: btoa('squad2026'),
+          teamId: demoTeamId,
+        };
+        teams.push(demoTeam);
+        users.push(demoUser);
+        localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify(teams));
+        localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+      }
     }
 
-    const teams = getLocalTeams();
+    // Match by email, team name, or leader registration ID
+    let user = users.find(u => u.email === trimmedEmail);
+    if (!user) {
+      const matchingTeam = teams.find(
+        t =>
+          (t.leaderPhone && t.leaderPhone.toLowerCase() === trimmedEmail) ||
+          t.teamName.toLowerCase() === trimmedEmail
+      );
+      if (matchingTeam) {
+        user = users.find(u => u.teamId === matchingTeam.id);
+      }
+    }
+
+    if (!user || user.passwordHash !== btoa(password)) {
+      throw new Error('Invalid squad email/registration ID or passcode. Please verify your credentials.');
+    }
+
     const team = teams.find(t => t.id === user.teamId);
     if (!team) {
-      throw new Error('Team record not found for this user account.');
+      throw new Error('Squad profile record not found for this account.');
     }
 
     localStorage.setItem(LOCAL_ACTIVE_SESSION_KEY, JSON.stringify({ userId: user.id, teamId: team.id, email: user.email }));
@@ -348,30 +397,7 @@ export const dataService = {
 
     const sessionStr = localStorage.getItem(LOCAL_ACTIVE_SESSION_KEY);
     if (!sessionStr) {
-      const defaultTeamId = 'team_garuda_713';
-      const defaultUserId = 'usr_garuda_713';
-      const defaultEmail = 'warrior.817@chakravyuh.org';
-      const defaultTeam: Team = {
-        id: defaultTeamId,
-        ownerUserId: defaultUserId,
-        teamName: 'Garuda Squad 713',
-        leaderName: 'Squad Leader',
-        leaderEmail: defaultEmail,
-        createdAt: new Date().toISOString(),
-      };
-      const existingTeams = getLocalTeams();
-      if (!existingTeams.some(t => t.id === defaultTeamId)) {
-        localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify([...existingTeams, defaultTeam]));
-      }
-      localStorage.setItem(LOCAL_ACTIVE_SESSION_KEY, JSON.stringify({
-        userId: defaultUserId,
-        teamId: defaultTeamId,
-        email: defaultEmail,
-      }));
-      return {
-        user: { id: defaultUserId, email: defaultEmail },
-        team: defaultTeam,
-      };
+      return { user: null, team: null };
     }
 
     try {

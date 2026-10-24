@@ -3,34 +3,23 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { HACKATHON_CONFIG } from '../config/hackathonConfig';
-import { ProblemStatement, Track } from '../types';
+import { ProblemStatement } from '../types';
 import { Navbar } from '../components/Navbar';
-import { BannerDemo } from '../components/BannerDemo';
 import { ProgressSteps } from '../components/ProgressSteps';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import {
-  TrackCulturalBackground,
-  PageCulturalAtmosphere
-} from '../components/cultural-backgrounds';
-import {
   Lock,
-  CheckCircle2,
   ChevronDown,
   ChevronUp,
   ArrowRight,
   ArrowLeft,
   Shield,
   ExternalLink,
-  Flame,
-  Zap,
-  Wind,
-  Trees,
-  Sun,
   AlertCircle,
-  FileText,
-  Database,
+  CheckCircle2,
   Cpu,
-  Layers
+  Layers,
+  Sparkles,
 } from 'lucide-react';
 
 export const ThemeDetailPage: React.FC = () => {
@@ -38,13 +27,16 @@ export const ThemeDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { team, selection, submission, isLoading, lockSelection } = useAuth();
 
-
-
   // Find track matching slug or id
   const currentTrack = useMemo(() => {
     return (
-      HACKATHON_CONFIG.tracks.find(t => t.slug === themeSlug || t.id === themeSlug || t.themeKey === themeSlug || t.name.toLowerCase() === (themeSlug || '').toLowerCase()) ||
-      HACKATHON_CONFIG.tracks[0]
+      HACKATHON_CONFIG.tracks.find(
+        t =>
+          t.slug === themeSlug ||
+          t.id === themeSlug ||
+          t.themeKey === themeSlug ||
+          t.name.toLowerCase() === (themeSlug || '').toLowerCase()
+      ) || HACKATHON_CONFIG.tracks[0]
     );
   }, [themeSlug]);
 
@@ -56,11 +48,15 @@ export const ThemeDetailPage: React.FC = () => {
   }, [currentTrack.id]);
 
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(
-    selection?.trackId === currentTrack.id ? selection.problemStatementId : (themeProblems[0]?.id || null)
+    selection?.trackId === currentTrack.id
+      ? selection.problemStatementId
+      : themeProblems[0]?.id || null
   );
 
   const [expandedProblemId, setExpandedProblemId] = useState<string | null>(
-    selection?.trackId === currentTrack.id ? selection.problemStatementId : (themeProblems[0]?.id || null)
+    selection?.trackId === currentTrack.id
+      ? selection.problemStatementId
+      : themeProblems[0]?.id || null
   );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -96,22 +92,22 @@ export const ThemeDetailPage: React.FC = () => {
   };
 
   const handleOpenLockModal = () => {
-    if (!selectedProblemId) {
-      setErrorMessage('Please select one problem statement to lock.');
+    if (!team) {
+      navigate(`/login?redirect=${encodeURIComponent(`/theme/${currentTrack.slug}`)}`);
       return;
     }
-    setErrorMessage(null);
     setIsModalOpen(true);
   };
 
   const handleConfirmLock = async () => {
-    if (!selectedProblemId) return;
+    if (!selectedProblem) return;
     setIsLocking(true);
     setErrorMessage(null);
 
     try {
-      await lockSelection(currentTrack.id, selectedProblemId);
+      await lockSelection(currentTrack.id, selectedProblem.id);
       setIsModalOpen(false);
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       navigate('/submit');
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to lock choice in arena database.');
@@ -124,75 +120,73 @@ export const ThemeDetailPage: React.FC = () => {
     switch (difficulty) {
       case 'Flagship':
       case 'Grandmaster':
-        return 'bg-amber-500/15 text-amber-300 border-amber-500/40 font-bold';
+        return 'bg-amber-500/10 text-amber-400 border-amber-500/30 font-bold';
       case 'Hard':
       case 'Challenger':
-        return 'bg-red-500/15 text-red-300 border-red-500/40 font-semibold';
+        return 'bg-rose-500/10 text-rose-400 border-rose-500/30 font-semibold';
       case 'Easy':
       case 'Novice':
       default:
-        return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40';
+        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
     }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#08090D] flex items-center justify-center text-gold">
+      <div className="min-h-screen bg-[#08090C] flex items-center justify-center text-white">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-full border-2 border-gold border-t-transparent animate-spin" />
-          <span className="font-sans font-semibold text-xs tracking-widest uppercase">Loading Hackathon Theme...</span>
+          <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+          <span className="font-mono text-xs tracking-widest text-zinc-400 uppercase">
+            CALIBRATING THEME DOSSIER...
+          </span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#08090D] text-[#F3E8CF] flex flex-col justify-between relative overflow-hidden">
-      {/* Real-time Theme Atmosphere */}
-      <PageCulturalAtmosphere selectedTrackId={currentTrack.id} />
-
+    <div className="min-h-screen bg-[#08090C] text-slate-100 flex flex-col justify-between relative overflow-hidden bg-dot-matrix">
       <div className="relative z-10">
-        <BannerDemo />
         <Navbar />
         <ProgressSteps currentStep={2} />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Top Bar with Back Navigation & Theme Header */}
-          <div className="pb-6 border-b border-charcoal-border/70">
+          <div className="pb-8 border-b border-white/[0.08]">
             <div className="flex items-center justify-between gap-4 mb-4">
               <Link
                 to="/tracks"
-                className="inline-flex items-center gap-2 text-xs font-sans font-semibold text-gold/80 hover:text-gold transition-colors group cursor-pointer uppercase tracking-wider"
+                className="inline-flex items-center gap-2 text-xs font-mono font-semibold text-zinc-400 hover:text-white transition-colors group cursor-pointer uppercase tracking-wider"
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                <span>RETURN TO THEME SELECTION</span>
+                <span>RETURN TO FORMATION GATE</span>
               </Link>
 
               {/* Theme Badge */}
               <div
-                className="px-3 py-1 rounded-full border text-xs font-sans font-bold tracking-widest uppercase backdrop-blur-md"
+                className="px-3.5 py-1 rounded-full border text-xs font-mono font-bold tracking-widest uppercase backdrop-blur-md"
                 style={{
-                  backgroundColor: `${currentTrack.accentColor}20`,
-                  borderColor: `${currentTrack.accentColor}60`,
+                  backgroundColor: `${currentTrack.accentColor}15`,
+                  borderColor: `${currentTrack.accentColor}40`,
                   color: currentTrack.accentColor,
                 }}
               >
-                THEME • {currentTrack.name.toUpperCase()}
+                THEME GATE • {currentTrack.name.toUpperCase()}
               </div>
             </div>
 
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div>
-                <span className="text-[11px] font-sans font-semibold tracking-widest text-gold uppercase">
-                  STAGE 02 • OFFICIAL THEME DOSSIER
-                </span>
-                <h1 className="font-cinzel text-3xl sm:text-5xl font-black text-ivory tracking-wide mt-1.5 flex items-center gap-3">
-                  <span>{currentTrack.officialTitle}</span>
+                <div className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-mono font-bold tracking-[0.25em] text-zinc-400 uppercase mb-2">
+                  <span>STAGE 02 // OFFICIAL CHALLENGE DOSSIER</span>
+                </div>
+                <h1 className="font-cinzel text-3xl sm:text-5xl font-black text-white tracking-wide">
+                  {currentTrack.officialTitle}
                 </h1>
-                <p className="font-sans text-xs sm:text-sm text-ivory-muted/90 mt-2 max-w-3xl leading-relaxed">
+                <p className="font-sans text-xs sm:text-sm text-zinc-400 mt-2.5 max-w-3xl leading-relaxed">
                   {currentTrack.description}
                 </p>
-                <div className="mt-2 text-xs font-sans italic text-gold/90">
+                <div className="mt-2 text-xs font-sans italic text-zinc-400">
                   "{currentTrack.motto}"
                 </div>
               </div>
@@ -201,34 +195,34 @@ export const ThemeDetailPage: React.FC = () => {
               <div className="flex items-center gap-3 shrink-0">
                 {isLockedToThisTheme ? (
                   <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-sans font-semibold">
-                      <Lock className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>THEME LOCKED IN ARENA DATABASE</span>
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-xs font-mono font-semibold">
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>THEME LOCKED IN ARENA RECORDS</span>
                     </div>
                     <button
                       onClick={() => {
                         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                         navigate('/submit');
                       }}
-                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs tracking-wider uppercase flex items-center gap-2 hover:brightness-110 shadow-gold-glow cursor-pointer transition-transform hover:scale-[1.02]"
+                      className="px-5 py-2.5 rounded-xl bg-white text-[#08090C] hover:bg-zinc-200 font-mono font-bold text-xs tracking-wider uppercase flex items-center gap-2 shadow-lg cursor-pointer transition-transform hover:scale-[1.02]"
                     >
                       <span>PROCEED TO SUBMISSION</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 ) : isLockedToOtherTheme ? (
-                  <div className="p-3 rounded-xl bg-charcoal border border-charcoal-border text-xs font-sans text-ivory-muted flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-gold" />
-                    <span>Your team is locked to another theme</span>
+                  <div className="p-3 rounded-xl bg-[#10141E] border border-white/[0.08] text-xs font-mono text-zinc-400 flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-zinc-500" />
+                    <span>Your squad is locked to another theme</span>
                   </div>
                 ) : (
                   <button
                     onClick={handleOpenLockModal}
                     disabled={!selectedProblemId}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs tracking-widest uppercase flex items-center gap-2 hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow cursor-pointer disabled:opacity-50"
+                    className="px-6 py-3 rounded-xl bg-white text-[#08090C] hover:bg-zinc-200 font-mono font-bold text-xs tracking-widest uppercase flex items-center gap-2 active:scale-[0.99] transition-all shadow-xl cursor-pointer disabled:opacity-40"
                   >
                     <Lock className="w-4 h-4" />
-                    <span>CONFIRM & LOCK THIS CHALLENGE</span>
+                    <span>COMMIT & LOCK THIS CHALLENGE</span>
                   </button>
                 )}
               </div>
@@ -237,7 +231,7 @@ export const ThemeDetailPage: React.FC = () => {
 
           {/* Error Message */}
           {errorMessage && (
-            <div className="mt-4 p-3.5 rounded-xl bg-ember/15 border border-ember/40 text-ember text-xs flex items-center gap-2.5">
+            <div className="mt-4 p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs font-mono flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -245,10 +239,11 @@ export const ThemeDetailPage: React.FC = () => {
 
           {/* 10 Problem Statements Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 mt-8">
-            {themeProblems.map((problem) => {
+            {themeProblems.map(problem => {
               const isSelected = selectedProblemId === problem.id;
               const isExpanded = expandedProblemId === problem.id;
-              const isLockedSelection = isLockedToThisTheme && selection?.problemStatementId === problem.id;
+              const isLockedSelection =
+                isLockedToThisTheme && selection?.problemStatementId === problem.id;
 
               return (
                 <motion.div
@@ -258,13 +253,14 @@ export const ThemeDetailPage: React.FC = () => {
                   transition={{ duration: 0.2 }}
                   className={`relative rounded-2xl p-5 sm:p-6 transition-all duration-300 border flex flex-col justify-between ${
                     isLockedSelection
-                      ? 'bg-charcoal border-2 border-gold shadow-gold-subtle'
+                      ? 'bg-[#121622] border-2 shadow-2xl ring-1 ring-white/20'
                       : isSelected && !selection
-                      ? 'bg-charcoal border-2 shadow-gold-subtle'
-                      : 'bg-charcoal/70 border-charcoal-border hover:border-gold/30 hover:bg-charcoal cursor-pointer'
+                      ? 'bg-[#121622] border-2 shadow-2xl'
+                      : 'bg-[#0E1118]/80 border-white/[0.08] hover:border-white/25 hover:bg-[#121622]/90 cursor-pointer'
                   }`}
                   style={{
-                    borderColor: isSelected && !isLockedSelection ? currentTrack.accentColor : undefined,
+                    borderColor:
+                      isSelected && !isLockedSelection ? currentTrack.accentColor : undefined,
                   }}
                 >
                   <div>
@@ -272,12 +268,19 @@ export const ThemeDetailPage: React.FC = () => {
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
-                          className="font-sans text-xs px-2.5 py-1 rounded bg-obsidian text-gold border font-bold"
-                          style={{ borderColor: `${currentTrack.accentColor}50` }}
+                          className="font-mono text-xs px-2.5 py-1 rounded bg-black/60 font-bold border"
+                          style={{
+                            borderColor: `${currentTrack.accentColor}50`,
+                            color: currentTrack.accentColor,
+                          }}
                         >
                           {problem.problemCode}
                         </span>
-                        <span className={`text-[10px] font-sans font-semibold px-2 py-0.5 rounded border uppercase ${getDifficultyBadge(problem.difficulty)}`}>
+                        <span
+                          className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase ${getDifficultyBadge(
+                            problem.difficulty
+                          )}`}
+                        >
                           {problem.difficulty}
                         </span>
                       </div>
@@ -285,47 +288,55 @@ export const ThemeDetailPage: React.FC = () => {
                       {/* Selection Indicator */}
                       <div className="flex items-center gap-2 shrink-0">
                         {isLockedSelection ? (
-                          <span className="flex items-center gap-1 text-[10px] font-sans font-bold text-gold bg-gold/15 px-2 py-0.5 rounded-full border border-gold/40">
+                          <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
                             <Lock className="w-3 h-3" /> LOCKED
                           </span>
                         ) : (
                           <div
                             className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
                               isSelected
-                                ? 'bg-gold border-gold text-obsidian shadow-gold-subtle'
-                                : 'border-charcoal-border bg-obsidian'
+                                ? 'bg-white border-white text-[#08090C]'
+                                : 'border-white/20 bg-black/40'
                             }`}
                           >
-                            {isSelected && <div className="w-2 h-2 rounded-full bg-obsidian" />}
+                            {isSelected && <div className="w-2 h-2 rounded-full bg-[#08090C]" />}
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <h3 className="font-cinzel text-lg font-bold text-ivory tracking-wide leading-snug">
+                    <h3 className="font-cinzel text-lg font-bold text-white tracking-wide leading-snug">
                       {problem.title}
                     </h3>
 
                     {problem.objective && (
-                      <p className="text-xs text-gold/90 mt-2 font-sans font-medium italic">
+                      <p className="text-xs text-zinc-300 mt-2 font-sans italic">
                         Objective: {problem.objective}
                       </p>
                     )}
 
-                    <p className="text-xs font-sans text-ivory-muted/90 mt-2 leading-relaxed">
+                    <p className="text-xs font-sans text-zinc-400 mt-2 leading-relaxed">
                       {problem.summary}
                     </p>
                   </div>
 
                   {/* Expandable Tactical Dossier */}
-                  <div className="mt-4 pt-3 border-t border-charcoal-border/60">
+                  <div className="mt-5 pt-3.5 border-t border-white/[0.08]">
                     <button
                       type="button"
-                      onClick={(e) => handleToggleExpand(e, problem.id)}
-                      className="flex items-center justify-between w-full text-xs font-sans font-semibold text-ivory-muted hover:text-gold transition-colors py-1 cursor-pointer"
+                      onClick={e => handleToggleExpand(e, problem.id)}
+                      className="flex items-center justify-between w-full text-xs font-mono font-semibold text-zinc-400 hover:text-white transition-colors py-1 cursor-pointer"
                     >
-                      <span>{isExpanded ? 'Hide Tactical Specifications' : 'Inspect Full Requirements & Datasets'}</span>
-                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      <span>
+                        {isExpanded
+                          ? 'COLLAPSE SPECIFICATIONS'
+                          : 'INSPECT FULL REQUIREMENTS & DATASETS'}
+                      </span>
+                      {isExpanded ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
                     </button>
 
                     <AnimatePresence>
@@ -334,14 +345,14 @@ export const ThemeDetailPage: React.FC = () => {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="pt-3 space-y-3.5 text-xs text-ivory-muted/90"
+                          transition={{ duration: 0.25 }}
+                          className="pt-3.5 space-y-3.5 text-xs text-zinc-300"
                         >
                           <div>
-                            <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-gold block mb-1">
-                              Battlefield Scenario & Overview:
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 block mb-1">
+                              CHALLENGE OVERVIEW & SPECIFICATION:
                             </span>
-                            <p className="leading-relaxed bg-obsidian/70 p-3 rounded-xl border border-charcoal-border/70 text-ivory/90 font-sans">
+                            <p className="leading-relaxed bg-black/50 p-3 rounded-xl border border-white/[0.06] text-zinc-300 font-sans">
                               {problem.fullDescription}
                             </p>
                           </div>
@@ -349,14 +360,17 @@ export const ThemeDetailPage: React.FC = () => {
                           {/* Expected Outcomes */}
                           {problem.expectedOutcomes && problem.expectedOutcomes.length > 0 && (
                             <div>
-                              <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-gold block mb-1.5">
-                                Expected Deliverables & Outcomes:
+                              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 block mb-1.5">
+                                DELIVERABLES & OUTCOMES:
                               </span>
                               <ul className="space-y-1">
                                 {problem.expectedOutcomes.map((outcome, oIdx) => (
                                   <li key={oIdx} className="flex items-start gap-2 text-[11px]">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-gold shrink-0 mt-1.5" />
-                                    <span>{outcome}</span>
+                                    <span
+                                      className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5"
+                                      style={{ backgroundColor: currentTrack.accentColor }}
+                                    />
+                                    <span className="text-zinc-300">{outcome}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -366,20 +380,23 @@ export const ThemeDetailPage: React.FC = () => {
                           {/* Datasets */}
                           {problem.datasets && problem.datasets.length > 0 && (
                             <div>
-                              <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-gold block mb-1.5">
-                                Required & Public Datasets:
+                              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 block mb-1.5">
+                                REQUIRED & PUBLIC DATASETS:
                               </span>
                               <div className="space-y-1">
                                 {problem.datasets.map((ds, dIdx) => (
-                                  <div key={dIdx} className="flex items-center justify-between p-2 rounded-lg bg-obsidian/60 border border-charcoal-border text-[11px]">
-                                    <span className="text-ivory font-medium">{ds.name}</span>
+                                  <div
+                                    key={dIdx}
+                                    className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/[0.06] text-[11px]"
+                                  >
+                                    <span className="text-white font-medium">{ds.name}</span>
                                     {ds.url && (
                                       <a
                                         href={ds.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-gold hover:underline flex items-center gap-1 font-mono text-[10px]"
-                                        onClick={(e) => e.stopPropagation()}
+                                        className="text-cyan-400 hover:underline flex items-center gap-1 font-mono text-[10px]"
+                                        onClick={e => e.stopPropagation()}
                                       >
                                         <span>Link</span>
                                         <ExternalLink className="w-3 h-3" />
@@ -394,14 +411,14 @@ export const ThemeDetailPage: React.FC = () => {
                           {/* Recommended Arsenal / Tech */}
                           {problem.suggestedTech && problem.suggestedTech.length > 0 && (
                             <div>
-                              <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-gold block mb-1.5">
-                                Recommended Arsenal / Tech Stack:
+                              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 block mb-1.5">
+                                RECOMMENDED ARSENAL / TECH STACK:
                               </span>
                               <div className="flex flex-wrap gap-1.5">
                                 {problem.suggestedTech.map((tech, tIdx) => (
                                   <span
                                     key={tIdx}
-                                    className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-charcoal border border-charcoal-border text-ivory-muted"
+                                    className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[#10141E] border border-white/[0.08] text-zinc-400"
                                   >
                                     {tech}
                                   </span>
@@ -420,18 +437,18 @@ export const ThemeDetailPage: React.FC = () => {
 
           {/* Bottom Floating Lock Control Bar if not locked */}
           {selectedProblem && (
-            <div className="sticky bottom-4 z-30 mt-10 p-4 rounded-2xl bg-[#12141B]/95 border border-gold/40 backdrop-blur-xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="sticky bottom-4 z-30 mt-10 p-4 rounded-2xl bg-[#10141E]/95 border border-white/[0.15] backdrop-blur-xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/30 flex items-center justify-center text-gold">
+                <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
                   {selection ? <Lock className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
                 </div>
-                <div className="text-xs font-sans">
-                  <span className="text-ivory-muted">
-                    {selection ? 'Locked Assignment:' : 'Ready to bind to squad:'}
-                  </span>{' '}
-                  <strong className="text-gold font-cinzel">
+                <div className="text-xs">
+                  <span className="text-zinc-400 font-mono block">
+                    {selection ? 'LOCKED CHALLENGE:' : 'READY TO BIND TO SQUAD:'}
+                  </span>
+                  <span className="text-white font-cinzel font-bold text-sm">
                     [{selectedProblem?.problemCode}] {selectedProblem?.title}
-                  </strong>
+                  </span>
                 </div>
               </div>
 
@@ -442,7 +459,7 @@ export const ThemeDetailPage: React.FC = () => {
                     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                     navigate('/submit');
                   }}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs tracking-widest uppercase hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-white text-[#08090C] hover:bg-zinc-200 font-mono font-bold text-xs tracking-widest uppercase transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>PROCEED TO SUBMISSION</span>
                   <ArrowRight className="w-4 h-4" />
@@ -451,11 +468,10 @@ export const ThemeDetailPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleOpenLockModal}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold text-obsidian font-sans font-bold text-xs tracking-widest uppercase hover:brightness-110 active:scale-[0.99] transition-all shadow-gold-glow flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-white text-[#08090C] hover:bg-zinc-200 font-mono font-bold text-xs tracking-widest uppercase transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Lock className="w-4 h-4" />
-                  <span>CONFIRM & PROCEED TO SUBMISSION</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>LOCK THIS CHALLENGE</span>
                 </button>
               )}
             </div>
@@ -469,17 +485,17 @@ export const ThemeDetailPage: React.FC = () => {
           isOpen={isModalOpen}
           track={currentTrack}
           problem={selectedProblem}
-          teamName={team?.teamName || 'Your Team'}
           isLocking={isLocking}
-          error={errorMessage}
-          onCancel={() => setIsModalOpen(false)}
           onConfirm={handleConfirmLock}
+          onCancel={() => setIsModalOpen(false)}
         />
       )}
 
-      <footer className="w-full py-6 text-center text-xs font-sans text-ivory-muted/40 border-t border-charcoal-border/40 mt-12">
+      <footer className="w-full py-6 text-center text-xs text-zinc-500 border-t border-white/[0.08] mt-12 font-mono">
         <span>{HACKATHON_CONFIG.hackathonName} • {HACKATHON_CONFIG.collegeName}</span>
       </footer>
     </div>
   );
 };
+
+export default ThemeDetailPage;

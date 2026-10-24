@@ -6,6 +6,7 @@ import { LandingPage } from './pages/LandingPage';
 import { TrackSelectionPage } from './pages/TrackSelectionPage';
 import { ThemeDetailPage } from './pages/ThemeDetailPage';
 import { ProblemSelectionPage } from './pages/ProblemSelectionPage';
+import { LoginPage } from './pages/LoginPage';
 import { SubmissionPage } from './pages/SubmissionPage';
 
 export const App: React.FC = () => {
@@ -17,19 +18,19 @@ export const App: React.FC = () => {
           {/* 1) Landing page */}
           <Route path="/" element={<LandingPage />} />
 
-          {/* 2) Track selection page */}
+          {/* 2) Authentication & Squad Verification */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* 3) Track selection page */}
           <Route path="/tracks" element={<TrackSelectionPage />} />
 
-          {/* 3) Problem statements & theme details */}
+          {/* 4) Problem statements & theme details */}
           <Route path="/theme/:themeSlug" element={<ThemeDetailPage />} />
           <Route path="/themes/:themeSlug" element={<ThemeDetailPage />} />
           <Route path="/problems" element={<ProblemSelectionPage />} />
 
-          {/* 4) Submission chamber */}
+          {/* 5) Submission chamber */}
           <Route path="/submit" element={<SubmissionPage />} />
-
-          {/* Direct redirect from /login to /tracks */}
-          <Route path="/login" element={<Navigate to="/tracks" replace />} />
 
           {/* Fallback to landing page */}
           <Route path="*" element={<Navigate to="/" replace />} />

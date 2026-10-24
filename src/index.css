@@ -8,43 +8,51 @@
   }
 
   body {
-    background-color: #08090D;
-    color: #F3E8CF;
+    background-color: #08090C;
+    color: #F3F4F6;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
   }
 
-  /* Custom Smooth Dark Scrollbar */
+  /* Custom Smooth Dark Architectural Scrollbar */
   ::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #08090D;
+    background: #08090C;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #262A38;
+    background: #27272A;
     border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #D8B46A;
+    background: #52525B;
   }
 }
 
-/* Atmospheric Ancient War Pattern Grid */
-.bg-war-grid {
-  background-size: 40px 40px;
+/* Atmospheric Architectural Grid & Monolith Patterns */
+.bg-tactical-grid {
+  background-size: 44px 44px;
   background-image: 
-    linear-gradient(to right, rgba(216, 180, 106, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(216, 180, 106, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 }
 
-/* Gold glow text effects */
-.text-gold-glow {
-  text-shadow: 0 0 15px rgba(216, 180, 106, 0.4), 0 0 30px rgba(216, 180, 106, 0.2);
+.bg-dot-matrix {
+  background-size: 24px 24px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+}
+
+/* Clean Stark Titanium Typography */
+.text-gradient-titanium {
+  background: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 50%, #94A3B8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Chakravyuh Sacred Formation Animations */
@@ -369,14 +377,14 @@
 .bg-ancient-grid {
   background-size: 48px 48px;
   background-image:
-    linear-gradient(to right, rgba(198, 161, 91, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(198, 161, 91, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 }
 .animate-spin-slow {
   animation: spin 90s linear infinite;
 }
-.text-gold-gradient {
-  background: linear-gradient(135deg, #F0E6D1 0%, #E0BC70 40%, #C6A15B 70%, #806638 100%);
+.text-titanium-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 50%, #94A3B8 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import LandingNavbar from '../components/landing/LandingNavbar';
-import IntroGrandSection from '../components/landing/IntroGrandSection';
 import HeroSection from '../components/landing/HeroSection';
+import LiveMarqueeTicker from '../components/landing/LiveMarqueeTicker';
+import ProtocolSection from '../components/landing/ProtocolSection';
+import TracksSection from '../components/landing/TracksSection';
 import PrizePoolSection from '../components/landing/PrizePoolSection';
 import SponsorsSection from '../components/landing/SponsorsSection';
 import ClubsSection from '../components/landing/ClubsSection';
@@ -17,11 +19,13 @@ export const LandingPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#08090B] text-[#C7BDA9] overflow-x-hidden selection:bg-[#C6A15B] selection:text-[#08090B]">
+    <div className="min-h-screen bg-[#08090C] text-[#F3F4F6] overflow-x-hidden selection:bg-white selection:text-black">
       <LandingNavbar />
       <main>
-        <IntroGrandSection />
         <HeroSection />
+        <LiveMarqueeTicker />
+        <ProtocolSection />
+        <TracksSection />
         <PrizePoolSection />
         <SponsorsSection />
         <ClubsSection />
