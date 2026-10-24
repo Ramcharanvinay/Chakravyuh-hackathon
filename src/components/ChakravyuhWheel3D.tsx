@@ -172,9 +172,9 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
         controlsRef.current.maxDistance = 44;
         controlsRef.current.minDistance = 12;
       } else {
-        cameraRef.current.position.set(4.8, 3.4, 15.5);
-        cameraRef.current.lookAt(0, 0.9, 0);
-        controlsRef.current.target.set(0, 0.9, 0);
+        cameraRef.current.position.set(5.2, 4.0, 17.5);
+        cameraRef.current.lookAt(0, 1.8, 0);
+        controlsRef.current.target.set(0, 1.8, 0);
         controlsRef.current.maxDistance = 32;
         controlsRef.current.minDistance = 9;
       }
@@ -194,6 +194,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
         grp.position.set(Math.cos(rad) * radius, 0.2, Math.sin(rad) * radius);
         grp.scale.set(0.62, 0.62, 0.62);
         grp.rotation.y = 0;
+        grp.getObjectByName('annotations')?.scale.setScalar(0);
       } else {
         // Isolated focus: center the active model, hide others
         const isActive = gate.id === activeGate.id || gate.themeKey === activeGate.themeKey;
@@ -201,6 +202,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
         grp.position.set(0, 0.4, 0);
         grp.scale.set(1.0, 1.0, 1.0);
         grp.rotation.y = 0;
+        grp.getObjectByName('annotations')?.scale.setScalar(1);
       }
     });
   }, [currentMode, activeGate]);
@@ -219,8 +221,8 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       camera.position.set(0, 17.5, 23.5);
       camera.lookAt(0, 0, 0);
     } else {
-      camera.position.set(4.8, 3.4, 15.5);
-      camera.lookAt(0, 0.9, 0);
+      camera.position.set(5.2, 4.0, 17.5);
+      camera.lookAt(0, 1.8, 0);
     }
     cameraRef.current = camera;
 
@@ -260,7 +262,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     controls.autoRotate = false; // STATIC! No self rotation
     controls.maxPolarAngle = Math.PI / 2 + 0.05;
     controls.minPolarAngle = Math.PI / 8;
-    controls.target.set(0, isChakravyuh ? 0 : 0.9, 0);
+    controls.target.set(0, isChakravyuh ? 0 : 1.8, 0);
     controlsRef.current = controls;
 
     // 5. BALANCED HIGH-VISIBILITY STUDIO LIGHTING (NO harsh localized hotspots)
@@ -331,13 +333,23 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     citadelBase.castShadow = true;
     ringsGroup.add(citadelBase);
 
-    const citadelCap = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.5, 0.4, 8), goldPlatedMat);
+    const citadelCap = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.5, 0.4, 8), slateArmorMat);
     citadelCap.position.y = 0.8;
     ringsGroup.add(citadelCap);
 
     const citadelCrown = new THREE.Mesh(new THREE.OctahedronGeometry(0.55, 0), polishedChromeMat);
     citadelCrown.position.y = 1.4;
     ringsGroup.add(citadelCrown);
+
+    // CAD-style outlines on the formation centrepiece
+    [citadelBase, citadelCap, citadelCrown].forEach(m =>
+      m.add(
+        new THREE.LineSegments(
+          new THREE.EdgesGeometry(m.geometry, 20),
+          new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 })
+        )
+      )
+    );
 
     // 5 Radial Strategic Gate Conduits connecting Citadel to the 5 Themes
     for (let i = 0; i < 5; i++) {
@@ -360,7 +372,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     // =========================================================================
     const aniso = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
     const gateModels: [string[], string, THREE.Group][] = [
-      [['track-cybersecurity-blockchain', 'agni'], 'cybersecurity', buildCyberGate()],
+      [['track-cybersecurity-blockchain', 'agni'], 'cybersecurity', buildCyberGate(aniso)],
       [['track-space-technology', 'vayu'], 'space', buildSpaceGate(aniso)],
       [['track-quantum-computing', 'vajra'], 'quantum', buildQuantumGate(aniso)],
       [['track-fintech', 'surya'], 'fintech', buildFintechGate(aniso)],
@@ -386,12 +398,14 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
         grp.position.set(Math.cos(rad) * radius, 0.2, Math.sin(rad) * radius);
         grp.scale.set(0.62, 0.62, 0.62);
         grp.rotation.y = 0;
+        grp.getObjectByName('annotations')?.scale.setScalar(0);
       } else {
         const isActive = gate.id === activeGate.id || gate.themeKey === activeGate.themeKey;
         grp.visible = isActive;
         grp.position.set(0, 0.4, 0);
         grp.scale.set(1.0, 1.0, 1.0);
         grp.rotation.y = 0;
+        grp.getObjectByName('annotations')?.scale.setScalar(1);
       }
     });
 
@@ -416,12 +430,19 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
 
     // 9. RENDER LOOP (STATIC - NO AUTO ROTATION!)
     let animationFrameId: number;
+    const clock = new THREE.Clock();
 
     const renderLoop = () => {
       animationFrameId = requestAnimationFrame(renderLoop);
 
       // OrbitControls allows manual user dragging/rotation without auto-spin
       controls.update();
+
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const t = clock.elapsedTime;
+      stageGroup.children.forEach(c => {
+        if (c.visible && c.userData.update) c.userData.update(t, dt);
+      });
 
       try {
         renderer.render(scene, camera);
