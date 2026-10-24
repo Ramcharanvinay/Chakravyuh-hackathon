@@ -359,44 +359,8 @@ export const dataService = {
     }
 
     // 2. SANDBOX / DEMO MODE
-    let users = getLocalUsers();
-    let teams = getLocalTeams();
-
-    // Auto-provision demo squad if testing with demo credentials
-    if (
-      (trimmedEmail === 'leader@apexpredators.io' || trimmedEmail === '23bce1099' || trimmedEmail === 'apex predators') &&
-      password === 'squad2026'
-    ) {
-      let demoTeam = teams.find(t => t.teamName.toLowerCase() === 'apex predators');
-      if (!demoTeam) {
-        const demoUserId = 'usr_apex_demo';
-        const demoTeamId = 'team_apex_demo';
-        demoTeam = {
-          id: demoTeamId,
-          ownerUserId: demoUserId,
-          teamName: 'Apex Predators',
-          leaderName: 'Arjun Sharma',
-          leaderEmail: 'leader@apexpredators.io',
-          leaderPhone: '23BCE1099',
-          members: [
-            { name: 'Arjun Sharma', email: 'arjun@vitap.ac.in', role: 'Team Lead' },
-            { name: 'Priya Verma', email: 'priya@vitap.ac.in', role: 'Systems Engineer' },
-            { name: 'Rohan Iyer', email: 'rohan@vitap.ac.in', role: 'Fullstack Dev' },
-          ],
-          createdAt: new Date().toISOString(),
-        };
-        const demoUser: LocalUserRecord = {
-          id: demoUserId,
-          email: 'leader@apexpredators.io',
-          passwordHash: btoa('squad2026'),
-          teamId: demoTeamId,
-        };
-        teams.push(demoTeam);
-        users.push(demoUser);
-        localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify(teams));
-        localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
-      }
-    }
+    const users = getLocalUsers();
+    const teams = getLocalTeams();
 
     // Match by email, team name, or leader registration ID
     let user = users.find(u => u.email === trimmedEmail);

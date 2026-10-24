@@ -13,7 +13,6 @@ import {
   Eye,
   EyeOff,
   UserCheck,
-  Zap,
   Plus,
   Trash2,
   CheckCircle2,
@@ -21,7 +20,6 @@ import {
 } from 'lucide-react';
 import { TeamMember } from '../types';
 import { RegistrationPendingError } from '../lib/dataService';
-import { isSupabaseConfigured } from '../lib/supabase';
 import { rosterError, MAX_EXTRA_MEMBERS, TEAM_MIN_SIZE, TEAM_MAX_SIZE } from '../lib/teamRules';
 
 export const LoginPage: React.FC = () => {
@@ -69,19 +67,6 @@ export const LoginPage: React.FC = () => {
       }
     }
   }, [user, team, selection, submission, isLoading, navigate, redirectTarget, searchParams]);
-
-  // Handle 1-Click Demo Squad Login
-  const handleQuickDemoLogin = async () => {
-    setError(null);
-    setIsSubmitting(true);
-    try {
-      await signIn('leader@apexpredators.io', 'squad2026');
-    } catch (err: any) {
-      setError(err?.message || 'Demo authentication failed.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   // Handle Sign In Submit
   const handleSignInSubmit = async (e: React.FormEvent) => {
@@ -338,30 +323,6 @@ export const LoginPage: React.FC = () => {
               </p>
             </div>
 
-            {/* 1-Click Demo Squad Quick Evaluation Badge */}
-            {authMode === 'signin' && !isSupabaseConfigured && (
-              <div className="mb-5 p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-between gap-3">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-amber-300">
-                    <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    <span>EVALUATION DEMO SQUAD</span>
-                  </div>
-                  <div className="text-[11px] text-zinc-400 font-sans">
-                    Auto-fill and log in as <span className="text-white font-medium">Apex Predators</span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleQuickDemoLogin}
-                  disabled={isSubmitting}
-                  className="px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 active:scale-95 text-black font-mono font-bold text-[10px] tracking-wider uppercase transition-all cursor-pointer shrink-0 disabled:opacity-50"
-                >
-                  1-CLICK LOGIN
-                </button>
-              </div>
-            )}
-
             {/* Error Alert */}
             {error && (
               <div className="mb-5 p-3 rounded-xl bg-red-950/40 border border-red-500/30 flex items-start gap-2.5 text-xs text-red-300">
@@ -402,7 +363,7 @@ export const LoginPage: React.FC = () => {
                         type="text"
                         value={signInIdentifier}
                         onChange={(e) => setSignInIdentifier(e.target.value)}
-                        placeholder="e.g. leader@apexpredators.io or 23BCE1099"
+                        placeholder="e.g. leader@vitap.ac.in or 23BCE1099"
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#08090C] border border-white/[0.1] focus:border-white focus:ring-1 focus:ring-white text-xs sm:text-sm text-white placeholder-zinc-600 outline-none transition-colors"
                         required
                       />
