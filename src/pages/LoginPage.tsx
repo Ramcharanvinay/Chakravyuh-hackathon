@@ -20,6 +20,9 @@ import {
   LogOut,
 } from 'lucide-react';
 import { TeamMember } from '../types';
+import { RegistrationPendingError } from '../lib/dataService';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { rosterError, MAX_EXTRA_MEMBERS, TEAM_MIN_SIZE, TEAM_MAX_SIZE } from '../lib/teamRules';
 
 export const LoginPage: React.FC = () => {
   const { user, team, selection, submission, isLoading, signIn, signUp, signOut } = useAuth();
@@ -49,6 +52,7 @@ export const LoginPage: React.FC = () => {
   ]);
 
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // If already authenticated, redirect to target or active stage
@@ -83,6 +87,7 @@ export const LoginPage: React.FC = () => {
   const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setNotice(null);
 
     const ident = signInIdentifier.trim();
     const pass = signInPassword.trim();
@@ -147,6 +152,12 @@ export const LoginPage: React.FC = () => {
         role: m.role || 'Member',
       }));
 
+    const rosterIssue = rosterError(validMembers);
+    if (rosterIssue) {
+      setError(rosterIssue);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await signUp(lEmail, pass, tName, {
@@ -155,7 +166,13 @@ export const LoginPage: React.FC = () => {
         members: validMembers,
       });
     } catch (err: any) {
-      setError(err?.message || 'Squad registration failed. Please try again.');
+      if (err instanceof RegistrationPendingError) {
+        setNotice(err.message);
+        setSignInIdentifier(lEmail);
+        setAuthMode('signin');
+      } else {
+        setError(err?.message || 'Squad registration failed. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -163,11 +180,12 @@ export const LoginPage: React.FC = () => {
 
   // Helper for dynamic member inputs
   const handleAddMember = () => {
-    if (members.length >= 3) return; // Leader + 3 members = max 4
+    if (members.length >= MAX_EXTRA_MEMBERS) return; // Leader + 3 members = max 4
     setMembers([...members, { name: '', email: '', role: 'Developer' }]);
   };
 
   const handleRemoveMember = (idx: number) => {
+    if (members.length <= 1) return; // a squad needs at least 2 people
     setMembers(members.filter((_, i) => i !== idx));
   };
 
@@ -321,7 +339,7 @@ export const LoginPage: React.FC = () => {
             </div>
 
             {/* 1-Click Demo Squad Quick Evaluation Badge */}
-            {authMode === 'signin' && (
+            {authMode === 'signin' && !isSupabaseConfigured && (
               <div className="mb-5 p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-between gap-3">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-amber-300">
@@ -349,6 +367,14 @@ export const LoginPage: React.FC = () => {
               <div className="mb-5 p-3 rounded-xl bg-red-950/40 border border-red-500/30 flex items-start gap-2.5 text-xs text-red-300">
                 <AlertCircle className="w-4 h-4 text-[#FF3B30] shrink-0 mt-0.5" />
                 <p className="leading-relaxed">{error}</p>
+              </div>
+            )}
+
+            {/* Info Notice */}
+            {notice && (
+              <div className="mb-5 p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-start gap-2.5 text-xs text-emerald-300">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <p className="leading-relaxed">{notice}</p>
               </div>
             )}
 
@@ -537,9 +563,9 @@ export const LoginPage: React.FC = () => {
                   <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between">
                       <label className="font-mono text-[10px] font-semibold tracking-wider uppercase text-zinc-400">
-                        Squad Members ({members.length + 1}/4 including lead)
+                        Squad Members ({members.length + 1}/{TEAM_MAX_SIZE} including lead)
                       </label>
-                      {members.length < 3 && (
+                      {members.length < MAX_EXTRA_MEMBERS && (
                         <button
                           type="button"
                           onClick={handleAddMember}
@@ -561,6 +587,7 @@ export const LoginPage: React.FC = () => {
                             type="text"
                             value={m.name}
                             onChange={(e) => handleMemberChange(idx, 'name', e.target.value)}
+                            required
                             placeholder={`Member ${idx + 2} Name`}
                             className="flex-1 px-2.5 py-1 rounded bg-transparent border border-white/[0.08] text-[11px] text-white placeholder-zinc-600 outline-none"
                           />
@@ -574,7 +601,9 @@ export const LoginPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleRemoveMember(idx)}
-                            className="p-1 text-zinc-500 hover:text-red-400 transition-colors cursor-pointer"
+                            disabled={members.length <= 1}
+                            title={members.length <= 1 ? `A squad needs at least ${TEAM_MIN_SIZE} people` : 'Remove member'}
+                            className="p-1 text-zinc-500 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-zinc-500"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -582,6 +611,10 @@ export const LoginPage: React.FC = () => {
                       ))}
                     </div>
                   </div>
+
+                  <p className="text-[10px] font-mono text-zinc-500 leading-relaxed">
+                    Squads have {TEAM_MIN_SIZE} to {TEAM_MAX_SIZE} people including the leader. After registering, only an admin can change your squad.
+                  </p>
 
                   {/* Register Submit Button */}
                   <button

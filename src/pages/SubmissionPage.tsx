@@ -118,9 +118,10 @@ export const SubmissionPage: React.FC = () => {
   const navigate = useNavigate();
 
   // Form state, prefilled from the signed-in squad
-  const [teamName, setTeamName] = useState<string>(() => team?.teamName || '');
-  const [leaderRegNo, setLeaderRegNo] = useState<string>(() => team?.leaderPhone || '');
-  const [leaderEmail, setLeaderEmail] = useState<string>(() => team?.leaderEmail || '');
+  // Squad details come from the registration and can only be changed by an admin.
+  const teamName = team?.teamName || '';
+  const leaderRegNo = team?.leaderPhone || '';
+  const leaderEmail = team?.leaderEmail || '';
   const [githubUrl, setGithubUrl] = useState<string>('');
   const [deployedUrl, setDeployedUrl] = useState<string>('');
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
@@ -233,28 +234,6 @@ export const SubmissionPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Sync actual user entered team details so receipt displays the correct squad information
-      if (team) {
-        team.teamName = cleanTeamName;
-        team.leaderEmail = cleanEmail;
-        team.leaderPhone = cleanRegNo;
-        try {
-          const stored = localStorage.getItem('chakravyuh_local_teams');
-          if (stored) {
-            const list = JSON.parse(stored);
-            const idx = list.findIndex((t: any) => t.id === team.id);
-            if (idx >= 0) {
-              list[idx].teamName = cleanTeamName;
-              list[idx].leaderEmail = cleanEmail;
-              list[idx].leaderPhone = cleanRegNo;
-              localStorage.setItem('chakravyuh_local_teams', JSON.stringify(list));
-            }
-          }
-        } catch {
-          // ignore localStorage sync error
-        }
-      }
-
       // 2. Transmit to Google Form & Linked Spreadsheet
       await sendDataToGoogleForm({
         teamName: cleanTeamName,
@@ -384,6 +363,10 @@ export const SubmissionPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="rounded-2xl bg-charcoal-card border border-charcoal-border p-6 sm:p-8 space-y-6 shadow-gold-subtle">
               
+              <p className="text-[11px] font-sans text-ivory-muted/70 leading-relaxed">
+                Your squad details are locked after registration. Only an admin can change them, so contact the organizers if something is wrong.
+              </p>
+
               {/* Component 1: Team Name */}
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-xs font-sans font-bold text-ivory uppercase tracking-wider">
@@ -393,11 +376,10 @@ export const SubmissionPage: React.FC = () => {
                 <input
                   type="text"
                   required
-                  disabled={isSubmitting}
+                  readOnly
                   value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
                   placeholder="Enter your registered team name"
-                  className="w-full px-4 py-3 rounded-xl bg-obsidian border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-sans text-xs sm:text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
+                  className="w-full px-4 py-3 cursor-not-allowed opacity-70 rounded-xl bg-obsidian border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-sans text-xs sm:text-sm text-ivory placeholder-ivory-muted/40 transition-colors"
                 />
               </div>
 
@@ -412,11 +394,10 @@ export const SubmissionPage: React.FC = () => {
                   <input
                     type="text"
                     required
-                    disabled={isSubmitting}
+                    readOnly
                     value={leaderRegNo}
-                    onChange={(e) => setLeaderRegNo(e.target.value.toUpperCase())}
                     placeholder="e.g. 21BCE10042 / 22MIS0128"
-                    className="w-full px-4 py-3 rounded-xl bg-obsidian border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-mono text-xs sm:text-sm text-ivory placeholder-ivory-muted/40 transition-colors uppercase"
+                    className="w-full px-4 py-3 cursor-not-allowed opacity-70 rounded-xl bg-obsidian border border-charcoal-border focus:border-gold focus:ring-1 focus:ring-gold font-mono text-xs sm:text-sm text-ivory placeholder-ivory-muted/40 transition-colors uppercase"
                   />
                 </div>
 
@@ -429,11 +410,10 @@ export const SubmissionPage: React.FC = () => {
                   <input
                     type="email"
                     required
-                    disabled={isSubmitting}
+                    readOnly
                     value={leaderEmail}
-                    onChange={(e) => setLeaderEmail(e.target.value)}
                     placeholder="e.g. teamlead@vitap.ac.in"
-                    className={`w-full px-4 py-3 rounded-xl bg-obsidian border font-sans text-xs sm:text-sm text-ivory placeholder-ivory-muted/40 transition-colors ${
+                    className={`w-full px-4 py-3 cursor-not-allowed opacity-70 rounded-xl bg-obsidian border font-sans text-xs sm:text-sm text-ivory placeholder-ivory-muted/40 transition-colors ${
                       leaderEmail && !isEmailValid
                         ? 'border-ember focus:border-ember focus:ring-1 focus:ring-ember'
                         : leaderEmail && isEmailValid

@@ -85,3 +85,39 @@ export interface UserSession {
   submission: Submission | null;
   isLoading: boolean;
 }
+
+export type TeamStatus = 'registered' | 'locked' | 'submitted';
+
+export interface AdminTeamRow {
+  id: string;
+  teamName: string;
+  leaderName: string;
+  leaderRegNo: string;
+  leaderEmail: string;
+  members: TeamMember[];
+  teamSize: number;
+  trackId: string | null;
+  problemId: string | null;
+  lockedAt: string | null;
+  submission: { githubRepoUrl: string; deployedUrl: string; submittedAt: string } | null;
+  createdAt: string;
+  status: TeamStatus;
+}
+
+export interface AdminStats {
+  teams: number;
+  participants: number;
+  locked: number;
+  submitted: number;
+  sizeDistribution: Record<string, number>;
+  byTrack: Record<string, number>;
+  registrationsByDay: Record<string, number>;
+}
+
+export interface AdminTeamInput {
+  teamName: string;
+  leaderName: string;
+  leaderRegNo: string;
+  leaderEmail: string;
+  members: TeamMember[];
+}

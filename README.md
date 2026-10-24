@@ -59,30 +59,42 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## 🗄️ SUPABASE CONFIGURATION (PRODUCTION)
 
-### 1. Run PostgreSQL Migrations
-Open your Supabase Project Dashboard -> **SQL Editor**, and execute the migration file:
+Without Supabase credentials the app runs in a local **Sandbox Mode** (data stays in the browser; demo admin `admin@chakravyuh.local` / `admin2026`). With credentials, registrations are stored in Supabase.
+
+### 1. Run the database schema
+Open your Supabase Dashboard -> **SQL Editor**, paste and run
 [`supabase/migrations/20250101000000_chakravyuh_schema.sql`](./supabase/migrations/20250101000000_chakravyuh_schema.sql)
+(it is safe to run more than once). It creates:
+- `teams` and `team_members`: a team is the leader plus **1 to 3 members, so 2 to 4 people**. The limit is enforced inside the database, not just in the UI.
+- `team_selections` and `submissions`: one problem lock and one submission per team.
+- `problem_catalog`: the 50 problem ids, used to validate locks. If you add or rename problems in `hackathonConfig.ts`, update its rows.
+- `admins`: the people allowed to use the admin console.
+- Functions: `register_team`, `lock_team_selection`, `submit_solution` (participants) and `admin_stats`, `admin_list_teams`, `admin_update_team`, `admin_delete_team`, `admin_reset_selection`, `admin_reset_submission` (admins only, each checks `is_admin()`).
 
-This script automatically creates:
-- `teams` table (with unique team names and owner constraints)
-- `tracks` table (5 tracks)
-- `problem_statements` table (50 rich problem statements)
-- `team_selections` table (enforcing 1 selection per team)
-- `submissions` table (enforcing 1 submission per team, GitHub regex, and max size constraints)
-- `lock_team_selection(...)` atomic security definer PostgreSQL function
-- Private `hackathon-ppts` storage bucket and RLS policies
+**Who can change what:** participants can only *read* their own team; they register, lock and submit through the functions above and have no update or delete rights at all. After registration, only an admin can edit a team (name, leader, members), reset its problem lock or submission, or delete it.
 
-### 2. Configure Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
+### 2. Create your admin
+1. Dashboard -> **Authentication -> Users -> Add user** (email + password).
+2. In the SQL Editor run (with that email):
+```sql
+INSERT INTO public.admins (user_id, email)
+SELECT id, email FROM auth.users WHERE email = 'admin@example.com'
+ON CONFLICT (user_id) DO NOTHING;
 ```
-Update your Supabase credentials:
+3. Sign in at `/admin` (the page is not linked anywhere in the public site).
+
+### 3. Authentication settings (recommended)
+Dashboard -> **Authentication -> Providers -> Email**:
+- Turn **Confirm email** OFF so participants are registered the moment they submit the form. If it stays ON, registration still works: participants confirm their email, sign in once, and the squad is created at that first sign-in. Note Supabase's built-in email sender is limited to a few emails per hour, so use a custom SMTP provider if you keep confirmation on.
+- Consider enabling CAPTCHA protection (Authentication -> Attack Protection) to stop bots mass-registering.
+
+### 4. Configure environment variables
+Copy `.env.example` to `.env` (never commit it) and fill in your project values:
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
-VITE_SPLINE_SCENE_URL=https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode
+VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key-here
 ```
+Use the **publishable** (or legacy anon) key only, never the secret/service_role key. Set the same two variables in your hosting provider (e.g. Vercel -> Project Settings -> Environment Variables) and redeploy.
 
 ---
 

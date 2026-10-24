@@ -8,6 +8,7 @@ import { ThemeDetailPage } from './pages/ThemeDetailPage';
 import { ProblemSelectionPage } from './pages/ProblemSelectionPage';
 import { LoginPage } from './pages/LoginPage';
 import { SubmissionPage } from './pages/SubmissionPage';
+import { AdminPage } from './pages/AdminPage';
 
 export const App: React.FC = () => {
   return (
@@ -31,6 +32,9 @@ export const App: React.FC = () => {
 
           {/* 5) Submission chamber */}
           <Route path="/submit" element={<SubmissionPage />} />
+
+          {/* 6) Admin console (unlinked; sign-in required) */}
+          <Route path="/admin" element={<AdminPage />} />
 
           {/* Fallback to landing page */}
           <Route path="*" element={<Navigate to="/" replace />} />

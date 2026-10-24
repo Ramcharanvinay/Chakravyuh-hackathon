@@ -1,6 +1,16 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import { Team, TeamSelection, Submission, TeamMember } from '../types';
+import {
+  Team,
+  TeamSelection,
+  Submission,
+  TeamMember,
+  AdminStats,
+  AdminTeamInput,
+  AdminTeamRow,
+  TeamStatus,
+} from '../types';
 import { HACKATHON_CONFIG } from '../config/hackathonConfig';
+import { cleanMembers, rosterError } from './teamRules';
 
 const LOCAL_TEAMS_KEY = 'chakravyuh_local_teams';
 const LOCAL_USERS_KEY = 'chakravyuh_local_users';
@@ -8,6 +18,59 @@ const LOCAL_SELECTIONS_KEY = 'chakravyuh_local_selections';
 const LOCAL_SUBMISSIONS_KEY = 'chakravyuh_local_submissions';
 const LOCAL_ACTIVE_SESSION_KEY = 'chakravyuh_local_active_session';
 const LOCAL_SPREADSHEET_LOG_KEY = 'chakravyuh_spreadsheet_queue';
+const LOCAL_ADMIN_KEY = 'chakravyuh_local_admin';
+
+// Sandbox-only admin login (used when Supabase is not configured). Live mode uses real accounts.
+export const DEMO_ADMIN = { email: 'admin@chakravyuh.local', password: 'admin2026' };
+
+/** Thrown when Supabase requires email confirmation before the squad can be created. */
+export class RegistrationPendingError extends Error {
+  constructor() {
+    super(
+      'Registration received. Confirm your email using the link we just sent, then sign in here to finish setting up your squad.'
+    );
+    this.name = 'RegistrationPendingError';
+  }
+}
+
+const toRpcMembers = (members: TeamMember[]) =>
+  members.map(m => ({ name: m.name, contact: m.email ?? null, role: m.role ?? 'Member' }));
+
+const mapMembers = (rows: any[] | null | undefined): TeamMember[] =>
+  [...(rows || [])]
+    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+    .map(m => ({ name: m.name, email: m.contact || undefined, role: m.role || 'Member' }));
+
+// Accepts both the register_team JSON ({members}) and a PostgREST row ({team_members}).
+const mapTeamRow = (row: any): Team => ({
+  id: row.id,
+  ownerUserId: row.owner_user_id,
+  teamName: row.team_name,
+  leaderName: row.leader_name || undefined,
+  leaderEmail: row.leader_email,
+  leaderPhone: row.leader_reg_no || undefined,
+  members: mapMembers(row.members ?? row.team_members),
+  createdAt: row.created_at,
+});
+
+const statusOf = (locked: boolean, submitted: boolean): TeamStatus =>
+  submitted ? 'submitted' : locked ? 'locked' : 'registered';
+
+async function registerViaRpc(p: {
+  teamName: string;
+  leaderName: string;
+  leaderRegNo: string;
+  members: TeamMember[];
+}): Promise<Team> {
+  const { data, error } = await supabase!.rpc('register_team', {
+    p_team_name: p.teamName,
+    p_leader_name: p.leaderName,
+    p_leader_reg_no: p.leaderRegNo,
+    p_members: toRpcMembers(p.members),
+  });
+  if (error || !data) throw new Error(error?.message || 'Failed to register team.');
+  return mapTeamRow(data);
+}
 
 interface LocalUserRecord {
   id: string;
@@ -105,7 +168,7 @@ export const dataService = {
     const trimmedEmail = email.trim().toLowerCase();
     const leaderName = extra?.leaderName || 'Team Leader';
     const leaderPhone = extra?.leaderPhone || '';
-    const members = extra?.members || [];
+    const members = cleanMembers(extra?.members);
 
     if (trimmedTeamName.length < 3) {
       throw new Error('Team name must be at least 3 characters long.');
@@ -114,55 +177,58 @@ export const dataService = {
       throw new Error('Team name cannot exceed 60 characters.');
     }
 
+    const rosterIssue = rosterError(members);
+    if (rosterIssue) throw new Error(rosterIssue);
+
     // 1. SUPABASE LIVE MODE
     if (isSupabaseConfigured && supabase) {
-      const { data: existingTeam } = await supabase
-        .from('teams')
-        .select('id')
-        .ilike('team_name', trimmedTeamName)
-        .maybeSingle();
-
-      if (existingTeam) {
-        throw new Error(`The team name "${trimmedTeamName}" is already registered. Please choose another.`);
-      }
-
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: trimmedEmail,
-        password: password,
-      });
-
-      if (authError || !authData.user) {
-        throw new Error(authError?.message || 'Failed to register team leader account.');
-      }
-
-      const userId = authData.user.id;
-
-      const { data: newTeam, error: teamInsertError } = await supabase
-        .from('teams')
-        .insert({
-          owner_user_id: userId,
-          team_name: trimmedTeamName,
-          leader_email: trimmedEmail,
-        })
-        .select()
-        .single();
-
-      if (teamInsertError || !newTeam) {
-        throw new Error(teamInsertError?.message || 'Failed to create team record in database.');
-      }
-
-      const team: Team = {
-        id: newTeam.id,
-        ownerUserId: newTeam.owner_user_id,
-        teamName: newTeam.team_name,
-        leaderName,
-        leaderEmail: newTeam.leader_email,
-        leaderPhone,
+      // The roster rides along in the account metadata so registration can finish after
+      // email confirmation (if the project requires it).
+      const pending = {
+        team_name: trimmedTeamName,
+        leader_name: leaderName,
+        leader_reg_no: leaderPhone,
         members,
-        createdAt: newTeam.created_at,
       };
 
-      // Record to spreadsheet queue
+      const signUp = await supabase.auth.signUp({
+        email: trimmedEmail,
+        password,
+        options: { data: { pending_registration: pending } },
+      });
+
+      let userId = signUp.data.user?.id ?? null;
+      let hasSession = Boolean(signUp.data.session);
+      const alreadyExists =
+        (signUp.error && /already (registered|exists)/i.test(signUp.error.message)) ||
+        (signUp.data.user && signUp.data.user.identities?.length === 0);
+
+      if (alreadyExists) {
+        // Account exists (e.g. an admin removed the team): the owner can finish by signing in.
+        const retry = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
+        if (retry.error || !retry.data.user) {
+          throw new Error('An account with this email already exists. Sign in with your passcode instead.');
+        }
+        userId = retry.data.user.id;
+        hasSession = true;
+      } else if (signUp.error) {
+        throw new Error(signUp.error.message);
+      }
+
+      if (!userId) throw new Error('Failed to register team leader account.');
+      if (!hasSession) throw new RegistrationPendingError();
+
+      const team = await registerViaRpc({
+        teamName: trimmedTeamName,
+        leaderName,
+        leaderRegNo: leaderPhone,
+        members,
+      });
+      void supabase.auth.updateUser({ data: { pending_registration: null } }).then(
+        () => undefined,
+        () => undefined
+      );
+
       logToSpreadsheetQueue({
         registrationId: team.id,
         timestamp: team.createdAt,
@@ -170,7 +236,7 @@ export const dataService = {
         leaderName,
         leaderEmail: team.leaderEmail,
         leaderPhone,
-        teamMembers: members.map(m => m.name).join(', ') || 'N/A',
+        teamMembers: members.map(m => m.name).join(', '),
         themeId: 'pending',
         themeTitle: 'Not Selected',
         problemCode: 'pending',
@@ -247,32 +313,47 @@ export const dataService = {
     if (isSupabaseConfigured && supabase) {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: trimmedEmail,
-        password: password,
+        password,
       });
-
       if (authError || !authData.user) {
         throw new Error(authError?.message || 'Invalid credentials or user not found.');
       }
 
       const userId = authData.user.id;
-
-      const { data: teamData, error: teamErr } = await supabase
+      const { data: teamData } = await supabase
         .from('teams')
-        .select('*')
+        .select('*, team_members(*)')
         .eq('owner_user_id', userId)
-        .single();
+        .maybeSingle();
 
-      if (teamErr || !teamData) {
-        throw new Error('Authenticated, but no team profile is associated with this account.');
+      let team: Team | null = teamData ? mapTeamRow(teamData) : null;
+
+      // Finish a registration that was waiting on email confirmation.
+      if (!team) {
+        const pending = authData.user.user_metadata?.pending_registration;
+        if (pending?.team_name) {
+          try {
+            team = await registerViaRpc({
+              teamName: pending.team_name,
+              leaderName: pending.leader_name,
+              leaderRegNo: pending.leader_reg_no,
+              members: pending.members || [],
+            });
+            void supabase.auth.updateUser({ data: { pending_registration: null } }).then(
+              () => undefined,
+              () => undefined
+            );
+          } catch (err) {
+            await supabase.auth.signOut();
+            throw err;
+          }
+        }
       }
 
-      const team: Team = {
-        id: teamData.id,
-        ownerUserId: teamData.owner_user_id,
-        teamName: teamData.team_name,
-        leaderEmail: teamData.leader_email,
-        createdAt: teamData.created_at,
-      };
+      if (!team) {
+        await supabase.auth.signOut();
+        throw new Error('No squad is registered for this account yet. Use "Register Squad" to create one.');
+      }
 
       return { team, user: { id: userId, email: trimmedEmail } };
     }
@@ -348,50 +429,33 @@ export const dataService = {
       await supabase.auth.signOut();
     }
     localStorage.removeItem(LOCAL_ACTIVE_SESSION_KEY);
+    localStorage.removeItem(LOCAL_ADMIN_KEY);
   },
 
   async getCurrentSession(): Promise<{ user: { id: string; email: string } | null; team: Team | null }> {
     if (isSupabaseConfigured && supabase) {
+      const client = supabase;
+      const load = async () => {
+        const {
+          data: { session },
+        } = await client.auth.getSession();
+        if (!session?.user) return { user: null, team: null };
+        const user = { id: session.user.id, email: session.user.email || '' };
+        const { data: teamData } = await client
+          .from('teams')
+          .select('*, team_members(*)')
+          .eq('owner_user_id', user.id)
+          .maybeSingle();
+        return { user, team: teamData ? mapTeamRow(teamData) : null };
+      };
+      const timeout = new Promise<{ user: null; team: null }>(resolve =>
+        setTimeout(() => resolve({ user: null, team: null }), 6000)
+      );
       try {
-        const client = supabase;
-        const fetchSupabaseSession = async () => {
-          if (!client) return { user: null, team: null };
-          const { data: { session }, error: sessionError } = await client.auth.getSession();
-          if (sessionError || !session || !session.user) {
-            return { user: null, team: null };
-          }
-
-          const userId = session.user.id;
-          const { data: teamData } = await client
-            .from('teams')
-            .select('*')
-            .eq('owner_user_id', userId)
-            .maybeSingle();
-
-          if (!teamData) {
-            return { user: { id: userId, email: session.user.email || '' }, team: null };
-          }
-
-          return {
-            user: { id: userId, email: session.user.email || '' },
-            team: {
-              id: teamData.id,
-              ownerUserId: teamData.owner_user_id,
-              teamName: teamData.team_name,
-              leaderEmail: teamData.leader_email,
-              createdAt: teamData.created_at,
-            },
-          };
-        };
-
-        const timeoutPromise = new Promise<{ user: null; team: null }>((resolve) =>
-          setTimeout(() => resolve({ user: null, team: null }), 3500)
-        );
-
-        const result = await Promise.race([fetchSupabaseSession(), timeoutPromise]);
-        if (result.user) return result;
+        return await Promise.race([load(), timeout]);
       } catch (err) {
-        console.warn('Supabase session fetch failed, falling back to local storage:', err);
+        console.warn('Supabase session fetch failed:', err);
+        return { user: null, team: null };
       }
     }
 
@@ -523,11 +587,7 @@ export const dataService = {
         id: data.id,
         teamId: data.team_id,
         githubRepoUrl: data.github_repo_url,
-        deployedUrl: data.deployed_url || data.ppt_storage_path || '',
-        pptFileName: data.ppt_file_name,
-        pptStoragePath: data.ppt_storage_path,
-        pptSizeBytes: data.ppt_size_bytes,
-        pptMimeType: data.ppt_mime_type,
+        deployedUrl: data.deployed_url || '',
         submittedAt: data.submitted_at,
         spreadsheetSyncStatus: data.spreadsheet_sync_status,
         syncError: data.sync_error,
@@ -570,22 +630,12 @@ export const dataService = {
     if (isSupabaseConfigured && supabase) {
       if (onProgress) onProgress(25);
 
-      const { data: newSub, error: subError } = await supabase
-        .from('submissions')
-        .insert({
-          team_id: teamId,
-          github_repo_url: cleanGithub,
-          ppt_file_name: cleanDeployed,
-          ppt_storage_path: cleanDeployed,
-          ppt_size_bytes: 0,
-          ppt_mime_type: 'text/uri-list',
-          spreadsheet_sync_status: 'pending',
-        })
-        .select()
-        .single();
-
-      if (subError || !newSub) {
-        throw new Error(`Failed to record submission: ${subError?.message || 'Database error'}`);
+      const { data: sub, error: subError } = await supabase.rpc('submit_solution', {
+        p_github_url: cleanGithub,
+        p_deployed_url: cleanDeployed,
+      });
+      if (subError || !sub) {
+        throw new Error(subError?.message || 'Failed to record submission.');
       }
 
       if (onProgress) onProgress(75);
@@ -595,9 +645,8 @@ export const dataService = {
 
       try {
         const { data: edgeData, error: edgeError } = await supabase.functions.invoke('sync-sheets', {
-          body: { submissionId: newSub.id, teamId, deployedUrl: cleanDeployed },
+          body: { submissionId: sub.id, teamId, deployedUrl: cleanDeployed },
         });
-
         if (edgeError) {
           syncStatus = 'failed';
           syncError = edgeError.message;
@@ -612,15 +661,11 @@ export const dataService = {
       if (onProgress) onProgress(100);
 
       return {
-        id: newSub.id,
-        teamId: newSub.team_id,
-        githubRepoUrl: newSub.github_repo_url,
-        deployedUrl: cleanDeployed,
-        pptFileName: cleanDeployed,
-        pptStoragePath: cleanDeployed,
-        pptSizeBytes: 0,
-        pptMimeType: 'text/uri-list',
-        submittedAt: newSub.submitted_at,
+        id: sub.id,
+        teamId: sub.team_id,
+        githubRepoUrl: sub.github_repo_url,
+        deployedUrl: sub.deployed_url,
+        submittedAt: sub.submitted_at,
         spreadsheetSyncStatus: syncStatus,
         syncError,
       };
@@ -682,6 +727,208 @@ export const dataService = {
     }
 
     return submission;
+  },
+
+  // ==========================================
+  // ADMIN: live mode calls SECURITY DEFINER functions that check is_admin();
+  // sandbox mode works on the local demo data.
+  // ==========================================
+  async adminSession(): Promise<{ signedIn: boolean; isAdmin: boolean; email: string }> {
+    if (isSupabaseConfigured && supabase) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) return { signedIn: false, isAdmin: false, email: '' };
+      const { data, error } = await supabase.rpc('is_admin');
+      return { signedIn: true, isAdmin: !error && data === true, email: session.user.email || '' };
+    }
+    const isAdmin = localStorage.getItem(LOCAL_ADMIN_KEY) === '1';
+    return { signedIn: isAdmin, isAdmin, email: isAdmin ? DEMO_ADMIN.email : '' };
+  },
+
+  async adminSignIn(email: string, password: string): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+      if (error || !data.user) throw new Error(error?.message || 'Invalid admin credentials.');
+      const session = await this.adminSession();
+      if (!session.isAdmin) {
+        await supabase.auth.signOut();
+        throw new Error('This account does not have admin access.');
+      }
+      return;
+    }
+    if (email.trim().toLowerCase() === DEMO_ADMIN.email && password === DEMO_ADMIN.password) {
+      localStorage.setItem(LOCAL_ADMIN_KEY, '1');
+      return;
+    }
+    throw new Error('Invalid admin credentials.');
+  },
+
+  async adminGetOverview(): Promise<{ stats: AdminStats; teams: AdminTeamRow[] }> {
+    if (isSupabaseConfigured && supabase) {
+      const [statsRes, listRes] = await Promise.all([supabase.rpc('admin_stats'), supabase.rpc('admin_list_teams')]);
+      if (statsRes.error) throw new Error(statsRes.error.message);
+      if (listRes.error) throw new Error(listRes.error.message);
+      const st = statsRes.data || {};
+      return {
+        stats: {
+          teams: st.teams ?? 0,
+          participants: st.participants ?? 0,
+          locked: st.locked ?? 0,
+          submitted: st.submitted ?? 0,
+          sizeDistribution: st.size_distribution ?? {},
+          byTrack: st.by_track ?? {},
+          registrationsByDay: st.registrations_by_day ?? {},
+        },
+        teams: ((listRes.data as any[]) || []).map(r => ({
+          id: r.id,
+          teamName: r.team_name,
+          leaderName: r.leader_name || '',
+          leaderRegNo: r.leader_reg_no || '',
+          leaderEmail: r.leader_email,
+          members: mapMembers(r.members),
+          teamSize: r.team_size,
+          trackId: r.track_id ?? null,
+          problemId: r.problem_id ?? null,
+          lockedAt: r.locked_at ?? null,
+          submission: r.submission
+            ? {
+                githubRepoUrl: r.submission.github_repo_url,
+                deployedUrl: r.submission.deployed_url,
+                submittedAt: r.submission.submitted_at,
+              }
+            : null,
+          createdAt: r.created_at,
+          status: statusOf(Boolean(r.track_id), Boolean(r.submission)),
+        })),
+      };
+    }
+
+    if (localStorage.getItem(LOCAL_ADMIN_KEY) !== '1') throw new Error('Forbidden: admin only.');
+    const selections = getLocalSelections();
+    const submissions = getLocalSubmissions();
+    const teams: AdminTeamRow[] = getLocalTeams()
+      .map(t => {
+        const sel = selections.find(x => x.teamId === t.id);
+        const sub = submissions.find(x => x.teamId === t.id);
+        return {
+          id: t.id,
+          teamName: t.teamName,
+          leaderName: t.leaderName || '',
+          leaderRegNo: t.leaderPhone || '',
+          leaderEmail: t.leaderEmail,
+          members: t.members || [],
+          teamSize: 1 + (t.members?.length || 0),
+          trackId: sel?.trackId ?? null,
+          problemId: sel?.problemStatementId ?? null,
+          lockedAt: sel?.lockedAt ?? null,
+          submission: sub
+            ? { githubRepoUrl: sub.githubRepoUrl, deployedUrl: sub.deployedUrl, submittedAt: sub.submittedAt }
+            : null,
+          createdAt: t.createdAt,
+          status: statusOf(Boolean(sel), Boolean(sub)),
+        };
+      })
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+    const count = (keys: (string | null)[]) =>
+      keys.reduce<Record<string, number>>((acc, k) => {
+        if (k) acc[k] = (acc[k] || 0) + 1;
+        return acc;
+      }, {});
+    const since = Date.now() - 14 * 86400000;
+    return {
+      teams,
+      stats: {
+        teams: teams.length,
+        participants: teams.reduce((n, t) => n + t.teamSize, 0),
+        locked: teams.filter(t => t.trackId).length,
+        submitted: teams.filter(t => t.submission).length,
+        sizeDistribution: count(teams.map(t => String(t.teamSize))),
+        byTrack: count(teams.map(t => t.trackId)),
+        registrationsByDay: count(
+          teams.filter(t => new Date(t.createdAt).getTime() > since).map(t => t.createdAt.slice(0, 10))
+        ),
+      },
+    };
+  },
+
+  async adminUpdateTeam(teamId: string, input: AdminTeamInput): Promise<void> {
+    const name = input.teamName.trim();
+    const members = cleanMembers(input.members);
+    if (name.length < 3 || name.length > 60) throw new Error('Team name must be 3 to 60 characters.');
+    if (!input.leaderName.trim() || !input.leaderRegNo.trim() || !input.leaderEmail.trim()) {
+      throw new Error('Leader name, registration number and email are required.');
+    }
+    const rosterIssue = rosterError(members);
+    if (rosterIssue) throw new Error(rosterIssue);
+
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.rpc('admin_update_team', {
+        p_team_id: teamId,
+        p_team_name: name,
+        p_leader_name: input.leaderName.trim(),
+        p_leader_reg_no: input.leaderRegNo.trim(),
+        p_leader_email: input.leaderEmail.trim(),
+        p_members: toRpcMembers(members),
+      });
+      if (error) throw new Error(error.message);
+      return;
+    }
+
+    if (localStorage.getItem(LOCAL_ADMIN_KEY) !== '1') throw new Error('Forbidden: admin only.');
+    const teams = getLocalTeams();
+    const idx = teams.findIndex(t => t.id === teamId);
+    if (idx < 0) throw new Error('Team not found.');
+    if (teams.some(t => t.id !== teamId && t.teamName.toLowerCase() === name.toLowerCase())) {
+      throw new Error(`The team name "${name}" is already registered.`);
+    }
+    teams[idx] = {
+      ...teams[idx],
+      teamName: name,
+      leaderName: input.leaderName.trim(),
+      leaderPhone: input.leaderRegNo.trim(),
+      leaderEmail: input.leaderEmail.trim(),
+      members,
+    };
+    localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify(teams));
+  },
+
+  async adminDeleteTeam(teamId: string): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.rpc('admin_delete_team', { p_team_id: teamId });
+      if (error) throw new Error(error.message);
+      return;
+    }
+    if (localStorage.getItem(LOCAL_ADMIN_KEY) !== '1') throw new Error('Forbidden: admin only.');
+    localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify(getLocalTeams().filter(t => t.id !== teamId)));
+    localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(getLocalUsers().filter(u => u.teamId !== teamId)));
+    localStorage.setItem(LOCAL_SELECTIONS_KEY, JSON.stringify(getLocalSelections().filter(x => x.teamId !== teamId)));
+    localStorage.setItem(LOCAL_SUBMISSIONS_KEY, JSON.stringify(getLocalSubmissions().filter(x => x.teamId !== teamId)));
+  },
+
+  async adminResetSelection(teamId: string): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.rpc('admin_reset_selection', { p_team_id: teamId });
+      if (error) throw new Error(error.message);
+      return;
+    }
+    if (localStorage.getItem(LOCAL_ADMIN_KEY) !== '1') throw new Error('Forbidden: admin only.');
+    localStorage.setItem(LOCAL_SELECTIONS_KEY, JSON.stringify(getLocalSelections().filter(x => x.teamId !== teamId)));
+    localStorage.setItem(LOCAL_SUBMISSIONS_KEY, JSON.stringify(getLocalSubmissions().filter(x => x.teamId !== teamId)));
+  },
+
+  async adminResetSubmission(teamId: string): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.rpc('admin_reset_submission', { p_team_id: teamId });
+      if (error) throw new Error(error.message);
+      return;
+    }
+    if (localStorage.getItem(LOCAL_ADMIN_KEY) !== '1') throw new Error('Forbidden: admin only.');
+    localStorage.setItem(LOCAL_SUBMISSIONS_KEY, JSON.stringify(getLocalSubmissions().filter(x => x.teamId !== teamId)));
   },
 
   // Retain for backward compatibility
