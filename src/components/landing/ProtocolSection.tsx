@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { ShieldCheck, Cpu, Target, Layers, ArrowUpRight, GitBranch } from 'lucide-react';
+import { ShieldCheck, Cpu, Target, Layers, GitBranch } from 'lucide-react';
 
 const pillars = [
   {
@@ -112,7 +112,6 @@ export const ProtocolSection: React.FC = () => {
                 {/* Bottom Hairline Highlight */}
                 <div className="mt-8 pt-4 border-t border-white/[0.06] flex items-center justify-between text-zinc-500 font-mono text-[10px] tracking-widest uppercase">
                   <span>STAGE {pillar.step} OF 03</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                 </div>
               </div>
             );

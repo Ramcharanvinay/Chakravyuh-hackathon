@@ -16,7 +16,7 @@ export const VenueSection: React.FC = () => {
   const { ref, inView } = useInView();
 
   const MAPS_URL =
-    'https://maps.google.com/?q=VIT-AP+University,+Amaravati,+Andhra+Pradesh,+India';
+    'https://www.google.com/maps/search/?api=1&query=VIT-AP+University,+Amaravati,+Andhra+Pradesh,+India';
 
   return (
     <section id="venue" className="relative py-28 bg-[#090A0E] overflow-hidden border-t border-white/[0.08]">

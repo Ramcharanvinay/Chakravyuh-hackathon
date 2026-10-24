@@ -28,7 +28,7 @@
 
 ## 🎨 THE FIVE BATTLE TRACKS
 
-All track names, descriptions, and problem statements are fully editable in [`src/config/hackathonConfig.ts`](file:///c:/chakravuyh/src/config/hackathonConfig.ts) or directly in the Supabase `tracks` and `problem_statements` tables.
+All track names, descriptions, and problem statements are fully editable in [`src/config/hackathonConfig.ts`](./src/config/hackathonConfig.ts) or directly in the Supabase `tracks` and `problem_statements` tables.
 
 1. **AGNI** — Ember Red (`#E05A47`), Molten Orange & Copper. Focus: Cybersecurity, Cryptographic Defense, Zero-Day Detection.
 2. **VAJRA** — Electric Blue (`#3B82F6`), Steel & Silver. Focus: AI/ML, Autonomous Tactical Swarms, Computer Vision, Edge Intelligence.
@@ -61,7 +61,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### 1. Run PostgreSQL Migrations
 Open your Supabase Project Dashboard -> **SQL Editor**, and execute the migration file:
-[`supabase/migrations/20250101000000_chakravyuh_schema.sql`](file:///c:/chakravuyh/supabase/migrations/20250101000000_chakravyuh_schema.sql)
+[`supabase/migrations/20250101000000_chakravyuh_schema.sql`](./supabase/migrations/20250101000000_chakravyuh_schema.sql)
 
 This script automatically creates:
 - `teams` table (with unique team names and owner constraints)
@@ -120,7 +120,7 @@ When a team submits their PowerPoint presentation:
 ## ⚙️ EDITING TRACKS & OFFICIAL PROBLEM STATEMENTS
 
 Organizers can customize college names, hackathon titles, deadlines, tracks, and official problem statements in one central location:
-[`src/config/hackathonConfig.ts`](file:///c:/chakravuyh/src/config/hackathonConfig.ts)
+[`src/config/hackathonConfig.ts`](./src/config/hackathonConfig.ts)
 
 ```typescript
 export const HACKATHON_CONFIG = {

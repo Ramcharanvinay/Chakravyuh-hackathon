@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Users2, ArrowUpRight } from 'lucide-react';
+import { Users2 } from 'lucide-react';
 
 const clubs = [
   {
@@ -97,7 +97,6 @@ export const ClubsSection: React.FC = () => {
 
                 <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between text-zinc-500 font-mono text-[10px] tracking-wider uppercase">
                   <span>VIT-AP UNIVERSITY</span>
-                  <ArrowUpRight className="w-4 h-4 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                 </div>
               </div>
             </div>

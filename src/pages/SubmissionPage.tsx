@@ -117,20 +117,10 @@ export const SubmissionPage: React.FC = () => {
   const { team, selection, submission, isLoading, submitSolution } = useAuth();
   const navigate = useNavigate();
 
-  // Form states without assumption of 'Garuda'
-  const [teamName, setTeamName] = useState<string>(() => {
-    if (team?.teamName && !team.teamName.toLowerCase().includes('garuda')) {
-      return team.teamName;
-    }
-    return '';
-  });
-  const [leaderRegNo, setLeaderRegNo] = useState<string>('');
-  const [leaderEmail, setLeaderEmail] = useState<string>(() => {
-    if (team?.leaderEmail && !team.leaderEmail.toLowerCase().includes('garuda') && !team.leaderEmail.includes('warrior.817')) {
-      return team.leaderEmail;
-    }
-    return '';
-  });
+  // Form state, prefilled from the signed-in squad
+  const [teamName, setTeamName] = useState<string>(() => team?.teamName || '');
+  const [leaderRegNo, setLeaderRegNo] = useState<string>(() => team?.leaderPhone || '');
+  const [leaderEmail, setLeaderEmail] = useState<string>(() => team?.leaderEmail || '');
   const [githubUrl, setGithubUrl] = useState<string>('');
   const [deployedUrl, setDeployedUrl] = useState<string>('');
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
@@ -144,7 +134,10 @@ export const SubmissionPage: React.FC = () => {
 
   // Guard: If team has NOT locked a selection yet, redirect to /tracks
   useEffect(() => {
-    if (!isLoading && team && !selection && !submission) {
+    if (isLoading) return;
+    if (!team) {
+      navigate('/login?redirect=%2Fsubmit', { replace: true });
+    } else if (!selection && !submission) {
       navigate('/tracks', { replace: true });
     }
   }, [team, selection, submission, isLoading, navigate]);
@@ -244,7 +237,7 @@ export const SubmissionPage: React.FC = () => {
       if (team) {
         team.teamName = cleanTeamName;
         team.leaderEmail = cleanEmail;
-        team.leaderName = cleanRegNo;
+        team.leaderPhone = cleanRegNo;
         try {
           const stored = localStorage.getItem('chakravyuh_local_teams');
           if (stored) {

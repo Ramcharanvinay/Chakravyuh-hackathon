@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { HACKATHON_CONFIG } from '../config/hackathonConfig';
@@ -28,17 +28,18 @@ export const ThemeDetailPage: React.FC = () => {
   const { team, selection, submission, isLoading, lockSelection } = useAuth();
 
   // Find track matching slug or id
-  const currentTrack = useMemo(() => {
-    return (
+  const matchedTrack = useMemo(
+    () =>
       HACKATHON_CONFIG.tracks.find(
         t =>
           t.slug === themeSlug ||
           t.id === themeSlug ||
           t.themeKey === themeSlug ||
           t.name.toLowerCase() === (themeSlug || '').toLowerCase()
-      ) || HACKATHON_CONFIG.tracks[0]
-    );
-  }, [themeSlug]);
+      ),
+    [themeSlug]
+  );
+  const currentTrack = matchedTrack || HACKATHON_CONFIG.tracks[0];
 
   // Filter 10 problems belonging to this theme
   const themeProblems = useMemo(() => {
@@ -64,11 +65,14 @@ export const ThemeDetailPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (selection && selection.trackId === currentTrack.id) {
-      setSelectedProblemId(selection.problemStatementId);
-      setExpandedProblemId(selection.problemStatementId);
-    }
-  }, [selection, currentTrack.id]);
+    const id =
+      selection && selection.trackId === currentTrack.id
+        ? selection.problemStatementId
+        : themeProblems[0]?.id || null;
+    setSelectedProblemId(id);
+    setExpandedProblemId(id);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [selection, currentTrack.id, themeProblems]);
 
   const isLockedToThisTheme = Boolean(selection && selection.trackId === currentTrack.id);
   const isLockedToOtherTheme = Boolean(selection && selection.trackId !== currentTrack.id);
@@ -130,6 +134,8 @@ export const ThemeDetailPage: React.FC = () => {
         return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
     }
   };
+
+  if (!matchedTrack) return <Navigate to="/tracks" replace />;
 
   if (isLoading) {
     return (

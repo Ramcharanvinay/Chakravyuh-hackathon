@@ -384,7 +384,7 @@ export const HACKATHON_CONFIG: HackathonConfig = {
       datasets: [
         { name: "NVD Vulnerability Data Feeds", url: "https://nvd.nist.gov/vuln/data-feeds" },
         { name: "CISA Known Exploited Vulnerabilities (KEV)", url: "https://www.cisa.gov/known-exploited-vulnerabilities-catalog" },
-        { name: "EPSS Exploit Prediction Scores", url: "https://www.first.org/epss/data_stats" }
+        { name: "EPSS Exploit Prediction Scores", url: "https://www.first.org/epss/data" }
       ]
     },
 
@@ -620,7 +620,7 @@ export const HACKATHON_CONFIG: HackathonConfig = {
         { name: "SEN12MS Dataset", url: "https://mediatum.ub.tum.de/1474000" },
         { name: "BigEarthNet Benchmark", url: "https://bigearth.net" },
         { name: "ISRO Bhuvan LULC Portals", url: "https://bhuvan.nrsc.gov.in" },
-        { name: "Radiant MLHub Crop Datasets", url: "https://mlhub.earth" }
+        { name: "Source Cooperative (ex-Radiant MLHub) EO Datasets", url: "https://source.coop/" }
       ]
     },
     {
@@ -972,7 +972,7 @@ export const HACKATHON_CONFIG: HackathonConfig = {
       datasets: [
         { name: "SROIE Document Extraction Benchmark", url: "https://rrc.cvc.uab.es/?ch=13" },
         { name: "FUNSD Form Understanding Dataset", url: "https://guillaumejaume.github.io/FUNSD/" },
-        { name: "LFW Labeled Faces in the Wild", url: "https://vis-www.cs.umass.edu/lfw/" }
+        { name: "LFW Labeled Faces in the Wild", url: "https://www.tensorflow.org/datasets/catalog/lfw" }
       ]
     },
     {
@@ -1360,7 +1360,7 @@ export const HACKATHON_CONFIG: HackathonConfig = {
       ],
       suggestedTech: ["Python", "Pandas", "scikit-learn", "FastAPI", "PostgreSQL", "React", "Recharts"],
       datasets: [
-        { name: "Building Data Genome Project 2 (BDG2)", url: "https://github.com/szunhammer/building-data-genome-project-2" },
+        { name: "Building Data Genome Project 2 (BDG2)", url: "https://github.com/buds-lab/building-data-genome-project-2" },
         { name: "NASA POWER Climate Data", url: "https://power.larc.nasa.gov" }
       ]
     },

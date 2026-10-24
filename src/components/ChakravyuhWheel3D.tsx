@@ -483,32 +483,34 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
         </div>
 
         {/* View Mode Toggle Pill */}
+        {!propViewMode && (
         <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-full border border-white/[0.1]">
-          <button
-            type="button"
-            onClick={() => setInternalViewMode('chakravyuh')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono tracking-wider transition-all cursor-pointer ${
-              currentMode === 'chakravyuh'
-                ? 'bg-white text-black font-bold shadow-sm'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            <Eye className="w-3 h-3" />
-            <span>FORMATION</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setInternalViewMode('isolated')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono tracking-wider transition-all cursor-pointer ${
-              currentMode === 'isolated'
-                ? 'bg-white text-black font-bold shadow-sm'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            <RotateCw className="w-3 h-3" />
-            <span>FOCUSED</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => setInternalViewMode('chakravyuh')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono tracking-wider transition-all cursor-pointer ${
+                currentMode === 'chakravyuh'
+                  ? 'bg-white text-black font-bold shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <Eye className="w-3 h-3" />
+              <span>FORMATION</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setInternalViewMode('isolated')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono tracking-wider transition-all cursor-pointer ${
+                currentMode === 'isolated'
+                  ? 'bg-white text-black font-bold shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <RotateCw className="w-3 h-3" />
+              <span>FOCUSED</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main 3D Canvas Viewport (100% Interactive, Drag to Rotate 360°) */}

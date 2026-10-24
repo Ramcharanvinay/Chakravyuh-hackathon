@@ -402,40 +402,13 @@ export const dataService = {
 
     try {
       const parsed = JSON.parse(sessionStr);
-      const teams = getLocalTeams();
-      let team = teams.find(t => t.id === parsed.teamId) || null;
-      if (!team) {
-        team = {
-          id: parsed.teamId,
-          ownerUserId: parsed.userId,
-          teamName: 'Garuda Squad 713',
-          leaderName: 'Squad Leader',
-          leaderEmail: parsed.email || 'warrior.817@chakravyuh.org',
-          createdAt: new Date().toISOString(),
-        };
-        localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify([...teams, team]));
-      }
-      return {
-        user: { id: parsed.userId, email: parsed.email },
-        team,
-      };
+      const team = getLocalTeams().find(t => t.id === parsed.teamId) || null;
+      if (team) return { user: { id: parsed.userId, email: parsed.email }, team };
     } catch {
-      const defaultTeamId = 'team_garuda_713';
-      const defaultUserId = 'usr_garuda_713';
-      const defaultEmail = 'warrior.817@chakravyuh.org';
-      const defaultTeam: Team = {
-        id: defaultTeamId,
-        ownerUserId: defaultUserId,
-        teamName: 'Garuda Squad 713',
-        leaderName: 'Squad Leader',
-        leaderEmail: defaultEmail,
-        createdAt: new Date().toISOString(),
-      };
-      return {
-        user: { id: defaultUserId, email: defaultEmail },
-        team: defaultTeam,
-      };
+      // fall through to a clean signed-out state
     }
+    localStorage.removeItem(LOCAL_ACTIVE_SESSION_KEY);
+    return { user: null, team: null };
   },
 
   // ==========================================

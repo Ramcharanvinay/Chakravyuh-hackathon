@@ -25,7 +25,9 @@ export const LoginPage: React.FC = () => {
   const { user, team, selection, submission, isLoading, signIn, signUp, signOut } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTarget = searchParams.get('redirect');
+  // Only same-site absolute paths are valid redirect targets (blocks //host and scheme URLs)
+  const rawRedirect = searchParams.get('redirect');
+  const redirectTarget = rawRedirect && /^\/(?![/\\])/.test(rawRedirect) ? rawRedirect : null;
 
   // Mode: 'signin' | 'register'
   const [authMode, setAuthMode] = useState<'signin' | 'register'>('signin');
@@ -70,11 +72,6 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       await signIn('leader@apexpredators.io', 'squad2026');
-      if (redirectTarget) {
-        navigate(redirectTarget, { replace: true });
-      } else {
-        navigate('/tracks', { replace: true });
-      }
     } catch (err: any) {
       setError(err?.message || 'Demo authentication failed.');
     } finally {
@@ -102,11 +99,6 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       await signIn(ident, pass);
-      if (redirectTarget) {
-        navigate(redirectTarget, { replace: true });
-      } else {
-        navigate('/tracks', { replace: true });
-      }
     } catch (err: any) {
       setError(err?.message || 'Invalid squad credentials. Please verify your details.');
     } finally {
@@ -162,12 +154,6 @@ export const LoginPage: React.FC = () => {
         leaderPhone: lReg,
         members: validMembers,
       });
-
-      if (redirectTarget) {
-        navigate(redirectTarget, { replace: true });
-      } else {
-        navigate('/tracks', { replace: true });
-      }
     } catch (err: any) {
       setError(err?.message || 'Squad registration failed. Please try again.');
     } finally {
@@ -265,6 +251,7 @@ export const LoginPage: React.FC = () => {
                 type="button"
                 onClick={async () => {
                   await signOut();
+                  navigate('/login', { replace: true });
                 }}
                 className="w-full py-3 rounded-xl border border-white/[0.1] hover:bg-white/[0.05] text-zinc-400 hover:text-white font-mono text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2"
               >

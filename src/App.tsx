@@ -12,7 +12,7 @@ import { SubmissionPage } from './pages/SubmissionPage';
 export const App: React.FC = () => {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
         <Routes>
           {/* 1) Landing page */}
