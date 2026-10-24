@@ -79,12 +79,12 @@ export const TracksSection: React.FC = () => {
         </div>
 
         {/* Five Track Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
           {tracks.map((track, idx) => (
             <div
               key={track.id}
               onClick={() => navigate(`/theme/${track.slug}`)}
-              className={`group relative rounded-2xl bg-[#12141C] border border-white/[0.08] ${getTrackAccentBorder(
+              className={`group relative rounded-2xl bg-[#12141C] border border-white/[0.08] lg:col-span-2 ${idx === 3 ? 'lg:col-start-2' : ''} ${idx === 4 ? 'md:col-span-2' : ''} ${getTrackAccentBorder(
                 track.themeKey
               )} p-8 flex flex-col justify-between transition-all duration-300 hover:bg-[#161822] cursor-pointer shadow-[0_10px_30px_rgba(0,0,0,0.5)] ${
                 inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -93,8 +93,8 @@ export const TracksSection: React.FC = () => {
             >
               <div>
                 {/* Header: Track Number & Sanskrit Name Badge */}
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.06]">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-3 mb-6 pb-4 min-h-[5rem] border-b border-white/[0.06]">
+                  <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-xl bg-[#08090C] border border-white/[0.08] flex items-center justify-center">
                       {getTrackIcon(track.themeKey)}
                     </div>
@@ -108,7 +108,7 @@ export const TracksSection: React.FC = () => {
                     </div>
                   </div>
 
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-mono tracking-wider bg-[#08090C] border border-white/[0.08] text-zinc-400 font-semibold">
+                  <span className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full text-[10px] font-mono tracking-wider bg-[#08090C] border border-white/[0.08] text-zinc-400 font-semibold">
                     10 PROBLEMS
                   </span>
                 </div>

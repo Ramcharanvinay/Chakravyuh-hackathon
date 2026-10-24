@@ -44,23 +44,17 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({ currentStep }) => 
 
   return (
     <div className="w-full max-w-4xl mx-auto my-6 px-4">
-      <div className="relative flex items-center justify-between">
-        {/* Connecting Line */}
-        <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-px bg-white/[0.08] z-0" />
-        <div
-          className="absolute left-6 top-1/2 -translate-y-1/2 h-px bg-white transition-all duration-500 z-0"
-          style={{
-            width: currentStep === 1 ? '0%' : currentStep === 2 ? '50%' : '100%',
-          }}
-        />
-
-        {steps.map((step) => {
+      <div className="relative flex items-center">
+        {steps.map((step, idx) => {
           const isDone = step.isCompleted;
           const isActive = step.isActive;
 
           return (
+            <React.Fragment key={step.number}>
+            {idx > 0 && (
+              <div className={`flex-1 min-w-3 h-px transition-colors duration-500 ${currentStep > idx ? 'bg-white' : 'bg-white/[0.08]'}`} />
+            )}
             <button
-              key={step.number}
               type="button"
               onClick={() => {
                 if (step.canNavigate) {
@@ -68,7 +62,7 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({ currentStep }) => 
                 }
               }}
               disabled={!step.canNavigate}
-              className={`relative z-10 flex flex-col sm:flex-row items-center gap-2 sm:gap-3 px-3.5 sm:px-4 py-2 rounded-xl transition-all duration-300 font-mono ${
+              className={`relative z-10 shrink-0 flex flex-col sm:flex-row items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 rounded-xl transition-all duration-300 font-mono ${
                 isActive
                   ? 'bg-[#161822] border border-white/40 shadow-lg'
                   : isDone
@@ -106,6 +100,7 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({ currentStep }) => 
                 </span>
               </div>
             </button>
+            </React.Fragment>
           );
         })}
       </div>

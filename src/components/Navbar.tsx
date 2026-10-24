@@ -23,7 +23,7 @@ export const Navbar: React.FC = () => {
         {/* Brand & College Title */}
         <Link to="/" className="flex items-center gap-3.5 group">
           {/* Animated Ancient Luxury Wheel Emblem */}
-          <div className="relative w-12 h-12 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center">
+          <div className="relative w-10 h-10 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center">
             <img
               src="/chakravyuh-luxury-wheel.svg"
               alt="Chakravyuh Emblem"
@@ -33,11 +33,11 @@ export const Navbar: React.FC = () => {
 
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="font-cinzel text-xl sm:text-2xl font-black tracking-[0.14em] text-white group-hover:text-zinc-200 transition-colors">
+              <span className="font-cinzel text-lg sm:text-2xl font-black tracking-[0.14em] text-white group-hover:text-zinc-200 transition-colors">
                 CHAKRAVYUH
               </span>
             </div>
-            <span className="font-mono text-[10px] font-semibold text-zinc-500 tracking-widest uppercase truncate max-w-[220px] sm:max-w-none">
+            <span className="hidden sm:block font-mono text-[10px] font-semibold text-zinc-500 tracking-widest uppercase truncate sm:max-w-none">
               {HACKATHON_CONFIG.collegeName} • {HACKATHON_CONFIG.edition}
             </span>
           </div>
@@ -72,7 +72,7 @@ export const Navbar: React.FC = () => {
           )}
 
           {/* Collaborated Clubs Logo: ACS X IQUEST */}
-          <div className="flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 rounded-xl bg-[#12141C] border border-white/[0.1] shadow-sm">
+          <div className="flex items-center gap-2 sm:gap-2.5 px-2 sm:px-3 py-1.5 rounded-xl bg-[#12141C] border border-white/[0.1] shadow-sm">
             {/* ACS Logo */}
             <div className="flex items-center gap-1.5">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden bg-[#3428d8] border border-indigo-400/30 flex items-center justify-center p-0.5 shadow-sm">
@@ -82,7 +82,7 @@ export const Navbar: React.FC = () => {
                   className="w-full h-full object-contain rounded-md"
                 />
               </div>
-              <span className="font-mono font-bold text-xs tracking-wider text-zinc-200">
+              <span className="hidden sm:inline font-mono font-bold text-xs tracking-wider text-zinc-200">
                 ACS
               </span>
             </div>
@@ -101,7 +101,7 @@ export const Navbar: React.FC = () => {
                   className="w-full h-full object-contain rounded-md"
                 />
               </div>
-              <span className="font-mono font-bold text-xs tracking-wider text-zinc-200">
+              <span className="hidden sm:inline font-mono font-bold text-xs tracking-wider text-zinc-200">
                 IQUEST
               </span>
             </div>
@@ -144,10 +144,11 @@ export const Navbar: React.FC = () => {
 
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-[#08090C] hover:bg-zinc-200 active:scale-[0.98] font-mono text-xs uppercase tracking-wider font-bold transition-all shadow-[0_4px_20px_rgba(255,255,255,0.1)] cursor-pointer"
+                aria-label="Squad sign in"
+                className="inline-flex items-center gap-2 px-3 sm:px-5 py-2.5 rounded-full bg-white text-[#08090C] hover:bg-zinc-200 active:scale-[0.98] font-mono text-xs uppercase tracking-wider font-bold transition-all shadow-[0_4px_20px_rgba(255,255,255,0.1)] cursor-pointer"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                <span>SQUAD SIGN IN</span>
+                <span className="hidden sm:inline">SQUAD SIGN IN</span>
               </Link>
             </>
           )}

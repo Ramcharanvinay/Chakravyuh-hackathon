@@ -361,7 +361,7 @@ export const SubmissionPage: React.FC = () => {
               </div>
               {lockedProblem && (
                 <div className="flex items-center gap-2">
-                  <span className="px-1.5 py-0.5 rounded bg-gold/15 text-gold font-mono text-[10px]">
+                  <span className="shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded bg-gold/15 text-gold font-mono text-[10px]">
                     {lockedProblem.problemCode}
                   </span>
                   <span className="text-ivory-muted/90 font-medium truncate max-w-[280px] sm:max-w-[320px]">

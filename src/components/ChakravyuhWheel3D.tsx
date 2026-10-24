@@ -158,17 +158,17 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     // Camera target and position adjustment
     if (cameraRef.current && controlsRef.current) {
       if (isChakravyuh) {
-        cameraRef.current.position.set(0, 18, 24);
+        cameraRef.current.position.set(0, 20, 27);
         cameraRef.current.lookAt(0, 0, 0);
         controlsRef.current.target.set(0, 0, 0);
-        controlsRef.current.maxDistance = 38;
+        controlsRef.current.maxDistance = 44;
         controlsRef.current.minDistance = 12;
       } else {
-        cameraRef.current.position.set(4.5, 3.2, 12.0);
-        cameraRef.current.lookAt(0, 0.5, 0);
-        controlsRef.current.target.set(0, 0.5, 0);
-        controlsRef.current.maxDistance = 24;
-        controlsRef.current.minDistance = 7;
+        cameraRef.current.position.set(6.5, 4.5, 22);
+        cameraRef.current.lookAt(0, 0.9, 0);
+        controlsRef.current.target.set(0, 0.9, 0);
+        controlsRef.current.maxDistance = 38;
+        controlsRef.current.minDistance = 12;
       }
       controlsRef.current.update();
     }
@@ -208,11 +208,11 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     const isChakravyuh = currentMode === 'chakravyuh';
     const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
     if (isChakravyuh) {
-      camera.position.set(0, 18, 24);
+      camera.position.set(0, 20, 27);
       camera.lookAt(0, 0, 0);
     } else {
-      camera.position.set(4.5, 3.2, 12.0);
-      camera.lookAt(0, 0.5, 0);
+      camera.position.set(6.5, 4.5, 22);
+      camera.lookAt(0, 0.9, 0);
     }
     cameraRef.current = camera;
 
@@ -246,7 +246,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     controls.autoRotate = false; // STATIC! No self rotation
     controls.maxPolarAngle = Math.PI / 2 + 0.05;
     controls.minPolarAngle = Math.PI / 8;
-    controls.target.set(0, isChakravyuh ? 0 : 0.5, 0);
+    controls.target.set(0, isChakravyuh ? 0 : 0.9, 0);
     controlsRef.current = controls;
 
     // 5. BALANCED HIGH-VISIBILITY STUDIO LIGHTING (NO harsh localized hotspots)
@@ -350,7 +350,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     scene.add(stageGroup);
 
     // =========================================================================
-    // CHAKRAVYUH 5 CONCENTRIC RINGS & CENTRAL CITADEL
+    // CHAKRAVYUH CENTRAL CITADEL & RADIAL GATE CONDUITS
     // (Rendered in 'chakravyuh' mode for the grand landing page formation)
     // =========================================================================
     const ringsGroup = new THREE.Group();
@@ -371,42 +371,11 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     citadelCrown.position.y = 1.4;
     ringsGroup.add(citadelCrown);
 
-    // 5 Concentric Circular Rings of Chakravyuh
-    const ringRadii = [2.4, 4.4, 6.4, 8.4, 10.2];
-    ringRadii.forEach((r, idx) => {
-      // Ring Tube Floor
-      const ringTube = new THREE.Mesh(
-        new THREE.TorusGeometry(r, 0.05, 12, 64),
-        new THREE.MeshStandardMaterial({
-          color: idx === 2 ? 0xffb703 : 0x475569,
-          roughness: 0.2,
-          metalness: 0.8,
-        })
-      );
-      ringTube.rotation.x = Math.PI / 2;
-      ringTube.position.y = 0.02;
-      ringsGroup.add(ringTube);
-
-      // Delicate Hairline Guide Ring
-      const ringFlat = new THREE.Mesh(
-        new THREE.RingGeometry(r - 0.015, r + 0.015, 64),
-        new THREE.MeshBasicMaterial({
-          color: 0xffffff,
-          opacity: 0.35,
-          transparent: true,
-          side: THREE.DoubleSide,
-        })
-      );
-      ringFlat.rotation.x = -Math.PI / 2;
-      ringFlat.position.y = 0.03;
-      ringsGroup.add(ringFlat);
-    });
-
     // 5 Radial Strategic Gate Conduits connecting Citadel to the 5 Themes
     for (let i = 0; i < 5; i++) {
       const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
-      const xEnd = Math.cos(angle) * 10.2;
-      const zEnd = Math.sin(angle) * 10.2;
+      const xEnd = Math.cos(angle) * 6.4;
+      const zEnd = Math.sin(angle) * 6.4;
       const conduitGeo = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0.04, 0),
         new THREE.Vector3(xEnd, 0.04, zEnd),
@@ -449,10 +418,6 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     cipherDrum.position.set(0, 0.8, 0.35);
     cyberGroup.add(cipherDrum);
 
-    // Vivid Crimson Cipher Dial Ring
-    const cipherRing = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.09, 16, 48), crimsonMat);
-    cipherRing.position.set(0, 0.8, 0.4);
-    cyberGroup.add(cipherRing);
 
     // Hardened Titanium Shackle
     const shackle = new THREE.Mesh(
@@ -600,11 +565,6 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       flange.position.y = t.y;
       flange.castShadow = true;
       quantumGroup.add(flange);
-
-      const flangeRing = new THREE.Mesh(new THREE.TorusGeometry(t.r, 0.05, 12, 48), violetMat);
-      flangeRing.rotation.x = Math.PI / 2;
-      flangeRing.position.y = t.y;
-      quantumGroup.add(flangeRing);
     });
 
     // Chrome Coaxial Waveguide Cryo-Lines
@@ -622,19 +582,10 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     chipCanister.castShadow = true;
     quantumGroup.add(chipCanister);
 
-    // Quantum Bloch Sphere & Superposition State Ring
+    // Quantum Bloch Sphere
     const qOrb = new THREE.Mesh(new THREE.SphereGeometry(0.45, 24, 24), violetMat);
     qOrb.position.set(0, 0.7, 0);
     quantumGroup.add(qOrb);
-
-    const qRing1 = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.045, 16, 48), violetMat);
-    qRing1.position.set(0, 0.7, 0);
-    quantumGroup.add(qRing1);
-
-    const qRing2 = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.045, 16, 48), violetMat);
-    qRing2.position.set(0, 0.7, 0);
-    qRing2.rotation.x = Math.PI / 2;
-    quantumGroup.add(qRing2);
 
     // =========================================================================
     // THEME 4: FINTECH (Imperial Amber Gold #FFB703)
@@ -652,11 +603,6 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
     coin.position.set(0, 0.9, 0);
     coin.castShadow = true;
     fintechGroup.add(coin);
-
-    const coinChromeRim = new THREE.Mesh(new THREE.TorusGeometry(2.3, 0.08, 16, 48), polishedChromeMat);
-    coinChromeRim.rotation.x = Math.PI / 2;
-    coinChromeRim.position.set(0, 0.9, 0);
-    fintechGroup.add(coinChromeRim);
 
     // Currency Inscription Symbol
     const cStem = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.6, 0.5), brushedTitaniumMat);
@@ -745,11 +691,6 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       energyGroup.add(pvEdge);
     });
 
-    // Bio-Energy Torus Catalyst
-    const helixBase = new THREE.Mesh(new THREE.TorusGeometry(2.1, 0.08, 16, 48), emeraldMat);
-    helixBase.rotation.x = Math.PI / 2;
-    helixBase.position.set(0, -1.9, 0);
-    energyGroup.add(helixBase);
 
     // Initial Layout Setup based on viewMode
     FIVE_GATES_CONFIG.forEach((gate, idx) => {
@@ -872,7 +813,7 @@ export const ChakravyuhWheel3D: React.FC<ChakravyuhWheel3DProps> = ({
       />
 
       {/* Floating 360° Drag Interaction Hint */}
-      <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-20 pointer-events-none opacity-60 hover:opacity-100 transition-opacity">
+      <div className="mt-1 z-20 pointer-events-none opacity-60">
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-mono text-zinc-400">
           <RotateCw className="w-2.5 h-2.5 text-zinc-300" />
           <span>DRAG TO ROTATE 360°</span>

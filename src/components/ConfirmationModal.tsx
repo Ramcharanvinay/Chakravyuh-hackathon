@@ -89,8 +89,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             </div>
 
             <div className="space-y-1 pt-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 rounded bg-white/10 text-white font-bold text-[10px] tracking-wider">
+              <div className="flex items-start gap-2 mb-1">
+                <span className="shrink-0 whitespace-nowrap px-2 py-0.5 rounded bg-white/10 text-white font-bold text-[10px] tracking-wider">
                   {problem.problemCode}
                 </span>
                 <span className="font-cinzel font-bold text-white text-sm">

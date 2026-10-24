@@ -218,7 +218,7 @@ export const ProblemSelectionPage: React.FC = () => {
           )}
 
           {/* Problem Cards: Responsive 2-Column Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 items-start gap-5 sm:gap-6 mt-8">
             {trackProblems.map(problem => {
               const isSelected = selectedProblemId === problem.id;
               const isExpanded = expandedProblemId === problem.id;
