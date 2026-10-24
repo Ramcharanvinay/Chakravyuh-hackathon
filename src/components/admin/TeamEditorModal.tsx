@@ -183,7 +183,7 @@ export const TeamEditorModal: React.FC<Props> = ({ team, onClose, onChanged }) =
             )}
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div className="sticky bottom-0 -mx-6 px-6 py-3 bg-[#0E1016]/95 backdrop-blur border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
               {team.status !== 'registered' && (
                 <button

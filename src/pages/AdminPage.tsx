@@ -23,6 +23,7 @@ import { TeamEditorModal } from '../components/admin/TeamEditorModal';
 
 type Phase = 'loading' | 'login' | 'denied' | 'ready';
 type StatusFilter = 'all' | TeamStatus;
+const PAGE_SIZE = 25;
 
 const STATUS_STYLE: Record<TeamStatus, string> = {
   registered: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30',
@@ -56,13 +57,14 @@ function exportCsv(teams: AdminTeamRow[]) {
   URL.revokeObjectURL(url);
 }
 
-const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: React.ReactNode; hint?: string }> = ({
+const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: React.ReactNode; hint?: string; wide?: boolean }> = ({
   icon,
   label,
   value,
   hint,
+  wide,
 }) => (
-  <div className="rounded-2xl bg-[#12141C] border border-white/[0.08] p-5">
+  <div className={`rounded-2xl bg-[#12141C] border border-white/[0.08] p-5 ${wide ? 'col-span-2 lg:col-span-1' : ''}`}>
     <div className="flex items-center justify-between text-zinc-500">
       <span className="font-mono text-[10px] tracking-[0.2em] uppercase">{label}</span>
       {icon}
@@ -106,6 +108,7 @@ export const AdminPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sizeFilter, setSizeFilter] = useState<'all' | '2' | '3' | '4'>('all');
+  const [visible, setVisible] = useState(PAGE_SIZE);
 
   const load = useCallback(async (quiet = false) => {
     if (!quiet) setRefreshing(true);
@@ -113,7 +116,15 @@ export const AdminPage: React.FC = () => {
       setData(await dataService.adminGetOverview());
       setError(null);
     } catch (e: any) {
-      setError(e?.message || 'Could not load registrations.');
+      const msg: string = e?.message || 'Could not load registrations.';
+      // An expired or revoked session should return to the sign-in form, not show a raw error.
+      if (/jwt|expired|not authenticated|forbidden/i.test(msg)) {
+        setData(null);
+        setPhase('login');
+        setError('Your session ended. Please sign in again.');
+      } else {
+        setError(msg);
+      }
     } finally {
       setRefreshing(false);
     }
@@ -168,12 +179,14 @@ export const AdminPage: React.FC = () => {
       if (statusFilter !== 'all' && t.status !== statusFilter) return false;
       if (sizeFilter !== 'all' && String(t.teamSize) !== sizeFilter) return false;
       if (!q) return true;
-      return [t.teamName, t.leaderName, t.leaderEmail, t.leaderRegNo, ...t.members.map(m => m.name)]
+      return [t.teamName, t.leaderName, t.leaderEmail, t.leaderRegNo, ...t.members.flatMap(m => [m.name, m.email || ''])]
         .join(' ')
         .toLowerCase()
         .includes(q);
     });
   }, [teams, search, statusFilter, sizeFilter]);
+
+  useEffect(() => setVisible(PAGE_SIZE), [search, statusFilter, sizeFilter]);
 
   const shell = (children: React.ReactNode) => (
     <div className="min-h-screen bg-[#08090C] text-[#F3F4F6]">{children}</div>
@@ -293,9 +306,10 @@ export const AdminPage: React.FC = () => {
             <button
               onClick={() => exportCsv(filtered)}
               disabled={!filtered.length}
-              className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-white/[0.1] text-zinc-300 hover:bg-white/[0.06] font-mono text-[11px] tracking-wider uppercase transition-colors cursor-pointer disabled:opacity-40"
+              aria-label="Export CSV"
+              className="flex items-center gap-2 p-2.5 sm:px-3.5 rounded-xl border border-white/[0.1] text-zinc-300 hover:bg-white/[0.06] font-mono text-[11px] tracking-wider uppercase transition-colors cursor-pointer disabled:opacity-40"
             >
-              <Download className="w-4 h-4" /> Export CSV
+              <Download className="w-4 h-4" /> <span className="hidden sm:inline">Export CSV</span>
             </button>
             <button
               onClick={signOut}
@@ -323,6 +337,7 @@ export const AdminPage: React.FC = () => {
           <StatCard
             icon={<CheckCircle2 className="w-4 h-4" />}
             label="Team size rule"
+            wide
             value={`${TEAM_MIN_SIZE}–${TEAM_MAX_SIZE}`}
             hint="leader + members"
           />
@@ -404,7 +419,7 @@ export const AdminPage: React.FC = () => {
               {teams.length === 0 ? 'No teams have registered yet.' : 'No teams match these filters.'}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="relative overflow-x-auto hidden md:block">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="font-mono text-[10px] tracking-[0.15em] uppercase text-zinc-500 border-b border-white/[0.06]">
@@ -418,7 +433,7 @@ export const AdminPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(t => {
+                  {filtered.slice(0, visible).map(t => {
                     const track = HACKATHON_CONFIG.tracks.find(x => x.id === t.trackId);
                     const prob = HACKATHON_CONFIG.problemStatements.find(x => x.id === t.problemId);
                     return (
@@ -463,6 +478,59 @@ export const AdminPage: React.FC = () => {
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {filtered.length > 0 && (
+            <ul className="md:hidden divide-y divide-white/[0.06]">
+              {filtered.slice(0, visible).map(t => {
+                const track = HACKATHON_CONFIG.tracks.find(x => x.id === t.trackId);
+                const prob = HACKATHON_CONFIG.problemStatements.find(x => x.id === t.problemId);
+                return (
+                  <li key={t.id} className="p-4 space-y-2.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-white break-words">{t.teamName}</div>
+                        <div className="text-xs text-zinc-500 mt-0.5 break-words">{t.members.map(m => m.name).join(', ')}</div>
+                      </div>
+                      <span className={`shrink-0 px-2.5 py-1 rounded-full border font-mono text-[10px] tracking-wider uppercase ${STATUS_STYLE[t.status]}`}>
+                        {t.status}
+                      </span>
+                    </div>
+                    <div className="text-xs text-zinc-400">
+                      {t.leaderName || '–'} <span className="font-mono text-zinc-500">{t.leaderRegNo}</span>
+                      <div className="text-zinc-500 break-all">{t.leaderEmail}</div>
+                    </div>
+                    {track && (
+                      <div className="text-xs">
+                        <span style={{ color: track.accentColor }} className="font-semibold">{track.name}</span>
+                        {prob && <span className="text-zinc-500"> · {prob.problemCode} {prob.title}</span>}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="font-mono text-[10px] text-zinc-500">{t.teamSize} people · {new Date(t.createdAt).toLocaleDateString()}</span>
+                      <button
+                        onClick={() => setEditing(t)}
+                        aria-label={`Edit ${t.teamName}`}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-white/[0.12] text-zinc-300 hover:bg-white hover:text-black font-mono text-[10px] tracking-wider uppercase transition-colors cursor-pointer"
+                      >
+                        <Pencil className="w-3.5 h-3.5" /> Edit
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          {filtered.length > visible && (
+            <div className="p-4 text-center border-t border-white/[0.06]">
+              <button
+                onClick={() => setVisible(v => v + PAGE_SIZE)}
+                className="px-5 py-2.5 rounded-xl border border-white/[0.12] text-zinc-300 hover:bg-white hover:text-black font-mono text-[11px] tracking-wider uppercase transition-colors cursor-pointer"
+              >
+                Show more ({filtered.length - visible} left)
+              </button>
             </div>
           )}
         </section>
