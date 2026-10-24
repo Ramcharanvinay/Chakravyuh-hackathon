@@ -887,7 +887,7 @@ export function buildFintechGate(aniso: number): THREE.Group {
 }
 
 // ---------------------------------------------------------------------------
-// 5. ENERGY & SUSTAINABILITY: spinning wind turbines with airflow, PV, BESS
+// 5. ENERGY & SUSTAINABILITY: spinning wind turbines, PV, BESS
 // ---------------------------------------------------------------------------
 
 const bladeGeometry = (L: number) => {
@@ -1001,56 +1001,6 @@ export function buildEnergyGate(aniso: number): THREE.Group {
   turbine(A.x, A.z, 1, -1.5);
   turbine(2.5, -2.0, 0.62, -2.1);
 
-  // Airflow streamlines: pass through, and wake behind, turbine A
-  const COUNT = 90;
-  const LEN = 1.7;
-  type Streak = { rho: number; phi: number; z: number; v: number };
-  const state: Streak[] = Array.from({ length: COUNT }, () => ({ rho: 0, phi: 0, z: 0, v: 0 }));
-  const reset = (s: Streak, initial: boolean) => {
-    s.rho = Math.sqrt(Math.random()) * 3.1;
-    s.phi = Math.random() * Math.PI * 2;
-    s.z = initial ? -6.5 + Math.random() * 12.5 : 6 + Math.random() * 0.5;
-    s.v = 2.4 + Math.random() * 0.8;
-  };
-  state.forEach(s => reset(s, true));
-  const fPos = new Float32Array(COUNT * 4 * 3);
-  const fCol = new Float32Array(COUNT * 4 * 3);
-  const flowGeo = new THREE.BufferGeometry();
-  flowGeo.setAttribute('position', new THREE.BufferAttribute(fPos, 3));
-  flowGeo.setAttribute('color', new THREE.BufferAttribute(fCol, 3));
-  const base = new THREE.Color(0xa8f4ff);
-  for (let i = 0; i < COUNT; i++)
-    [1, 0.5, 0.5, 0].forEach((k, j) => {
-      const o = i * 12 + j * 3;
-      fCol[o] = base.r * k;
-      fCol[o + 1] = base.g * k;
-      fCol[o + 2] = base.b * k;
-    });
-  const flow = new THREE.LineSegments(
-    flowGeo,
-    new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })
-  );
-  flow.frustumCulled = false;
-  const flowGroup = new THREE.Group();
-  flowGroup.position.set(A.x, 0.3 + 3.73, A.z);
-  flowGroup.rotation.y = YAW;
-  flowGroup.translateZ(0.78);
-  flowGroup.add(flow);
-  g.add(flowGroup);
-  const put = (s: Streak, z: number, o: number) => {
-    const inRotor = s.rho < 2.4;
-    let rho = s.rho;
-    let phi = s.phi;
-    if (z > 0) rho = s.rho * (1 - (inRotor ? 0.1 : 0.03) * Math.exp(-z * 0.5));
-    else if (inRotor) {
-      rho = s.rho * (1 + 0.2 * (1 - Math.exp(z * 0.35)));
-      phi = s.phi + 0.6 * (1 - Math.exp(z * 0.4));
-    } else rho = s.rho * (1 + 0.04 * (1 - Math.exp(z * 0.3)));
-    fPos[o] = rho * Math.cos(phi);
-    fPos[o + 1] = rho * Math.sin(phi);
-    fPos[o + 2] = z;
-  };
-
   // PV array
   const cellMat = phys(0xffffff, { map: solarTexture(aniso, 8, 6), metalness: 0.5, roughness: 0.22, clearcoat: 1 });
   const frame = phys(0xaab3c0, { metalness: 0.9, roughness: 0.3 });
@@ -1073,17 +1023,6 @@ export function buildEnergyGate(aniso: number): THREE.Group {
 
   setUpdate(g, (_t, dt) => {
     spinners.forEach(s => (s.obj.rotation[s.axis] += s.speed * dt));
-    for (let i = 0; i < COUNT; i++) {
-      const s = state[i];
-      s.z -= s.v * (s.z < 0 && s.rho < 2.4 ? 0.65 : 1) * dt;
-      if (s.z < -6.5) reset(s, false);
-      const o = i * 12;
-      put(s, s.z, o);
-      put(s, s.z + LEN * 0.5, o + 3);
-      put(s, s.z + LEN * 0.5, o + 6);
-      put(s, s.z + LEN, o + 9);
-    }
-    flowGeo.attributes.position.needsUpdate = true;
   });
 
   callout(ann, 'ROTOR Ø 82 m', new THREE.Vector3(-1.5, 5.3, 0.1), new THREE.Vector3(-3.4, 5.8, 0.2), emerald);
