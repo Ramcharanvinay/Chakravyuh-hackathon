@@ -24,7 +24,7 @@
 
   <p align="center">
     <img src="https://img.shields.io/badge/STATUS-PRODUCTION_READY-00C853?style=flat-square&logo=render&logoColor=white" alt="Production Ready" />
-    <img src="https://img.shields.io/badge/PRIZE_POOL-%E2%82%B97%2C00%2C000_INR-FFD700?style=flat-square&logo=cashapp&logoColor=black" alt="Prize Pool INR 7 Lakhs" />
+    <img src="https://img.shields.io/badge/WORTH_PRIZE_POOL-%E2%82%B97%2C00%2C000_INR-FFD700?style=flat-square&logo=cashapp&logoColor=black" alt="Worth Prize Pool INR 7 Lakhs" />
     <img src="https://img.shields.io/badge/SECURITY-STRICT_DB_RLS-E05A47?style=flat-square&logo=auth0&logoColor=white" alt="Security RLS" />
     <img src="https://img.shields.io/badge/BATTLE_GATES-5_TRACKS-8B5CF6?style=flat-square" alt="5 Battle Gates" />
     <img src="https://img.shields.io/badge/CHALLENGES-50_DOSSIERS-0284C7?style=flat-square" alt="50 Problem Statements" />

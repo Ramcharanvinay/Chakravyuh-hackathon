@@ -109,7 +109,7 @@ export const HeroSection: React.FC = () => {
               className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 pt-8 border-t border-white/[0.08] w-full max-w-2xl text-left"
             >
               {[
-                { val: '₹7,00,000', label: 'PRIZE POOL' },
+                { val: '₹7,00,000', label: 'WORTH PRIZE POOL' },
                 { val: '50',       label: 'CHALLENGES' },
                 { val: '05',       label: 'BATTLE TRACKS' },
                 { val: '48 HRS',   label: 'ARENA SPRINT' },
