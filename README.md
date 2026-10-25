@@ -33,7 +33,7 @@
 
 ---
 
-  ### ⚡ [Explore Arena](#-battle-gates--domains) &bull; [System Architecture](#-system-architecture) &bull; [Participant Journey](#-participant-lifecycle--state-machine) &bull; [Database & RLS](#-security-model--database-schema) &bull; [Quickstart](#-developer-quickstart) &bull; [Edge Functions](#-google-sheets-synchronization-edge-function) &bull; [Admin Console](#-administrative-command-deck)
+  ### 🌐 [**Live Site**](https://chakravyuh-sigma.vercel.app) &bull; ⚡ [Explore Arena](#-battle-gates--domains) &bull; [System Architecture](#-system-architecture) &bull; [Participant Journey](#-participant-lifecycle--state-machine) &bull; [Database & RLS](#-security-model--database-schema) &bull; [Quickstart](#-developer-quickstart) &bull; [Edge Functions](#-google-sheets-synchronization-edge-function) &bull; [Admin Console](#-administrative-command-deck)
 
 ---
 
@@ -46,12 +46,12 @@
 **CHAKRAVYUH** is an enterprise-grade hackathon management and competition portal engineered for high-concurrency national collegiate events. Built for **VIT-AP University**, it reinterprets the ancient, impenetrable multi-tier military labyrinth from Indian epic lore into a high-octane digital arena.
 
 Unlike standard forms or static hackathon listing sites, Chakravyuh is an **interactive visual experience** combining:
-1. **Concentric 7-Ring Shortest-Path Rotation Engine**: A mathematically calibrated 2D Canvas/SVG wheel and interactive 3D Three.js WebGL arena.
+1. **CAD-Style 3D Gate Models**: Five procedural Three.js models, one per battle gate (server rack and hash-linked blocks, communications satellite, dilution refrigerator, payment devices, spinning wind turbines), with crisp edge lines and drafting-style labelled callouts.
 2. **5 Specialized Battle Gates with Custom Cultural Atmospheres**: Dynamic GPU-accelerated backdrop particle systems (Agni, Vayu, Vajra, Surya, Vanam).
 3. **50 Granular Problem Statements**: Categorized dossiers with evaluation criteria, suggested technology stacks, and direct dataset links.
 4. **Ironclad Database-Level Atomic Locks**: Zero-trust PostgreSQL Row Level Security (RLS) and stored procedures guaranteeing **strictly one immutable problem lock** per team.
-5. **Inner Chamber Submission Pipeline**: Real-time GitHub regex validation, 25MB PowerPoint binary stream directly to Supabase Storage, and instantaneous automated synchronization to Google Sheets via serverless Deno Edge Functions with RS256 JWT auth.
-6. **Zero-Mock Production Integrity**: Strict rejection of guest or mock data; every squad is authenticated and backed by real PostgreSQL records.
+5. **Inner Chamber Submission Pipeline**: Real-time GitHub repository and live-site URL validation (in the browser and again in the database), then automated synchronization to Google Sheets via a serverless Deno Edge Function with RS256 JWT auth.
+6. **Zero-Mock Production Integrity**: There is no demo or sandbox mode. Every squad and every admin signs in with a real Supabase account, and without its Supabase connection the site shows a "not connected" screen instead of storing anything.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -67,35 +67,31 @@ Unlike standard forms or static hackathon listing sites, Chakravyuh is an **inte
 
 ## 🏛️ System Architecture
 
-Chakravyuh separates participant interactions, state mutations, file storage, and administrative telemetry into isolated layers:
+Chakravyuh separates participant interactions, state mutations, and administrative telemetry into isolated layers:
 
 ```mermaid
 flowchart TD
     subgraph CLIENT["⚡ FRONTEND CLIENT (React 18 + Vite + Tailwind)"]
         UI_HOME["Landing Page<br/>(Cinematic Editorial + Hero 3D)"]
-        UI_WHEEL["Concentric 7-Ring Wheel<br/>(Shortest-Path SVG / Three.js)"]
+        UI_WHEEL["3D Gate Models<br/>(CAD-style Three.js scenes)"]
         UI_DOSSIER["50 Problem Dossiers<br/>(Filtered by Track Gate)"]
-        UI_SUBMIT["Inner Chamber<br/>(25MB PPT Uploader + GitHub Regex)"]
+        UI_SUBMIT["Inner Chamber<br/>(GitHub + Live URL Validation)"]
         UI_ADMIN["Admin Command Deck<br/>(Metrics, Team Editor, Manual Resets)"]
     end
 
     subgraph AUTH["🔐 IDENTITY & ACCESS (Supabase Auth)"]
         AUTH_PASS["Email + Passcode Authentication"]
-        AUTH_RECOVERY["PKCE Password Reset & Session Recovery"]
+        AUTH_RECOVERY["Emailed Password Reset & Session Recovery"]
     end
 
     subgraph DB["🛡️ DATA TIER (PostgreSQL 15 with Row Level Security)"]
         TBL_TEAMS[("teams & team_members<br/>[Trigger: 2-4 Members]")]
         TBL_LOCKS[("team_selections<br/>[UNIQUE Constraint]")]
-        TBL_SUBS[("submissions<br/>[GitHub + Storage Path]")]
+        TBL_SUBS[("submissions<br/>[GitHub + Live URL]")]
         TBL_ADMINS[("admins<br/>[is_admin() Security Definer]")]
         
         RPC_LOCK["RPC: lock_team_selection()<br/>• Atomic Row Lock<br/>• Catalog Validation<br/>• Immutable Write"]
         RPC_SUBMIT["RPC: submit_solution()<br/>• Submission Verification<br/>• Idempotent Receipt"]
-    end
-
-    subgraph STORAGE["📦 OBJECT STORAGE"]
-        BUCKET["Private Bucket: hackathon-ppts<br/>(25MB Max File Size Enforced)"]
     end
 
     subgraph SERVERLESS["⚙️ EDGE COMPUTING (Supabase Deno Edge Function)"]
@@ -113,7 +109,6 @@ flowchart TD
     UI_WHEEL --> UI_DOSSIER
     UI_DOSSIER --> RPC_LOCK
     RPC_LOCK --> TBL_LOCKS
-    UI_SUBMIT --> BUCKET
     UI_SUBMIT --> RPC_SUBMIT
     RPC_SUBMIT --> TBL_SUBS
     RPC_SUBMIT -.->|Async Webhook / Fetch| EDGE_SYNC
@@ -163,7 +158,7 @@ stateDiagram-v2
     [*] --> Unauthenticated: Visitor Lands on Portal
 
     state Unauthenticated {
-        ExplorePublic: Browse Editorial, 3D Wheel, Tracks & Prizes
+        ExplorePublic: Browse Editorial, 3D Gate Models, Tracks & Prizes
         AuthModal: Sign In or Register Squad
     }
 
@@ -174,7 +169,7 @@ stateDiagram-v2
     end note
 
     state Registered {
-        BrowseGates: Rotate Concentric Wheel (2D / 3D)
+        BrowseGates: Explore the 3D Gate Models
         ViewDossiers: Inspect 10 Track Challenges
         ConfirmModal: 2-Step Confirmation Modal
     }
@@ -190,7 +185,7 @@ stateDiagram-v2
         ChamberAccess: Unlock Inner Chamber Route (/submit)
         DraftSolution: Build Prototype during 48hr Sprint
         ValidateRepo: GitHub Repository Regex Check
-        UploadDeck: Upload PPT/PPTX (<= 25MB) to Supabase Storage
+        SubmitLinks: GitHub repository + live deployed URL
     }
 
     ProblemLocked --> Submitted: submit_solution() RPC
@@ -245,25 +240,23 @@ erDiagram
     team_selections {
         uuid id PK
         uuid team_id FK "UNIQUE - ONE LOCK PER SQUAD"
-        string problem_id FK "REFERENCES problem_catalog"
-        timestamp selected_at
+        string track_id
+        string problem_statement_id "Validated against problem_catalog"
+        timestamp locked_at
     }
 
     submissions {
         uuid id PK
         uuid team_id FK "UNIQUE - ONE SUBMISSION PER SQUAD"
-        string github_url "Checked with Regex"
-        string ppt_url "Supabase Storage Path"
+        string github_repo_url "Checked with Regex"
+        string deployed_url "Live site (http or https)"
+        string spreadsheet_sync_status
         timestamp submitted_at
-        timestamp updated_at
     }
 
     problem_catalog {
-        string id PK "prob-cb-01 to prob-es-10"
+        string problem_id PK "prob-cb-01 to prob-es-10"
         string track_id
-        string problem_code
-        string title
-        string difficulty
     }
 
     admins {
@@ -275,14 +268,16 @@ erDiagram
 
 ### PostgreSQL Access Control Matrix
 
-| Table / Resource | Anonymous | Squad Member | Squad Leader (Owner) | Platform Admin | Enforced By |
-|---|:---:|:---:|:---:|:---:|---|
-| **`teams`** | Denied | `SELECT` (Own Team) | `SELECT` (Own Team) | Full Access | RLS + `owner_user_id = auth.uid()` |
-| **`team_members`** | Denied | `SELECT` (Own Team) | `SELECT` (Own Team) | Full Access | RLS + `enforce_team_size()` Deferred Trigger |
-| **`problem_catalog`** | `SELECT` | `SELECT` | `SELECT` | Full Access | Public Catalog RLS |
-| **`team_selections`** | Denied | `SELECT` (Own Lock) | Insert via `lock_team_selection()` | Admin Reset | Strict UNIQUE constraint + Atomic RPC |
-| **`submissions`** | Denied | `SELECT` (Own Sub) | Insert via `submit_solution()` | Admin Reset | Storage Policy + Atomic RPC |
-| **`hackathon-ppts`** | Denied | `SELECT` (Own File) | `INSERT` (File <= 25MB) | Full Access | Supabase Storage Bucket Security Rules |
+Only the squad leader has an account; other members are rostered by name. Nobody, including admins, writes to the tables directly: every change goes through a checked function.
+
+| Table / Resource | Anonymous | Squad Leader (Owner) | Platform Admin | Enforced By |
+|---|:---:|:---:|:---:|---|
+| **`teams`** | Denied | `SELECT` (own team); registers once via `register_team()` | `SELECT` all; edit or delete via `admin_update_team()` / `admin_delete_team()` | RLS + `owner_user_id = auth.uid()` |
+| **`team_members`** | Denied | `SELECT` (own team) | `SELECT` all; edited together with the team | RLS + `enforce_team_size()` deferred trigger |
+| **`problem_catalog`** | `SELECT` | `SELECT` | `SELECT` | Public catalog policy |
+| **`team_selections`** | Denied | `SELECT` (own lock); locks once via `lock_team_selection()` | `SELECT` all; `admin_reset_selection()` | UNIQUE constraint + atomic RPC |
+| **`submissions`** | Denied | `SELECT` (own submission); submits once via `submit_solution()` | `SELECT` all; `admin_reset_submission()` | UNIQUE constraint + atomic RPC |
+| **`admins`** | Denied | Denied | Denied (checked via `is_admin()` only) | RLS with no policies |
 
 > [!IMPORTANT]
 > **Database-Enforced Squad Size**: Unlike naive forms that validate in JavaScript, Chakravyuh enforces the **2 to 4 member rule** directly within PostgreSQL using a deferred constraint trigger (`enforce_team_size`). Any transaction violating this boundary is immediately rolled back by the database engine.
@@ -291,10 +286,11 @@ erDiagram
 
 ## 🎨 Interactive UI & 3D Engineering Showcase
 
-### 1. Dual-Engine Chakravyuh Wheel
-- **Geometric 2D Wheel**: 7 concentric SVG labyrinth rings featuring shortest-path angular math. Clicking any gate smoothly spins the wheel clockwise or counter-clockwise across the shortest angular distance, aligning the selected gateway precisely to the 12 o'clock portal position.
-- **Three.js WebGL Arena**: Procedural 3D models for each gate (`buildCyberGate`, `buildSpaceGate`, `buildQuantumGate`, `buildFintechGate`, `buildEnergyGate`), lit by simulated HDRI `RoomEnvironment`, responsive to orbit controls and mouse gestures.
-- **Accessibility First**: Respects `prefers-reduced-motion` to smoothly disable rotations for sensitive users without degrading functionality.
+### 1. CAD-Style 3D Gate Models
+- **Five procedural Three.js models** (`buildCyberGate`, `buildSpaceGate`, `buildQuantumGate`, `buildFintechGate`, `buildEnergyGate` in `src/components/gateModels.ts`): a 42U server rack with a padlock and hash-linked blocks, a communications satellite with a parabolic dish and sun-tracking solar arrays, a dilution refrigerator with its stage temperatures, a payment phone with EMV cards and a market chart, and wind turbines with airfoil blades and a solar and battery site.
+- **Drafting look**: crisp feature-edge outlines on every solid, a ground grid, and boxed callout labels (shown on the single-model view, hidden in the small formation view).
+- **Alive**: turbine rotors and the anemometer spin, and the satellite arrays rotate slowly. Lit by a simulated HDRI `RoomEnvironment`, and responsive to orbit controls and touch gestures.
+- **Accessibility**: respects `prefers-reduced-motion` in the page animations.
 
 ### 2. Strict Two-Step Confirmation Modal
 Accidental clicks are lethal in hackathons. Selecting a problem triggers a high-visibility modal requiring:
@@ -304,9 +300,8 @@ Accidental clicks are lethal in hackathons. Selecting a problem triggers a high-
 
 ### 3. Golden Sealed Submission Receipt
 Upon solution submission:
-- Generates a gilded receipt ticket featuring team metadata, timestamp, GitHub repository link, and storage receipt ID.
+- Generates a gilded receipt ticket featuring the squad roster, bound challenge, timestamp, and the GitHub repository and live-site links.
 - Automatically triggers a canvas-confetti particle cascade.
-- Displays download / print options for team record-keeping.
 
 ---
 
@@ -319,22 +314,19 @@ sequenceDiagram
     autonumber
     actor Team as Squad Leader
     participant App as Chakravyuh Portal
-    participant Store as Supabase Storage
     participant DB as PostgreSQL DB
     participant Edge as Deno Edge Function
     participant Google as Google Sheets API v4
 
-    Team->>App: Drops 25MB PPTX & GitHub URL
-    App->>Store: Uploads file to "hackathon-ppts"
-    Store-->>App: Storage object path returned
-    App->>DB: CALL submit_solution(team_id, github, ppt_url)
+    Team->>App: Enters GitHub URL & live site URL
+    App->>DB: CALL submit_solution(github_url, deployed_url)
     DB-->>App: Success receipt generated
     App->>Edge: Trigger sync-sheets(submissionId, teamId)
     Edge->>Edge: Generate RS256 JWT using Google Service Account
     Edge->>Google: OAuth2 Token Exchange
     Google-->>Edge: Bearer Access Token
     Edge->>Google: Read existing rows (Duplicate check)
-    Edge->>Google: Append row [Timestamp, Team, Leader, Members, Track, Problem, PPT, GitHub]
+    Edge->>Google: Append row [Timestamp, Team, Leader, Members, Track, Problem, Live URL, GitHub]
     Google-->>Edge: 200 OK (Row appended)
     Edge-->>App: Sync status confirmed
 ```
@@ -353,8 +345,8 @@ sequenceDiagram
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/chakravyuh-portal.git
-cd chakravyuh-portal/Chakravyuh-hackathon
+git clone https://github.com/Ramcharanvinay/Chakravyuh-hackathon.git
+cd Chakravyuh-hackathon
 
 # Install exact dependencies
 npm install
@@ -377,11 +369,9 @@ Fill in your configuration credentials:
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-or-publishable-key
 
-# ------------------------------------------------------------------------------
-# SPLINE 3D SCENE (OPTIONAL)
-# ------------------------------------------------------------------------------
-VITE_SPLINE_SCENE_URL=https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode
 ```
+
+Use the **publishable** (or legacy anon) key only. Never put the secret / service_role key in this file. Without these two variables the site shows a "Registration service not connected" screen.
 
 ### 3. Initialize Database Schema
 
@@ -401,7 +391,17 @@ SELECT id, email FROM auth.users WHERE email = 'admin@vitap.ac.in'
 ON CONFLICT (user_id) DO NOTHING;
 ```
 
-### 5. Launch Development Server
+### 5. Configure Authentication (Supabase Dashboard)
+
+- **Authentication &rarr; URL Configuration**: set **Site URL** to your live address (`https://chakravyuh-sigma.vercel.app`) and add `/login` and `/reset-password` on that address, plus the same two on `http://localhost:5173`, to **Redirect URLs**. Password reset and confirmation emails depend on this.
+- **Authentication &rarr; Providers &rarr; Email**: turn **Confirm email** off so squads exist the moment they register. If you keep it on, registration still works (the squad is created at the first sign-in after confirming), but Supabase's built-in email sender allows only a few emails per hour, so use a custom SMTP provider for a real event.
+- Participants sign in with **email + passcode (6+ characters)**; "Forgot passcode?" emails a reset link to `/reset-password`.
+
+### 6. Deploy (Vercel)
+
+Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` under **Project Settings &rarr; Environment Variables** (Production) and **redeploy**. The values are baked in at build time, so saving them alone changes nothing.
+
+### 7. Launch Development Server
 
 ```bash
 npm run dev
@@ -417,25 +417,24 @@ The administrative console is located at `/admin` (deliberately unlinked from pu
 
 ```
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ CHAKRAVYUH ADMIN CONSOLE                                          [STATUS: ONLINE]  ║
+║ CHAKRAVYUH ADMIN CONSOLE                              [REFRESH] [EXPORT CSV] [SIGN OUT]║
 ╠══════════════════════════════════════════════════════════════════════════════════════╣
-║ TOTAL SQUADS: 142  │  LOCKED CHOICES: 128  │  SUBMISSIONS: 94  │  ARENA: ACTIVE      ║
+║ TEAMS REGISTERED │ PEOPLE REGISTERED │ PROBLEMS LOCKED │ SUBMISSIONS │ TEAM SIZE 2-4  ║
+║ TEAM SIZE BARS   │ TEAMS PER TRACK   │ REGISTRATIONS, LAST 14 DAYS                    ║
 ╠══════════════════════════════════════════════════════════════════════════════════════╣
-║ [ SEARCH TEAMS ] [ FILTER BY TRACK: ALL ▼ ] [ EXPORT CSV ] [ SYNC GOOGLE SHEETS ]  ║
+║ [ SEARCH ] [ ALL | REGISTERED | LOCKED | SUBMITTED ] [ ANY SIZE v ]                  ║
 ║                                                                                      ║
-║  ID   │ SQUAD NAME      │ TRACK    │ PROBLEM │ PPT   │ GITHUB │ ACTIONS              ║
-║ ──────┼─────────────────┼──────────┼─────────┼───────┼────────┼────────────────────  ║
-║ #0104 │ CyberSentinels  │ AGNI     │ CB-01   │ [PPT] │ [REPO] │ [Edit] [Reset Lock]  ║
-║ #0105 │ OrbitalPioneers │ VAYU     │ ST-04   │ [PPT] │ [REPO] │ [Edit] [Reset Lock]  ║
-║ #0106 │ QuantumCore     │ VAJRA    │ QC-07   │ [PPT] │ [REPO] │ [Edit] [Reset Lock]  ║
+║ TEAM            │ LEADER         │ SIZE │ TRACK · PROBLEM    │ STATUS     │ REGISTERED ║
+║ ────────────────┼────────────────┼──────┼────────────────────┼────────────┼─────────── ║
+║ Squad name      │ Name · reg no  │  3   │ Track · CB-01 ...  │ SUBMITTED  │ [ EDIT ]   ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 ```
 
 ### Admin Capabilities:
 - **Real-Time Telemetry**: Aggregated counts of registered squads, locked problems, submissions, and track distribution.
-- **Roster Management**: Edit squad names, update member emails, reassign positions, or remove invalid squads.
-- **Lock & Submission Resets**: Clear accidental problem locks or allow a squad to re-submit presentation files.
-- **CSV & Sheet Export**: One-click export of complete hackathon roster with direct download links for jury members.
+- **Roster Management**: The only way a squad can change after registering. Edit the squad name, leader details and members (always kept at 2 to 4 people), or delete a squad.
+- **Lock & Submission Resets**: Clear an accidental problem lock or let a squad submit again.
+- **Search, Filter & CSV Export**: Find squads by name, leader, email or member, filter by status or size, and export the filtered roster (with GitHub and live-site links) as CSV. Works on phones too, and the list is paged for large events.
 
 ---
 
@@ -455,9 +454,10 @@ chakravyuh-portal/
 │   │   ├── cultural-backgrounds/         # Agni, Vayu, Vajra, Surya, Vanam GPU backdrops
 │   │   ├── landing/                      # Hero, Tracks, Rules, Prizes, Sponsors, Venue
 │   │   ├── navigation/                   # Tactical PillNav floating navigation bar
-│   │   ├── ChakravyuhWheel.tsx           # 2D concentric 7-ring shortest-path SVG engine
-│   │   ├── ChakravyuhWheel3D.tsx         # Three.js WebGL procedural gate scene
-│   │   ├── SplineChakravyuh.tsx          # Spline 3D viewport fallback wrapper
+│   │   ├── ChakravyuhWheel3D.tsx         # Three.js scene: formation + single-model views
+│   │   ├── gateModels.ts                 # The five CAD-style gate models and their callouts
+│   │   ├── ChakravyuhWheel.tsx           # Legacy 2D rings wheel (not used by any page)
+│   │   ├── SplineChakravyuh.tsx          # Legacy Spline wrapper (not used by any page)
 │   │   ├── ConfirmationModal.tsx         # Strict 2-step immutable lock dialog
 │   │   ├── SubmissionReceipt.tsx         # Sealed golden certificate with confetti blast
 │   │   └── ProgressSteps.tsx             # Breadcrumb arena state indicator
@@ -471,11 +471,11 @@ chakravyuh-portal/
 │   │   └── teamRules.ts                  # Pure functional roster validation (2-4 squad)
 │   ├── pages/                            # Top-level view routes
 │   │   ├── LandingPage.tsx               # Grand entrance & public event information
-│   │   ├── LoginPage.tsx                 # Team registration & authentication portal
-│   │   ├── TrackSelectionPage.tsx        # 7-ring concentric gateway navigation
+│   │   ├── LoginPage.tsx                 # Squad registration, sign-in & forgot-passcode
+│   │   ├── TrackSelectionPage.tsx        # Track selection with the 3D gate models
 │   │   ├── ThemeDetailPage.tsx           # Deep dive into individual gate specifications
 │   │   ├── ProblemSelectionPage.tsx      # 50 problem dossiers & atomic lock trigger
-│   │   ├── SubmissionPage.tsx            # Inner Chamber PPT upload & GitHub commit
+│   │   ├── SubmissionPage.tsx            # Inner Chamber: GitHub + live URL submission
 │   │   ├── AdminPage.tsx                 # Unlinked organizer command center
 │   │   └── ResetPasswordPage.tsx         # Auth recovery endpoint
 │   ├── types/
