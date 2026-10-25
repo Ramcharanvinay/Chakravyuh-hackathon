@@ -13,7 +13,7 @@ const ruleCategories: RuleCategory[] = [
     title: 'Eligibility & Registration',
     rules: [
       'Open to all actively enrolled undergraduate and postgraduate students from recognized colleges and universities across India.',
-      'Registration must be completed through the official portal before the announced deadline.',
+      'Registration must be completed through the official Unstop page before the announced deadline.',
       'Each participant may belong to only one squad; duplicate registrations will result in squad disqualification.',
     ],
   },
@@ -21,18 +21,18 @@ const ruleCategories: RuleCategory[] = [
     id: 'teams',
     title: 'Squad Formation & Participation',
     rules: [
-      'Squad size: 1 to 4 members per team.',
+      'Squad size: 2 to 4 members per team.',
       'Inter-college team formations are fully permitted with valid student identification from each participant.',
       'Each squad must nominate one Team Leader responsible for official submissions, check-ins, and communications.',
     ],
   },
   {
     id: 'tracks',
-    title: 'Track & Problem Statement Locking',
+    title: 'Track & Problem Statement Selection',
     rules: [
-      'Each squad must select and lock exactly one challenge statement from their chosen battle track.',
-      'Once a challenge statement is locked within the Chakravyuh portal, the choice is immutable and cannot be altered.',
-      'Teams must formulate and develop solutions aligned directly with their committed challenge brief.',
+      'Each squad chooses exactly one challenge statement from their chosen battle track and builds against it.',
+      'Squads communicate their choice to the organizers through the official form shared during the event.',
+      'Teams must formulate and develop solutions aligned directly with their chosen challenge brief.',
     ],
   },
   {
@@ -50,7 +50,7 @@ const ruleCategories: RuleCategory[] = [
     rules: [
       'Final submission must include a functioning prototype, architecture presentation deck (max 25MB), and public repository.',
       'A recorded video walk-through or deployment URL must accompany technical repository links.',
-      'The submission portal will close strictly at the designated deadline with zero tolerance for late submissions.',
+      'Submissions close strictly at the designated deadline with zero tolerance for late submissions.',
     ],
   },
   {

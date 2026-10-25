@@ -4,9 +4,9 @@ import { ShieldCheck, Cpu, Target, Layers, GitBranch } from 'lucide-react';
 const pillars = [
   {
     step: '01',
-    title: 'IMMUTABLE SELECTION',
-    subtitle: 'Track & Problem Statement Lock',
-    desc: 'Select from 50 high-stakes challenges across 5 battle tracks. Once your squad locks the challenge in the portal, the choice is immutable. Direct focus, zero hesitation.',
+    title: 'CHOOSE YOUR CHALLENGE',
+    subtitle: 'Track & Problem Statement Selection',
+    desc: 'Read all 50 high-stakes challenges across 5 battle tracks and pick the one your squad wants to build. Your choice is yours alone, so take your time, then commit with focus and zero hesitation.',
     icon: Target,
     tag: 'TACTICAL INITIATION',
   },

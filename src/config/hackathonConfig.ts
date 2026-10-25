@@ -15,6 +15,8 @@ export interface HackathonConfig {
     hackathonEnd: string;
   };
   contactEmail: string;
+  /** Google Form where teams tell the organizers which problem they picked. Empty = button hidden. */
+  choiceFormUrl: string;
   tracks: Track[];
   problemStatements: ProblemStatement[];
 }
@@ -34,6 +36,8 @@ export const HACKATHON_CONFIG: HackathonConfig = {
     hackathonEnd: "2026-11-22T18:00:00Z",
   },
   contactEmail: "hackathon@vitap.ac.in",
+  // Paste your Google Form link here, or set VITE_CHOICE_FORM_URL in the hosting environment.
+  choiceFormUrl: import.meta.env.VITE_CHOICE_FORM_URL || "",
   
   tracks: [
     {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronRight } from 'lucide-react';
+import { HACKATHON_CONFIG } from '../../config/hackathonConfig';
 
 const navLinks = [
   { label: 'Overview', href: '#hero' },
@@ -101,14 +102,18 @@ export const LandingNavbar: React.FC = () => {
               ))}
             </nav>
 
-            {/* Right: Enter Arena CTA + Squad Login + Mobile Toggle */}
+            {/* Right: Enter Arena CTA + optional choice form + Mobile Toggle */}
             <div className="flex items-center gap-2 sm:gap-3.5">
-              <button
-                onClick={() => navigate('/login')}
-                className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-white/[0.12] bg-[#12141C] text-zinc-300 hover:text-white hover:bg-white/[0.06] font-mono text-xs uppercase tracking-wider font-semibold transition-all cursor-pointer"
-              >
-                <span>SQUAD LOGIN</span>
-              </button>
+              {HACKATHON_CONFIG.choiceFormUrl && (
+                <a
+                  href={HACKATHON_CONFIG.choiceFormUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-white/[0.12] bg-[#12141C] text-zinc-300 hover:text-white hover:bg-white/[0.06] font-mono text-xs uppercase tracking-wider font-semibold transition-all"
+                >
+                  <span>SUBMIT YOUR CHOICE</span>
+                </a>
+              )}
 
               <button
                 onClick={() => navigate('/tracks')}
@@ -153,15 +158,17 @@ export const LandingNavbar: React.FC = () => {
             ))}
 
             <div className="pt-4 space-y-2.5">
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  navigate('/login');
-                }}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-white/[0.15] bg-[#12141C] text-white font-mono text-xs uppercase tracking-[0.18em] font-bold"
-              >
-                <span>SQUAD LOGIN</span>
-              </button>
+              {HACKATHON_CONFIG.choiceFormUrl && (
+                <a
+                  href={HACKATHON_CONFIG.choiceFormUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-white/[0.15] bg-[#12141C] text-white font-mono text-xs uppercase tracking-[0.18em] font-bold"
+                >
+                  <span>SUBMIT YOUR CHOICE</span>
+                </a>
+              )}
 
               <button
                 onClick={() => {
